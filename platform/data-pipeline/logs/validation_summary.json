@@ -1,0 +1,60 @@
+{
+  "player_uid": {
+    "column": "player_uid",
+    "present": true,
+    "total": 47623,
+    "unique": 47623,
+    "duplicates": 0
+  },
+  "country_uid": {
+    "column": "country_uid",
+    "present": true,
+    "total": 333,
+    "unique": 57,
+    "duplicates": 276
+  },
+  "club_uid": {
+    "column": "club_uid",
+    "present": true,
+    "total": 47623,
+    "unique": 0,
+    "duplicates": 47622
+  },
+  "player_confidence": {
+    "column": "confidence_score",
+    "present": true,
+    "count": 47623,
+    "out_of_range": 0
+  },
+  "country_confidence": {
+    "column": "confidence_score",
+    "present": true,
+    "count": 333,
+    "out_of_range": 0
+  },
+  "country_normalization": {
+    "duplicates_after_normalization": 275,
+    "distinct_normalized": 58,
+    "original_count": 333
+  },
+  "processed_loads": {
+    "player_form.csv": true,
+    "country_strength.csv": true,
+    "squad_aggregates.csv": true,
+    "feature_lineage.json": true
+  },
+  "database": {
+    "db_exists": true,
+    "tables": {
+      "pipeline_metadata": 0,
+      "sqlite_sequence": 0,
+      "master_players": 47623,
+      "players": 47623,
+      "master_countries": 333,
+      "countries": 333,
+      "player_form": 47623,
+      "country_strength": 333,
+      "squad_aggregates": 197
+    }
+  }
+}

@@ -1,0 +1,34 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.pyc
+__pycache__/
+*.pyo
+.env
+.env.local
+.env.production
+*.egg-info/
+.eggs/
+model_cache/
+*.log
+.DS_Store
+Thumbs.db
+postgres_data/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+
+# Ignore pipeline database and large processed artifacts
+platform/data/processed/football_intelligence.db
+platform/data/processed/*.db
+platform/data/processed/*.sqlite
+
+# Large exports and caches
+*.zip
+*.tar.gz
+exported_*.csv

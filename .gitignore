@@ -1,0 +1,15 @@
+# Top-level ignores for the FIFA WC project
+node_modules/
+dist/
+build/
+*.pyc
+__pycache__/
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+*.log
+exported_*.csv
+platform/data/processed/football_intelligence.db
+platform/data/processed/*.db
+platform/data/processed/*.sqlite
