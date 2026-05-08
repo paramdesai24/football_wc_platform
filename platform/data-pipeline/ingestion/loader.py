@@ -23,6 +23,24 @@ def load_csv(file_path: Path, **kwargs) -> Optional[pd.DataFrame]:
         logger.info(f"✓ Loaded {file_path.name}: {len(df)} rows, {len(df.columns)} columns")
         return df
     except Exception as e:
+        # Fallback for very large or irregular CSVs that can fail with C parser OOM/tokenization.
+        message = str(e).lower()
+        if "out of memory" in message or "error tokenizing data" in message:
+            try:
+                logger.warning(
+                    f"Primary CSV read failed for {file_path.name}; retrying with python engine"
+                )
+                fallback_kwargs = {"engine": "python", "on_bad_lines": "skip"}
+                fallback_kwargs.update(kwargs)
+                df = pd.read_csv(file_path, **fallback_kwargs)
+                logger.info(
+                    f"✓ Loaded {file_path.name} with fallback parser: {len(df)} rows, {len(df.columns)} columns"
+                )
+                return df
+            except Exception as fallback_error:
+                logger.error(f"Fallback load failed for {file_path}: {fallback_error}")
+                return None
+
         logger.error(f"Failed to load {file_path}: {e}")
         return None
 

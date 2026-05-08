@@ -79,16 +79,22 @@ def main():
         squad_aggregates if squad_aggregates is not None else pd.DataFrame(),
     )
 
-    # Also copy pipeline processed outputs to project-level data/processed for compatibility
+    # Copy outputs only when source and target folders differ.
     try:
-        project_dir.mkdir(parents=True, exist_ok=True)
-        for f in pipeline_dir.glob("*"):
-            if not f.is_file():
-                continue
-            if f.suffix.lower() not in {".csv", ".json"}:
-                continue
-            shutil.copy2(f, project_dir / f.name)
-        logger.info(f"Copied processed artifacts to {project_dir}")
+        if pipeline_dir.resolve() == project_dir.resolve():
+            logger.info("Processed source and target are identical; skipping compatibility copy")
+        else:
+            project_dir.mkdir(parents=True, exist_ok=True)
+            for f in pipeline_dir.glob("*"):
+                if not f.is_file():
+                    continue
+                if f.suffix.lower() not in {".csv", ".json"}:
+                    continue
+                target = project_dir / f.name
+                if f.resolve() == target.resolve():
+                    continue
+                shutil.copy2(f, target)
+            logger.info(f"Copied processed artifacts to {project_dir}")
     except Exception as e:
         logger.error(f"Failed to copy processed CSVs: {e}")
 
