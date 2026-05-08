@@ -35,6 +35,20 @@ def main():
     # Prefer the engineered master files if they exist; otherwise fall back to staged intermediates.
     master_players = read_first_existing("master_players.csv", "cleaned_players.csv")
     master_countries = read_first_existing("master_countries.csv", "country_aggregates.csv", "country_stats.csv")
+    
+    # Consolidate master_countries by country_uid to eliminate duplicates
+    if not master_countries.empty and "country_uid" in master_countries.columns:
+        def agg_func(series):
+            if series.dtype == 'object' or series.dtype == 'string':
+                # For strings, take the first non-null value
+                return series.dropna().iloc[0] if not series.dropna().empty else None
+            else:
+                # For numeric, take the mean
+                numeric = pd.to_numeric(series, errors='coerce')
+                return numeric.mean() if not numeric.isna().all() else None
+        
+        master_countries = master_countries.groupby("country_uid", as_index=False).agg(agg_func)
+        logger.info(f"Consolidated master_countries to {len(master_countries)} unique countries by country_uid")
 
     form_base = read_first_existing("player_form.csv", "player_per90.csv")
     player_form_scores = read_first_existing("player_form_scores.csv")

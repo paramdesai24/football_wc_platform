@@ -36,10 +36,34 @@ def _build_player_ids(players: pd.DataFrame) -> pd.DataFrame:
     working = players.copy()
     working["country"] = working.get("country_of_citizenship", working.get("country", pd.Series(index=working.index))).apply(canonicalize_country)
     working["country_uid"] = working["country"].apply(lambda value: f"C_{get_country_iso2(value) or _stable_uid('C', value)[:6]}")
-    if "club" in working.columns:
-        working["club_uid"] = working["club"].apply(lambda value: _stable_uid("CL", canonicalize_club(value) or value or "unknown"))
-    else:
-        working["club_uid"] = None
+    
+    # Generate stable club_uid for each player
+    def _make_club_uid(row):
+        # Try multiple club ID sources for explicit numeric ID
+        for id_col in ["club_id", "current_club_id", "club_id_transfermarket"]:
+            if id_col in row and pd.notna(row[id_col]):
+                try:
+                    cid = int(row[id_col])
+                    if cid > 0:
+                        return f"CL_{cid}"
+                except (ValueError, TypeError):
+                    pass
+        
+        # Try multiple club name sources
+        club_name = None
+        for name_col in ["current_club_name", "club", "club_name"]:
+            if name_col in row and pd.notna(row[name_col]):
+                club_name = str(row[name_col]).strip()
+                if club_name:
+                    break
+        
+        # Generate stable UID from club name or fallback
+        if club_name:
+            canonical_name = canonicalize_club(club_name)
+            return _stable_uid("CL", canonical_name or club_name)
+        return _stable_uid("CL", "unknown_club")
+    
+    working["club_uid"] = working.apply(_make_club_uid, axis=1)
     working["player_uid"] = working.apply(
         lambda row: f"P_{row['player_id']}_{row['country_uid'] if pd.notna(row['country_uid']) else _stable_uid('C', row.get('country', 'unknown'))}",
         axis=1,
