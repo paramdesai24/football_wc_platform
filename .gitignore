@@ -1,3 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+.env
+.venv/
+venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Pytest cache
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build / distribution
+dist/
+build/
+*.egg-info/
+
+# Database / sqlite
+*.db
+*.sqlite
+football_intelligence.db
+
+# Large data outputs (processed data)
+platform/data/processed/
+DATA/processed/
+data/processed/
+
+# logs
+logs/
+*.log
+
+# Cache
+.cache/
+
+# Coverage
+.coverage
+coverage.xml
+
+# Secrets
+*.pem
+*.key
+.credentials
 # Top-level ignores for the FIFA WC project
 node_modules/
 dist/
