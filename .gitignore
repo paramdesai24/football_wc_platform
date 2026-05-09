@@ -50,12 +50,18 @@ Thumbs.db
 *.sqlite
 *.db
 platform/data/processed/*.db
+DATA/
+platform/data/raw/
+platform/data/processed/*.csv
+platform/data/processed/*.json
+platform/data/processed/*.db
 
 # Jupyter
 .ipynb_checkpoints/
 
 # Logs
 logs/
+platform/data-pipeline/logs/
 *.log
 
 # Archives
