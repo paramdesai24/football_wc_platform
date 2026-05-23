@@ -1,0 +1,49 @@
+group,pot,country_uid,country_name,confederation,fifa_ranking
+A,1,C_MX,Mexico,CONCACAF,15
+A,2,C_KR,South Korea,AFC,23
+A,3,C_ZA,South Africa,CAF,58
+A,4,C_CZ,Czech Republic,UEFA,36
+B,1,C_CA,Canada,CONCACAF,33
+B,2,C_CH,Switzerland,UEFA,19
+B,3,C_QA,Qatar,AFC,35
+B,4,C_BA,Bosnia and Herzegovina,UEFA,59
+C,1,C_BR,Brazil,CONMEBOL,5
+C,2,C_MA,Morocco,CAF,14
+C,3,C_SC,Scotland,UEFA,42
+C,4,C_HT,Haiti,CONCACAF,81
+D,1,C_US,United States,CONCACAF,12
+D,2,C_AU,Australia,AFC,24
+D,3,C_PY,Paraguay,CONMEBOL,46
+D,4,C_TR,Turkey,UEFA,38
+E,1,C_DE,Germany,UEFA,3
+E,2,C_CI,Ivory Coast,CAF,39
+E,3,C_EC,Ecuador,CONMEBOL,30
+E,4,C_CW,Curacao,CONCACAF,83
+F,1,C_NL,Netherlands,UEFA,7
+F,2,C_JP,Japan,AFC,16
+F,3,C_TN,Tunisia,CAF,40
+F,4,C_SE,Sweden,UEFA,47
+G,1,C_BE,Belgium,UEFA,6
+G,2,C_IR,Iran,AFC,20
+G,3,C_EG,Egypt,CAF,37
+G,4,C_NZ,New Zealand,OFC,93
+H,1,C_ES,Spain,UEFA,1
+H,2,C_UY,Uruguay,CONMEBOL,11
+H,3,C_SA,Saudi Arabia,AFC,57
+H,4,C_CV,Cape Verde,CAF,72
+I,1,C_FR,France,UEFA,2
+I,2,C_SN,Senegal,CAF,21
+I,3,C_NO,Norway,UEFA,43
+I,4,C_IQ,Iraq,AFC,55
+J,1,C_AR,Argentina,CONMEBOL,4
+J,2,C_CO,Colombia,CONMEBOL,10
+J,3,C_GH,Ghana,CAF,64
+J,4,C_UZ,Uzbekistan,AFC,62
+K,1,C_PT,Portugal,UEFA,8
+K,2,C_HR,Croatia,UEFA,13
+K,3,C_DZ,Algeria,CAF,34
+K,4,C_HN,Honduras,CONCACAF,75
+L,1,C_EN,England,UEFA,9
+L,2,C_DK,Denmark,UEFA,17
+L,3,C_NG,Nigeria,CAF,32
+L,4,C_CR,Costa Rica,CONCACAF,48

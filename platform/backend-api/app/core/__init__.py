@@ -1,2 +1,2 @@
-from app.core.config import settings
-from app.core.database import Base, get_db, init_db
+# Lazy imports to avoid circular import deadlock
+# Import from submodules directly: from app.core.config import settings

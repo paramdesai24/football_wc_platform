@@ -1,1 +1,1 @@
-export { StatCard, StatRow } from "./StatCard";
+export { StatCard } from "./StatCard";

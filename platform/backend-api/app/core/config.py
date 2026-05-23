@@ -31,7 +31,8 @@ class Settings(BaseSettings):
     DATA_DIR: str = str(PROJECT_ROOT.parent.parent / "DATA")
 
     class Config:
-        env_file = ".env"
+        # Disabled env_file to prevent hang during import
+        # env_file = ".env"
         case_sensitive = True
 
 

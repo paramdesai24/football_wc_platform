@@ -1,20 +1,19 @@
 export const ROUTES = {
   HOME: "/",
-  COUNTRY_RANKINGS: "/country-rankings",
-  MATCH_PREDICTOR: "/match-predictor",
-  TOURNAMENT_SIMULATOR: "/tournament-simulator",
-  PLAYER_ANALYTICS: "/player-analytics",
-  TEAM_ANALYTICS: "/team-analytics",
   PREDICTIONS: "/predictions",
+  RANKINGS: "/rankings",
+  TEAM_ANALYTICS: "/analytics",
+  TOURNAMENT_SIMULATOR: "/tournament",
+  PLAY_AS_TEAM: "/play-as-team",
   NOT_FOUND: "*",
 } as const;
 
+/** Sidebar nav — mirrors the Streamlit sidebar exactly */
 export const NAV_ITEMS = [
-  { label: "Dashboard", path: ROUTES.HOME },
-  { label: "Country Rankings", path: ROUTES.COUNTRY_RANKINGS },
-  { label: "Match Predictor", path: ROUTES.MATCH_PREDICTOR },
-  { label: "Tournament Simulator", path: ROUTES.TOURNAMENT_SIMULATOR },
-  { label: "Player Analytics", path: ROUTES.PLAYER_ANALYTICS },
-  { label: "Team Analytics", path: ROUTES.TEAM_ANALYTICS },
-  { label: "Predictions", path: ROUTES.PREDICTIONS },
+  { label: "Dashboard", path: ROUTES.HOME, icon: "dashboard" },
+  { label: "Predictions", path: ROUTES.PREDICTIONS, icon: "target" },
+  { label: "Rankings", path: ROUTES.RANKINGS, icon: "leaderboard" },
+  { label: "Analytics", path: ROUTES.TEAM_ANALYTICS, icon: "analytics" },
+  { label: "Tournament", path: ROUTES.TOURNAMENT_SIMULATOR, icon: "emoji_events" },
+  { label: "Play As A Team", path: ROUTES.PLAY_AS_TEAM, icon: "sports_esports" },
 ] as const;

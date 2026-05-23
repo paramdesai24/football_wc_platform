@@ -1,0 +1,73 @@
+match_id,group,matchday,home_team,away_team,stadium,city,stage
+GS-001,A,1,Mexico,South Africa,Estadio Azteca,Mexico City,group
+GS-002,A,1,South Korea,Czech Republic,Estadio Akron,Guadalajara,group
+GS-003,A,2,Mexico,Czech Republic,Estadio Azteca,Mexico City,group
+GS-004,A,2,South Africa,South Korea,Estadio Akron,Guadalajara,group
+GS-005,A,3,Czech Republic,Mexico,Estadio Azteca,Mexico City,group
+GS-006,A,3,South Korea,South Africa,Estadio Akron,Guadalajara,group
+GS-007,B,1,Canada,Qatar,BMO Field,Toronto,group
+GS-008,B,1,Switzerland,Bosnia and Herzegovina,BC Place,Vancouver,group
+GS-009,B,2,Canada,Bosnia and Herzegovina,BMO Field,Toronto,group
+GS-010,B,2,Qatar,Switzerland,BC Place,Vancouver,group
+GS-011,B,3,Bosnia and Herzegovina,Canada,BMO Field,Toronto,group
+GS-012,B,3,Switzerland,Qatar,BC Place,Vancouver,group
+GS-013,C,1,Brazil,Scotland,MetLife Stadium,East Rutherford,group
+GS-014,C,1,Morocco,Haiti,Hard Rock Stadium,Miami,group
+GS-015,C,2,Brazil,Haiti,MetLife Stadium,East Rutherford,group
+GS-016,C,2,Scotland,Morocco,Hard Rock Stadium,Miami,group
+GS-017,C,3,Haiti,Brazil,MetLife Stadium,East Rutherford,group
+GS-018,C,3,Morocco,Scotland,Hard Rock Stadium,Miami,group
+GS-019,D,1,United States,Paraguay,AT&T Stadium,Dallas,group
+GS-020,D,1,Australia,Turkey,NRG Stadium,Houston,group
+GS-021,D,2,United States,Turkey,AT&T Stadium,Dallas,group
+GS-022,D,2,Paraguay,Australia,NRG Stadium,Houston,group
+GS-023,D,3,Turkey,United States,AT&T Stadium,Dallas,group
+GS-024,D,3,Australia,Paraguay,NRG Stadium,Houston,group
+GS-025,E,1,Germany,Ecuador,Mercedes-Benz Stadium,Atlanta,group
+GS-026,E,1,Ivory Coast,Curacao,Lincoln Financial Field,Philadelphia,group
+GS-027,E,2,Germany,Curacao,Mercedes-Benz Stadium,Atlanta,group
+GS-028,E,2,Ecuador,Ivory Coast,Lincoln Financial Field,Philadelphia,group
+GS-029,E,3,Curacao,Germany,Mercedes-Benz Stadium,Atlanta,group
+GS-030,E,3,Ivory Coast,Ecuador,Lincoln Financial Field,Philadelphia,group
+GS-031,F,1,Netherlands,Tunisia,Lumen Field,Seattle,group
+GS-032,F,1,Japan,Sweden,Levi's Stadium,San Francisco,group
+GS-033,F,2,Netherlands,Sweden,Lumen Field,Seattle,group
+GS-034,F,2,Tunisia,Japan,Levi's Stadium,San Francisco,group
+GS-035,F,3,Sweden,Netherlands,Lumen Field,Seattle,group
+GS-036,F,3,Japan,Tunisia,Levi's Stadium,San Francisco,group
+GS-037,G,1,Belgium,Egypt,SoFi Stadium,Los Angeles,group
+GS-038,G,1,Iran,New Zealand,Estadio BBVA,Monterrey,group
+GS-039,G,2,Belgium,New Zealand,SoFi Stadium,Los Angeles,group
+GS-040,G,2,Egypt,Iran,Estadio BBVA,Monterrey,group
+GS-041,G,3,New Zealand,Belgium,SoFi Stadium,Los Angeles,group
+GS-042,G,3,Iran,Egypt,Estadio BBVA,Monterrey,group
+GS-043,H,1,Spain,Saudi Arabia,Arrowhead Stadium,Kansas City,group
+GS-044,H,1,Uruguay,Cape Verde,Gillette Stadium,Foxborough,group
+GS-045,H,2,Spain,Cape Verde,Arrowhead Stadium,Kansas City,group
+GS-046,H,2,Saudi Arabia,Uruguay,Gillette Stadium,Foxborough,group
+GS-047,H,3,Cape Verde,Spain,Arrowhead Stadium,Kansas City,group
+GS-048,H,3,Uruguay,Saudi Arabia,Gillette Stadium,Foxborough,group
+GS-049,I,1,France,Norway,MetLife Stadium,East Rutherford,group
+GS-050,I,1,Senegal,Iraq,Mercedes-Benz Stadium,Atlanta,group
+GS-051,I,2,France,Iraq,MetLife Stadium,East Rutherford,group
+GS-052,I,2,Norway,Senegal,Mercedes-Benz Stadium,Atlanta,group
+GS-053,I,3,Iraq,France,MetLife Stadium,East Rutherford,group
+GS-054,I,3,Senegal,Norway,Mercedes-Benz Stadium,Atlanta,group
+GS-055,J,1,Argentina,Ghana,Hard Rock Stadium,Miami,group
+GS-056,J,1,Colombia,Uzbekistan,AT&T Stadium,Dallas,group
+GS-057,J,2,Argentina,Uzbekistan,Hard Rock Stadium,Miami,group
+GS-058,J,2,Ghana,Colombia,AT&T Stadium,Dallas,group
+GS-059,J,3,Uzbekistan,Argentina,Hard Rock Stadium,Miami,group
+GS-060,J,3,Colombia,Ghana,AT&T Stadium,Dallas,group
+GS-061,K,1,Portugal,Algeria,SoFi Stadium,Los Angeles,group
+GS-062,K,1,Croatia,Honduras,Lumen Field,Seattle,group
+GS-063,K,2,Portugal,Honduras,SoFi Stadium,Los Angeles,group
+GS-064,K,2,Algeria,Croatia,Lumen Field,Seattle,group
+GS-065,K,3,Honduras,Portugal,SoFi Stadium,Los Angeles,group
+GS-066,K,3,Croatia,Algeria,Lumen Field,Seattle,group
+GS-067,L,1,England,Nigeria,Gillette Stadium,Foxborough,group
+GS-068,L,1,Denmark,Costa Rica,Lincoln Financial Field,Philadelphia,group
+GS-069,L,2,England,Costa Rica,Gillette Stadium,Foxborough,group
+GS-070,L,2,Nigeria,Denmark,Lincoln Financial Field,Philadelphia,group
+GS-071,L,3,Costa Rica,England,Gillette Stadium,Foxborough,group
+GS-072,L,3,Denmark,Nigeria,Lincoln Financial Field,Philadelphia,group

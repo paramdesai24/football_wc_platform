@@ -1,0 +1,23 @@
+{
+  "passes": [
+    "48 teams in group stage",
+    "All teams are qualified",
+    "12 groups present",
+    "4 teams per group",
+    "32 teams advance to knockouts",
+    "Bracket integrity valid",
+    "No duplicate teams in R32",
+    "All match IDs 73-104 present",
+    "All knockout matches have winners",
+    "Champion is valid: Spain",
+    "R16 teams all came from R32 winners",
+    "No team plays itself",
+    "Elite teams remained stable in R32",
+    "Semifinal distribution realistic (4 elite teams)",
+    "Champion is realistic: Spain"
+  ],
+  "issues": [],
+  "total_passes": 15,
+  "total_issues": 0,
+  "champion": "Spain"
+}

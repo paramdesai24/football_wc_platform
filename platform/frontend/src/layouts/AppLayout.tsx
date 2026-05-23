@@ -1,23 +1,24 @@
-import { AnimatePresence } from "framer-motion";
-import { Outlet, useLocation } from "react-router-dom";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { PageTransition } from "@/components/layout/PageTransition";
+import { Outlet } from "react-router-dom";
+import { TopNavBar } from "@/components/layout/TopNavBar";
 
 export function AppLayout() {
-  const location = useLocation();
-
   return (
-    <>
-      <Navbar />
-      <main className="flex-1">
-        <AnimatePresence mode="wait" initial={false}>
-          <PageTransition key={location.pathname}>
-            <Outlet />
-          </PageTransition>
-        </AnimatePresence>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <TopNavBar />
+      <main style={{ flex: 1, paddingBottom: 24 }}>
+        <Outlet />
       </main>
-      <Footer />
-    </>
+      <footer
+        style={{
+          borderTop: "1px solid var(--color-border)",
+          padding: "12px 20px",
+          textAlign: "center",
+          fontSize: "0.75rem",
+          color: "var(--color-text-muted)",
+        }}
+      >
+        WC26 Intelligence Platform · Live backend intelligence · Stable runtime
+      </footer>
+    </div>
   );
 }

@@ -1,27 +1,41 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
-import { HomePage } from "@/pages/HomePage";
-import { RankingsPage } from "@/pages/RankingsPage";
-import { PredictorPage } from "@/pages/PredictorPage";
-import { SimulatorPage } from "@/pages/SimulatorPage";
-import { PlayerAnalyticsPage } from "@/pages/PlayerAnalyticsPage";
-import { TeamAnalyticsPage } from "@/pages/TeamAnalyticsPage";
-import { PredictionsPage } from "@/pages/PredictionsPage";
-import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ROUTES } from "./constants";
+
+// Lazy loading for code splitting
+import { lazy, Suspense } from "react";
+
+const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const PredictionsPage = lazy(() => import("@/pages/PredictionsPage"));
+const RankingsPage = lazy(() => import("@/pages/RankingsPage"));
+const TeamAnalyticsPage = lazy(() => import("@/pages/TeamAnalyticsPage"));
+const TournamentPage = lazy(() => import("@/pages/TournamentPage"));
+const PlayAsTeamPage = lazy(() => import("@/pages/PlayAsTeamPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+
+function Loader() {
+  return (
+    <div className="page-container" style={{ textAlign: "center", padding: "60px 0" }}>
+      <span className="spinner" />
+    </div>
+  );
+}
+
+function SuspenseWrap({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<Loader />}>{children}</Suspense>;
+}
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      { path: ROUTES.HOME, element: <HomePage /> },
-      { path: ROUTES.COUNTRY_RANKINGS, element: <RankingsPage /> },
-      { path: ROUTES.MATCH_PREDICTOR, element: <PredictorPage /> },
-      { path: ROUTES.TOURNAMENT_SIMULATOR, element: <SimulatorPage /> },
-      { path: ROUTES.PLAYER_ANALYTICS, element: <PlayerAnalyticsPage /> },
-      { path: ROUTES.TEAM_ANALYTICS, element: <TeamAnalyticsPage /> },
-      { path: ROUTES.PREDICTIONS, element: <PredictionsPage /> },
-      { path: ROUTES.NOT_FOUND, element: <NotFoundPage /> },
+      { path: ROUTES.HOME, element: <SuspenseWrap><DashboardPage /></SuspenseWrap> },
+      { path: ROUTES.PREDICTIONS, element: <SuspenseWrap><PredictionsPage /></SuspenseWrap> },
+      { path: ROUTES.RANKINGS, element: <SuspenseWrap><RankingsPage /></SuspenseWrap> },
+      { path: ROUTES.TEAM_ANALYTICS, element: <SuspenseWrap><TeamAnalyticsPage /></SuspenseWrap> },
+      { path: ROUTES.TOURNAMENT_SIMULATOR, element: <SuspenseWrap><TournamentPage /></SuspenseWrap> },
+      { path: ROUTES.PLAY_AS_TEAM, element: <SuspenseWrap><PlayAsTeamPage /></SuspenseWrap> },
+      { path: ROUTES.NOT_FOUND, element: <SuspenseWrap><NotFoundPage /></SuspenseWrap> },
     ],
   },
 ]);

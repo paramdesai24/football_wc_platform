@@ -13,10 +13,14 @@ def setup_logging() -> None:
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
+    handler._wc26_handler = True  # type: ignore[attr-defined]
 
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
-    root_logger.addHandler(handler)
+
+    # Avoid duplicate handlers when the app is reloaded by uvicorn.
+    if not any(getattr(existing, "_wc26_handler", False) for existing in root_logger.handlers):
+        root_logger.addHandler(handler)
 
     # Reduce noise from third-party loggers
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)

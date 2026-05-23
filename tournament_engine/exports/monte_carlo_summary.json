@@ -1,0 +1,579 @@
+{
+  "simulations": 200,
+  "top_champions": [
+    {
+      "team": "Spain",
+      "probability": 0.4
+    },
+    {
+      "team": "Brazil",
+      "probability": 0.205
+    },
+    {
+      "team": "Argentina",
+      "probability": 0.16
+    },
+    {
+      "team": "Germany",
+      "probability": 0.075
+    },
+    {
+      "team": "England",
+      "probability": 0.07
+    },
+    {
+      "team": "France",
+      "probability": 0.065
+    },
+    {
+      "team": "Netherlands",
+      "probability": 0.005
+    },
+    {
+      "team": "Croatia",
+      "probability": 0.005
+    },
+    {
+      "team": "Switzerland",
+      "probability": 0.005
+    },
+    {
+      "team": "Iran",
+      "probability": 0.005
+    },
+    {
+      "team": "Portugal",
+      "probability": 0.005
+    }
+  ],
+  "all_probabilities": {
+    "Mexico": {
+      "team": "Mexico",
+      "group_advance_prob": 0.78,
+      "group_exit_prob": 0.22,
+      "r32_prob": 0.78,
+      "r16_prob": 0.44,
+      "qf_prob": 0.115,
+      "sf_prob": 0.02,
+      "final_prob": 0.01,
+      "champion_prob": 0.0
+    },
+    "South Africa": {
+      "team": "South Africa",
+      "group_advance_prob": 0.51,
+      "group_exit_prob": 0.49,
+      "r32_prob": 0.505,
+      "r16_prob": 0.185,
+      "qf_prob": 0.02,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "South Korea": {
+      "team": "South Korea",
+      "group_advance_prob": 0.84,
+      "group_exit_prob": 0.16,
+      "r32_prob": 0.845,
+      "r16_prob": 0.535,
+      "qf_prob": 0.24,
+      "sf_prob": 0.02,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Czech Republic": {
+      "team": "Czech Republic",
+      "group_advance_prob": 0.6,
+      "group_exit_prob": 0.4,
+      "r32_prob": 0.6,
+      "r16_prob": 0.27,
+      "qf_prob": 0.08,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Canada": {
+      "team": "Canada",
+      "group_advance_prob": 0.68,
+      "group_exit_prob": 0.32,
+      "r32_prob": 0.685,
+      "r16_prob": 0.21,
+      "qf_prob": 0.05,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Switzerland": {
+      "team": "Switzerland",
+      "group_advance_prob": 0.965,
+      "group_exit_prob": 0.035,
+      "r32_prob": 0.965,
+      "r16_prob": 0.52,
+      "qf_prob": 0.135,
+      "sf_prob": 0.04,
+      "final_prob": 0.005,
+      "champion_prob": 0.005
+    },
+    "Qatar": {
+      "team": "Qatar",
+      "group_advance_prob": 0.265,
+      "group_exit_prob": 0.735,
+      "r32_prob": 0.26,
+      "r16_prob": 0.035,
+      "qf_prob": 0.01,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Bosnia and Herzegovina": {
+      "team": "Bosnia and Herzegovina",
+      "group_advance_prob": 0.87,
+      "group_exit_prob": 0.13,
+      "r32_prob": 0.87,
+      "r16_prob": 0.475,
+      "qf_prob": 0.1,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Brazil": {
+      "team": "Brazil",
+      "group_advance_prob": 0.995,
+      "group_exit_prob": 0.005,
+      "r32_prob": 0.995,
+      "r16_prob": 0.865,
+      "qf_prob": 0.69,
+      "sf_prob": 0.53,
+      "final_prob": 0.345,
+      "champion_prob": 0.205
+    },
+    "Morocco": {
+      "team": "Morocco",
+      "group_advance_prob": 0.875,
+      "group_exit_prob": 0.125,
+      "r32_prob": 0.875,
+      "r16_prob": 0.295,
+      "qf_prob": 0.095,
+      "sf_prob": 0.03,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Scotland": {
+      "team": "Scotland",
+      "group_advance_prob": 0.345,
+      "group_exit_prob": 0.655,
+      "r32_prob": 0.345,
+      "r16_prob": 0.055,
+      "qf_prob": 0.005,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Haiti": {
+      "team": "Haiti",
+      "group_advance_prob": 0.295,
+      "group_exit_prob": 0.705,
+      "r32_prob": 0.295,
+      "r16_prob": 0.07,
+      "qf_prob": 0.02,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "United States": {
+      "team": "United States",
+      "group_advance_prob": 0.325,
+      "group_exit_prob": 0.675,
+      "r32_prob": 0.325,
+      "r16_prob": 0.05,
+      "qf_prob": 0.01,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Paraguay": {
+      "team": "Paraguay",
+      "group_advance_prob": 0.63,
+      "group_exit_prob": 0.37,
+      "r32_prob": 0.63,
+      "r16_prob": 0.135,
+      "qf_prob": 0.03,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Australia": {
+      "team": "Australia",
+      "group_advance_prob": 0.845,
+      "group_exit_prob": 0.155,
+      "r32_prob": 0.845,
+      "r16_prob": 0.39,
+      "qf_prob": 0.095,
+      "sf_prob": 0.01,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Turkey": {
+      "team": "Turkey",
+      "group_advance_prob": 0.945,
+      "group_exit_prob": 0.055,
+      "r32_prob": 0.945,
+      "r16_prob": 0.54,
+      "qf_prob": 0.19,
+      "sf_prob": 0.02,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Germany": {
+      "team": "Germany",
+      "group_advance_prob": 0.99,
+      "group_exit_prob": 0.01,
+      "r32_prob": 0.99,
+      "r16_prob": 0.88,
+      "qf_prob": 0.695,
+      "sf_prob": 0.395,
+      "final_prob": 0.17,
+      "champion_prob": 0.075
+    },
+    "Ecuador": {
+      "team": "Ecuador",
+      "group_advance_prob": 0.3,
+      "group_exit_prob": 0.7,
+      "r32_prob": 0.3,
+      "r16_prob": 0.08,
+      "qf_prob": 0.01,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Ivory Coast": {
+      "team": "Ivory Coast",
+      "group_advance_prob": 0.93,
+      "group_exit_prob": 0.07,
+      "r32_prob": 0.93,
+      "r16_prob": 0.535,
+      "qf_prob": 0.19,
+      "sf_prob": 0.045,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Curacao": {
+      "team": "Curacao",
+      "group_advance_prob": 0.235,
+      "group_exit_prob": 0.765,
+      "r32_prob": 0.235,
+      "r16_prob": 0.09,
+      "qf_prob": 0.01,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Netherlands": {
+      "team": "Netherlands",
+      "group_advance_prob": 0.925,
+      "group_exit_prob": 0.075,
+      "r32_prob": 0.925,
+      "r16_prob": 0.565,
+      "qf_prob": 0.325,
+      "sf_prob": 0.145,
+      "final_prob": 0.05,
+      "champion_prob": 0.005
+    },
+    "Japan": {
+      "team": "Japan",
+      "group_advance_prob": 0.82,
+      "group_exit_prob": 0.18,
+      "r32_prob": 0.81,
+      "r16_prob": 0.315,
+      "qf_prob": 0.2,
+      "sf_prob": 0.075,
+      "final_prob": 0.025,
+      "champion_prob": 0.0
+    },
+    "Tunisia": {
+      "team": "Tunisia",
+      "group_advance_prob": 0.6,
+      "group_exit_prob": 0.4,
+      "r32_prob": 0.61,
+      "r16_prob": 0.145,
+      "qf_prob": 0.04,
+      "sf_prob": 0.02,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Sweden": {
+      "team": "Sweden",
+      "group_advance_prob": 0.375,
+      "group_exit_prob": 0.625,
+      "r32_prob": 0.375,
+      "r16_prob": 0.115,
+      "qf_prob": 0.025,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Belgium": {
+      "team": "Belgium",
+      "group_advance_prob": 0.8,
+      "group_exit_prob": 0.2,
+      "r32_prob": 0.8,
+      "r16_prob": 0.51,
+      "qf_prob": 0.27,
+      "sf_prob": 0.05,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Iran": {
+      "team": "Iran",
+      "group_advance_prob": 0.825,
+      "group_exit_prob": 0.175,
+      "r32_prob": 0.825,
+      "r16_prob": 0.525,
+      "qf_prob": 0.325,
+      "sf_prob": 0.105,
+      "final_prob": 0.015,
+      "champion_prob": 0.005
+    },
+    "Egypt": {
+      "team": "Egypt",
+      "group_advance_prob": 0.575,
+      "group_exit_prob": 0.425,
+      "r32_prob": 0.575,
+      "r16_prob": 0.27,
+      "qf_prob": 0.1,
+      "sf_prob": 0.025,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "New Zealand": {
+      "team": "New Zealand",
+      "group_advance_prob": 0.575,
+      "group_exit_prob": 0.425,
+      "r32_prob": 0.575,
+      "r16_prob": 0.26,
+      "qf_prob": 0.08,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Spain": {
+      "team": "Spain",
+      "group_advance_prob": 0.99,
+      "group_exit_prob": 0.01,
+      "r32_prob": 0.99,
+      "r16_prob": 0.88,
+      "qf_prob": 0.815,
+      "sf_prob": 0.78,
+      "final_prob": 0.535,
+      "champion_prob": 0.4
+    },
+    "Uruguay": {
+      "team": "Uruguay",
+      "group_advance_prob": 0.775,
+      "group_exit_prob": 0.225,
+      "r32_prob": 0.775,
+      "r16_prob": 0.205,
+      "qf_prob": 0.105,
+      "sf_prob": 0.05,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Saudi Arabia": {
+      "team": "Saudi Arabia",
+      "group_advance_prob": 0.31,
+      "group_exit_prob": 0.69,
+      "r32_prob": 0.31,
+      "r16_prob": 0.03,
+      "qf_prob": 0.01,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Cape Verde": {
+      "team": "Cape Verde",
+      "group_advance_prob": 0.51,
+      "group_exit_prob": 0.49,
+      "r32_prob": 0.51,
+      "r16_prob": 0.12,
+      "qf_prob": 0.045,
+      "sf_prob": 0.01,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "France": {
+      "team": "France",
+      "group_advance_prob": 0.985,
+      "group_exit_prob": 0.015,
+      "r32_prob": 0.985,
+      "r16_prob": 0.815,
+      "qf_prob": 0.48,
+      "sf_prob": 0.35,
+      "final_prob": 0.21,
+      "champion_prob": 0.065
+    },
+    "Senegal": {
+      "team": "Senegal",
+      "group_advance_prob": 0.87,
+      "group_exit_prob": 0.13,
+      "r32_prob": 0.87,
+      "r16_prob": 0.375,
+      "qf_prob": 0.06,
+      "sf_prob": 0.015,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Norway": {
+      "team": "Norway",
+      "group_advance_prob": 0.435,
+      "group_exit_prob": 0.565,
+      "r32_prob": 0.43,
+      "r16_prob": 0.1,
+      "qf_prob": 0.025,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Iraq": {
+      "team": "Iraq",
+      "group_advance_prob": 0.27,
+      "group_exit_prob": 0.73,
+      "r32_prob": 0.275,
+      "r16_prob": 0.025,
+      "qf_prob": 0.005,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Argentina": {
+      "team": "Argentina",
+      "group_advance_prob": 0.985,
+      "group_exit_prob": 0.015,
+      "r32_prob": 0.985,
+      "r16_prob": 0.74,
+      "qf_prob": 0.65,
+      "sf_prob": 0.57,
+      "final_prob": 0.38,
+      "champion_prob": 0.16
+    },
+    "Colombia": {
+      "team": "Colombia",
+      "group_advance_prob": 0.69,
+      "group_exit_prob": 0.31,
+      "r32_prob": 0.69,
+      "r16_prob": 0.165,
+      "qf_prob": 0.075,
+      "sf_prob": 0.025,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Ghana": {
+      "team": "Ghana",
+      "group_advance_prob": 0.7,
+      "group_exit_prob": 0.3,
+      "r32_prob": 0.695,
+      "r16_prob": 0.255,
+      "qf_prob": 0.115,
+      "sf_prob": 0.035,
+      "final_prob": 0.005,
+      "champion_prob": 0.0
+    },
+    "Uzbekistan": {
+      "team": "Uzbekistan",
+      "group_advance_prob": 0.285,
+      "group_exit_prob": 0.715,
+      "r32_prob": 0.29,
+      "r16_prob": 0.055,
+      "qf_prob": 0.015,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Portugal": {
+      "team": "Portugal",
+      "group_advance_prob": 0.88,
+      "group_exit_prob": 0.12,
+      "r32_prob": 0.885,
+      "r16_prob": 0.615,
+      "qf_prob": 0.33,
+      "sf_prob": 0.15,
+      "final_prob": 0.06,
+      "champion_prob": 0.005
+    },
+    "Croatia": {
+      "team": "Croatia",
+      "group_advance_prob": 0.805,
+      "group_exit_prob": 0.195,
+      "r32_prob": 0.805,
+      "r16_prob": 0.42,
+      "qf_prob": 0.18,
+      "sf_prob": 0.06,
+      "final_prob": 0.01,
+      "champion_prob": 0.005
+    },
+    "Algeria": {
+      "team": "Algeria",
+      "group_advance_prob": 0.695,
+      "group_exit_prob": 0.305,
+      "r32_prob": 0.69,
+      "r16_prob": 0.265,
+      "qf_prob": 0.07,
+      "sf_prob": 0.0,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Honduras": {
+      "team": "Honduras",
+      "group_advance_prob": 0.4,
+      "group_exit_prob": 0.6,
+      "r32_prob": 0.4,
+      "r16_prob": 0.095,
+      "qf_prob": 0.02,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "England": {
+      "team": "England",
+      "group_advance_prob": 0.965,
+      "group_exit_prob": 0.035,
+      "r32_prob": 0.965,
+      "r16_prob": 0.765,
+      "qf_prob": 0.58,
+      "sf_prob": 0.35,
+      "final_prob": 0.15,
+      "champion_prob": 0.07
+    },
+    "Denmark": {
+      "team": "Denmark",
+      "group_advance_prob": 0.82,
+      "group_exit_prob": 0.18,
+      "r32_prob": 0.82,
+      "r16_prob": 0.335,
+      "qf_prob": 0.11,
+      "sf_prob": 0.03,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Nigeria": {
+      "team": "Nigeria",
+      "group_advance_prob": 0.64,
+      "group_exit_prob": 0.36,
+      "r32_prob": 0.64,
+      "r16_prob": 0.305,
+      "qf_prob": 0.135,
+      "sf_prob": 0.015,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    },
+    "Costa Rica": {
+      "team": "Costa Rica",
+      "group_advance_prob": 0.275,
+      "group_exit_prob": 0.725,
+      "r32_prob": 0.275,
+      "r16_prob": 0.075,
+      "qf_prob": 0.02,
+      "sf_prob": 0.005,
+      "final_prob": 0.0,
+      "champion_prob": 0.0
+    }
+  }
+}

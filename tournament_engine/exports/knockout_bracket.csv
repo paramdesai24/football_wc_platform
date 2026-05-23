@@ -1,0 +1,33 @@
+match_id,stage,home_team,away_team,home_goals,away_goals,winner,extra_time,penalties,penalty_score
+73,,Mexico,Bosnia and Herzegovina,1,2,Bosnia and Herzegovina,False,False,
+74,,Brazil,Japan,0,1,Japan,False,False,
+75,,Germany,Sweden,4,1,Germany,False,False,
+76,,Netherlands,Morocco,5,0,Netherlands,False,False,
+77,,Ivory Coast,Senegal,1,2,Senegal,False,False,
+78,,France,Turkey,4,0,France,False,False,
+79,,South Africa,Scotland,1,0,South Africa,True,False,
+80,,England,Algeria,1,2,Algeria,False,False,
+81,,Iran,South Korea,0,3,South Korea,False,False,
+82,,Australia,Canada,1,2,Canada,False,False,
+83,,Spain,Uzbekistan,2,1,Spain,False,False,
+84,,Croatia,Nigeria,1,2,Nigeria,False,False,
+85,,Switzerland,Colombia,3,0,Switzerland,False,False,
+86,,United States,Belgium,0,2,Belgium,False,False,
+87,,Argentina,Uruguay,2,0,Argentina,False,False,
+88,,Portugal,Denmark,0,1,Denmark,False,False,
+89,,Bosnia and Herzegovina,Germany,1,1,Bosnia and Herzegovina,True,True,7-6
+90,,Japan,Senegal,0,0,Senegal,True,True,7-8
+91,,Netherlands,France,3,1,Netherlands,False,False,
+92,,South Africa,Algeria,0,0,Algeria,True,True,4-5
+93,,Spain,Nigeria,2,0,Spain,False,False,
+94,,South Korea,Canada,1,0,South Korea,False,False,
+95,,Switzerland,Argentina,2,1,Switzerland,False,False,
+96,,Belgium,Denmark,1,1,Belgium,True,True,4-2
+97,,Bosnia and Herzegovina,Senegal,0,0,Bosnia and Herzegovina,True,True,4-3
+98,,Spain,South Korea,2,0,Spain,False,False,
+99,,Netherlands,Algeria,2,2,Algeria,True,True,4-5
+100,,Switzerland,Belgium,2,0,Switzerland,False,False,
+101,,Bosnia and Herzegovina,Spain,0,2,Spain,False,False,
+102,,Algeria,Switzerland,0,0,Switzerland,True,True,4-5
+103,,Bosnia and Herzegovina,Algeria,1,1,Bosnia and Herzegovina,True,True,4-2
+104,,Spain,Switzerland,4,2,Spain,True,False,

@@ -26,33 +26,6 @@ class CountryResponse(CountryBase):
         from_attributes = True
 
 
-class PlayerBase(BaseModel):
-    first_name: str
-    surname: str
-    country_code: str
-    position: str
-    age: int = Field(..., ge=15, le=45)
-    club: str
-
-
-class PlayerCreate(PlayerBase):
-    pass
-
-
-class PlayerResponse(PlayerBase):
-    id: str
-    country_name: str = ""
-    market_value: float = 0.0
-    form_score: float = 0.0
-    goals_scored: int = 0
-    assists: int = 0
-    appearances: int = 0
-    minutes_played: int = 0
-
-    class Config:
-        from_attributes = True
-
-
 class PredictionResponse(BaseModel):
     home_team: str
     away_team: str

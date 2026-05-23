@@ -1,0 +1,10 @@
+{
+  "realism_passed": 5,
+  "realism_total": 5,
+  "structural_passed": 19,
+  "structural_total": 20,
+  "issues": [
+    "Structural error: France vs Cape Verde: Team not found: 'Cape Verde' (tried 'cabo verde')"
+  ],
+  "all_passed": false
+}
