@@ -1,19 +1,3 @@
-# FIFA World Cup 2026 — Frontend Scaffold
-This folder contains a production-grade React + TypeScript scaffold for the FIFA WC26 Intelligence Platform.
-Start development:
-```bash
-pnpm install
-pnpm dev
-```
-
-Environment variables:
-- `VITE_API_BASE_URL` — backend API base URL (default: `http://localhost:8000`)
-
-This scaffold includes:
-- Tailwind config with brand tokens (`tailwind.config.js`)
-- Vite + React entry (`src/main.tsx`)
-- App layout, UI primitives, pages, hooks, stores, types and API stubs
-
 ## FIFA WC — Simulation & Analytics
 
 This repository contains a tournament simulation and analytics application. It includes a React + TypeScript frontend (Vite) and a FastAPI backend service that runs tournament simulations, exposes REST endpoints, and hosts simulation services used by the UI.
@@ -71,21 +55,3 @@ See `PROJECT_STATUS.md` for current status, recent changes, and notes about ongo
 
 ---
 If you need details about the frontend or backend individually, consult the README files in `platform/frontend/` and `platform/backend-api/`.
-# FIFA World Cup 2026 — Frontend Scaffold
-
-This folder contains a production-grade React + TypeScript scaffold for the FIFA WC26 Intelligence Platform.
-
-Start development:
-
-```bash
-pnpm install
-pnpm dev
-```
-
-Environment variables:
-- `VITE_API_BASE_URL` — backend API base URL (default: `http://localhost:8000`)
-
-This scaffold includes:
-- Tailwind config with brand tokens (`tailwind.config.js`)
-- Vite + React entry (`src/main.tsx`)
-- App layout, UI primitives, pages, hooks, stores, types and API stubs
