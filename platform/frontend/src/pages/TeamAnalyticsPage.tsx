@@ -191,7 +191,14 @@ export default function TeamAnalyticsPage() {
                   <div className="stat-value">{item.value}</div>
                 </div>
                 <div className="stat-bar-track">
-                  <div className="stat-bar-fill" style={{ width: `${item.fill}%`, background: item.tone }} />
+                  <div
+                    className="stat-bar-fill"
+                    style={{
+                      width: `${item.fill}%`,
+                      backgroundColor: item.tone,
+                      boxShadow: `0 0 10px ${item.tone}`,
+                    }}
+                  />
                 </div>
               </div>
             ))}
@@ -202,21 +209,28 @@ export default function TeamAnalyticsPage() {
               <div className="stat-label">Form (recent)</div>
               <div className="stat-value">{Math.round(data.recent_form * 100)}%</div>
               <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${formBar(data.recent_form)}%`, background: "var(--color-accent)" }} />
+                <div className="stat-bar-fill" style={{ width: `${formBar(data.recent_form)}%`, backgroundColor: "var(--color-accent)", boxShadow: "0 0 10px var(--color-accent)" }} />
               </div>
             </div>
             <div className="wc-card stat-card" style={{ flex: 1 }}>
               <div className="stat-label">Momentum</div>
               <div className="stat-value">{Number(data.momentum).toFixed(2)}</div>
               <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${momentumBar(data.momentum)}%`, background: data.momentum >= 0 ? "var(--color-green)" : "var(--color-red)" }} />
+                <div
+                  className="stat-bar-fill"
+                  style={{
+                    width: `${momentumBar(data.momentum)}%`,
+                    backgroundColor: data.momentum >= 0 ? "var(--color-green)" : "var(--color-red)",
+                    boxShadow: `0 0 10px ${data.momentum >= 0 ? "var(--color-green)" : "var(--color-red)"}`,
+                  }}
+                />
               </div>
             </div>
             <div className="wc-card stat-card" style={{ flex: 1 }}>
               <div className="stat-label">Consistency</div>
               <div className="stat-value">{Math.round(data.consistency * 100)}%</div>
               <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${consistencyBar(data.consistency)}%`, background: "var(--color-gold)" }} />
+                <div className="stat-bar-fill" style={{ width: `${consistencyBar(data.consistency)}%`, backgroundColor: "var(--color-gold)", boxShadow: "0 0 10px var(--color-gold)" }} />
               </div>
             </div>
           </div>

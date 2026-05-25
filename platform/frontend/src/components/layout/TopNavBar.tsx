@@ -72,7 +72,7 @@ export function TopNavBar() {
               key={item.path}
               to={item.path}
               end={item.path === "/"}
-              className={({ isActive }) => `nav-link${item.path === "/play-as-team" ? " nav-link-cta" : ""}${isActive ? " active" : ""}`}
+              className={({ isActive }) => `nav-link${item.path === "/play-as-team" ? " nav-link-cta" : ""}${item.path === "/about" ? " nav-link-cta nav-link-about" : ""}${isActive ? " active" : ""}`}
             >
               {item.label}
             </NavLink>

@@ -5,6 +5,7 @@ export const ROUTES = {
   TEAM_ANALYTICS: "/analytics",
   TOURNAMENT_SIMULATOR: "/tournament",
   PLAY_AS_TEAM: "/play-as-team",
+  ABOUT: "/about",
   NOT_FOUND: "*",
 } as const;
 
@@ -16,4 +17,5 @@ export const NAV_ITEMS = [
   { label: "Analytics", path: ROUTES.TEAM_ANALYTICS, icon: "analytics" },
   { label: "Tournament", path: ROUTES.TOURNAMENT_SIMULATOR, icon: "emoji_events" },
   { label: "Play As A Team", path: ROUTES.PLAY_AS_TEAM, icon: "sports_esports" },
+  { label: "About", path: ROUTES.ABOUT, icon: "info" },
 ] as const;
