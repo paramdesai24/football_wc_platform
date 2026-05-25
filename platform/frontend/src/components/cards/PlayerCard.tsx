@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn, getFormBgColor, getPositionColor } from "@/lib/utils";
+import { FlagImg } from "@/components/FlagImg";
 
 interface PlayerCardProps {
   surname: string;
@@ -30,7 +31,7 @@ export function PlayerCard({ surname, firstName, country, countryFlag, position,
         <h3 className="font-display text-heading-lg text-text-primary uppercase tracking-wide group-hover:text-fifa-blue transition-colors">{surname}</h3>
       </div>
       <div className="flex items-center gap-2 mb-4 pb-4 border-b border-surface-border">
-        {countryFlag && <span className="text-lg">{countryFlag}</span>}
+        {countryFlag && <FlagImg code={countryFlag} size={18} />}
         <span className="text-body-sm text-text-secondary">{country}</span>
       </div>
       {metrics.length > 0 && (

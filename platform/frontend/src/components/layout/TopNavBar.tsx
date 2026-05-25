@@ -1,5 +1,29 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "@/routes/constants";
+
+function NavIcon() {
+  const PRIMARY = "https://imgs.search.brave.com/M6EmsapjvWCxIaGgnWVVtsZoHw5_wrlpPi-8hIOVZug/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/cHJvZC53ZWJzaXRl/LWZpbGVzLmNvbS82/OGY1NTA5OTI1NzBj/YTAzMjI3MzdkYzIv/NjlmNGE4MmUzNjg1/NzMxYTNhYjUwODZlX2ZpZmEtd29ybGQtY3VwLTIwMjYtb2Zm/aWNpYWwtbG9nby1m/b290eWxvZ29zLXdo/aXRlLnBuZw";
+  const FALLBACK = "/worldcup_icon.webp";
+  const [src, setSrc] = useState(PRIMARY);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = PRIMARY;
+    img.onerror = () => setSrc(FALLBACK);
+  }, []);
+
+  return (
+    <img
+      src={src}
+      alt=""
+      width={32}
+      height={32}
+      style={{ width: 32, height: 32, objectFit: "contain", flexShrink: 0 }}
+      onError={() => setSrc(FALLBACK)}
+    />
+  );
+}
 
 export function TopNavBar() {
   return (
@@ -8,61 +32,47 @@ export function TopNavBar() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(13, 17, 23, 0.94)",
-        backdropFilter: "blur(10px)",
-        borderBottom: "1px solid var(--color-border)",
+        background: "rgba(5, 13, 26, 0.82)",
+        backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
       }}
     >
       <div
         style={{
-          maxWidth: 1200,
+          maxWidth: 1280,
           margin: "0 auto",
-          padding: "10px 20px",
+          padding: "0 20px",
           display: "flex",
-          gap: 16,
+          gap: 6,
           alignItems: "center",
           justifyContent: "space-between",
-          flexWrap: "wrap",
+          height: 56,
+          flexWrap: "nowrap",
         }}
       >
-        {/* Logo */}
         <NavLink
           to="/"
+          className="nav-brand"
           style={{
             display: "flex",
-            flexDirection: "column",
-            gap: 2,
+            flexDirection: "row",
+            gap: 10,
             lineHeight: 1.1,
-            fontWeight: 800,
-            fontSize: "0.875rem",
-            color: "var(--color-text)",
             textDecoration: "none",
+            alignItems: "center",
           }}
         >
-          <span>WC26 INTEL</span>
-          <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary)", fontWeight: 500 }}>
-            Football intelligence platform
-          </span>
+          <NavIcon />
+          <span className="nav-brand-name">FC Analytics</span>
         </NavLink>
 
-        <nav style={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <nav className="nav-links">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === "/"}
-              className={({ isActive }) => (isActive ? "nav-active" : "nav-link")}
-              style={({ isActive }) => ({
-                padding: "7px 12px",
-                borderRadius: 999,
-                fontSize: "0.8125rem",
-                fontWeight: 500,
-                textDecoration: "none",
-                color: isActive ? "var(--color-text)" : "var(--color-text-secondary)",
-                background: isActive ? "var(--color-surface-hover)" : "transparent",
-                border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
-                transition: "all 0.15s",
-              })}
+              className={({ isActive }) => `nav-link${item.path === "/play-as-team" ? " nav-link-cta" : ""}${isActive ? " active" : ""}`}
             >
               {item.label}
             </NavLink>

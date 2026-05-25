@@ -3,22 +3,17 @@ import { TopNavBar } from "@/components/layout/TopNavBar";
 
 export function AppLayout() {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <TopNavBar />
-      <main style={{ flex: 1, paddingBottom: 24 }}>
-        <Outlet />
-      </main>
-      <footer
-        style={{
-          borderTop: "1px solid var(--color-border)",
-          padding: "12px 20px",
-          textAlign: "center",
-          fontSize: "0.75rem",
-          color: "var(--color-text-muted)",
-        }}
-      >
-        WC26 Intelligence Platform · Live backend intelligence · Stable runtime
-      </footer>
+    <div className="wc-app-shell">
+      <div className="wc-background" aria-hidden="true" />
+      <div className="wc-shell-content" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <TopNavBar />
+        <main style={{ flex: 1, paddingBottom: 28 }}>
+          <Outlet />
+        </main>
+        <footer className="wc-footer" style={{ padding: "12px 20px", textAlign: "center", fontSize: "0.75rem" }}>
+          FC Analytics · live football intelligence · broadcast-ready runtime
+        </footer>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { FlagImg } from "@/components/FlagImg";
+
 interface MatchCardProps {
   homeTeam: string;
   awayTeam: string;
@@ -20,7 +22,7 @@ export function MatchCard({ homeTeam, awayTeam, homeFlag, awayFlag, time, homeSc
         <div className="flex-1 text-right">
           <div className="flex items-center justify-end gap-3">
             <span className="font-display text-heading-md text-text-primary">{homeTeam}</span>
-            {homeFlag && <span className="text-2xl">{homeFlag}</span>}
+            {homeFlag && <FlagImg code={homeFlag} size={24} />}
           </div>
         </div>
         <div className="flex-shrink-0 w-24 text-center">
@@ -34,7 +36,7 @@ export function MatchCard({ homeTeam, awayTeam, homeFlag, awayFlag, time, homeSc
         </div>
         <div className="flex-1 text-left">
           <div className="flex items-center gap-3">
-            {awayFlag && <span className="text-2xl">{awayFlag}</span>}
+            {awayFlag && <FlagImg code={awayFlag} size={24} />}
             <span className="font-display text-heading-md text-text-primary">{awayTeam}</span>
           </div>
         </div>

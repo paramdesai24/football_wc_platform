@@ -1,75 +1,42 @@
-# FIFA WC 2026 Frontend (Phase 0)
+# Platform Frontend — React + TypeScript (Vite)
 
-Production-grade frontend foundation for the FIFA World Cup 2026 Intelligence & Prediction Platform.
+This folder contains the single-page application for the FIFA WC simulation platform.
 
-## Stack
+Core technologies
 
-- React + Vite + TypeScript
-- TailwindCSS v4
-- Framer Motion
-- Zustand
-- React Router DOM
-- shadcn/ui-ready configuration
+- React, TypeScript
+- Vite (dev server + build)
+- CSS variables + global styles in `src/styles/globals.css`
 
-## Local Development
+Quickstart (development)
 
-1. Install dependencies
-
-```bash
+```powershell
+Set-Location "C:\FIFA WC\platform\frontend"
 npm install
-```
-
-2. Start development server
-
-```bash
 npm run dev
 ```
 
-3. Quality checks
+Build for production
 
-```bash
-npm run lint
-npm run typecheck
-npm run format
+```powershell
+Set-Location "C:\FIFA WC\platform\frontend"
+npm run build
 ```
 
-## Structure
+Environment
 
-```text
-src/
-  assets/
-  components/
-  features/
-  hooks/
-  layouts/
-  lib/
-  pages/
-  providers/
-  routes/
-  services/
-  store/
-  styles/
-  types/
-```
+- `VITE_API_BASE_URL` — base URL for backend API (default: `http://127.0.0.1:8000`)
 
-## Design System
+Structure highlights
 
-- Light premium FIFA-style visual language
-- Single-theme setup (no dark mode, no theme switching)
-- Global tokens in `src/styles/globals.css`:
-  - color palette
-  - typography
-  - spacing
-  - shadows
-  - radii
-  - breakpoints
+- `src/pages/` — top-level pages (TournamentPage, PlayAsTeamPage, RankingsPage, etc.)
+- `src/components/` — reusable UI components (tables, flags, cards)
+- `src/contracts/` — TypeScript interfaces shared between UI and backend payloads
+- `src/services/api.ts` — API helpers and endpoint wrappers
 
-## Routing
+Notes
 
-- Central route constants in `src/routes/constants.ts`
-- Nested layout routing in `src/routes/index.tsx`
-- Protected route preparation in `src/routes/ProtectedRoute.tsx`
+- The frontend unwraps backend payloads that are returned in a `{ data: ... }` envelope — ensure your endpoints follow the expected response shape or adjust the unwrap helpers in `src/services/api.ts`.
+- Tournament UI uses a quick-refresh path to request a small number of simulations for responsive UX. See `src/pages/TournamentPage.tsx` for the constant used.
 
-## Notes
-
-This phase intentionally excludes analytics logic, simulation engines, and ML prediction implementation. The goal is scalable architecture and production-ready foundations.
+If you want more developer tips or architecture diagrams, update this file or `PROJECT_STATUS.md`.

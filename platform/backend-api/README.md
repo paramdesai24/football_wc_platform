@@ -1,62 +1,39 @@
-# Backend API (Phase 0)
+# Backend API — FastAPI
 
-FastAPI service foundation for the FIFA World Cup 2026 Intelligence & Prediction Platform.
+This folder contains the FastAPI backend server that exposes REST endpoints used by the frontend. The service hosts tournament simulation logic, match override endpoints, country/rankings data, and related services.
 
-## Stack
+Core technologies
 
+- Python 3.10+
 - FastAPI
-- SQLAlchemy
-- SQLite (initial local database)
-- Alembic migration preparation
+- (SQLAlchemy is present in the codebase where needed)
 
-## Local Setup
-
-1. Create and activate virtual environment
+Local setup
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-2. Install dependencies
-
-```powershell
+Set-Location "C:\FIFA WC\platform\backend-api"
+"C:\FIFA WC\platform\.venv\Scripts\activate"
 pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
-3. Run API
+API surface (high-level)
 
-```powershell
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+- `GET /api/v1/tournament_results` — return tournament state and simulations (supports `refresh` and `simulations` query params)
+- `POST /api/v1/override_match` — apply an override and resimulate
+- `POST /api/v1/resimulate_from_match` — resimulate from a specified match
+- `GET /api/v1/play_as_team` — play-as-team simulation endpoints
+- `GET /api/v1/countries` — country rankings and metadata
 
-4. API Docs
+Key code locations
 
-- Swagger: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- `app/services/tournament_service.py` — core tournament simulation engine and defaults (UI refresh simulation counts, quick overrides)
+- `app/api/v1/endpoints/tournament.py` — tournament endpoints and wrappers
+- `app/api/v1/endpoints/countries.py` — country/rankings endpoint
 
-## Migration Preparation
+Notes for developers
 
-Alembic structure is initialized for future schema versioning.
+- The backend often returns wrapped payloads (e.g. `{ data: ... }`). The frontend unwraps these responses; keep the contract stable.
+- There are quick/UI simulation constants in the service to limit work done for a live UI refresh. If you change simulation counts, coordinate with the frontend.
 
-```powershell
-alembic revision -m "init schema"
-alembic upgrade head
-```
-
-## Architecture
-
-```text
-app/
-  api/
-    v1/
-  core/
-  jobs/
-  models/
-  repositories/
-  schemas/
-  services/
-  utils/
-```
-
-This phase does not include ML model serving or prediction logic implementation.
+API docs are available when running locally at `http://127.0.0.1:8000/docs`.

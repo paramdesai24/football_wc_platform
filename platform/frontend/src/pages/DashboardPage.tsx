@@ -1,13 +1,13 @@
-/**
- * Dashboard - live intelligence overview.
- */
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { CountryRankingRow, UpcomingPredictionRow } from "@/contracts";
 import { apiGet } from "@/services/api";
 import { USE_MOCKS } from "@/dev/devFlags";
 import { getMockCountryRankings, getMockUpcomingPredictions } from "@/dev/mockResponses";
-import type { CountryRankingRow, UpcomingPredictionRow } from "@/contracts";
+import { FlagImg } from "@/components/FlagImg";
+import { teamFlagCode } from "@/lib/flags";
+import { FeaturedMatchCard } from "@/components/cards/FeaturedMatchCard";
+import { StandingsTable } from "@/components/tables/StandingsTable";
 
 interface HealthData {
   status?: string;
@@ -24,6 +24,10 @@ interface TournamentStatePreview {
   matches?: Array<Record<string, unknown>>;
   group_standings?: Record<string, Array<Record<string, unknown>>>;
   [key: string]: unknown;
+}
+
+function percent(n: number): string {
+  return `${Math.round(n)}%`;
 }
 
 export default function DashboardPage() {
@@ -77,7 +81,7 @@ export default function DashboardPage() {
       }
     });
 
-    apiGet<{ data?: CountryRankingRow[] }>("/api/v1/countries/rankings?limit=5").then((res) => {
+    apiGet<{ data?: CountryRankingRow[] }>("/api/v1/countries/rankings?limit=16").then((res) => {
       if (res.error || !res.data) {
         if (USE_MOCKS) {
           setRankings(getMockCountryRankings());
@@ -103,239 +107,176 @@ export default function DashboardPage() {
     });
   }, []);
 
-  const teamsTracked = rankings.length > 0 ? String(rankings.length) : "-";
-  const featuredMatches = upcoming.length > 0 ? String(upcoming.length) : "-";
   const dataState = health?.data_available ? "Live" : healthError ? "Offline" : "Pending";
   const simulationState = health?.endpoints?.simulation ?? "Unknown";
   const topTeam = rankings[0]?.country_name ?? "Awaiting live ranking feed";
   const nextMatch = upcoming[0];
+  const topRankings = rankings.slice(0, 8);
+  const topStandings = rankings.slice(0, 12);
+  const topElo = topRankings[0]?.elo_rating ?? 1;
+
+  useEffect(() => {
+    if (topRankings.length > 0) {
+      console.log("Championship odds raw data:", topRankings);
+    }
+  }, [topRankings]);
+  const topMover = [...rankings]
+    .sort((a, b) => (b.recent_form_score ?? 0) - (a.recent_form_score ?? 0))[0]?.country_name ?? topTeam;
+  const activeSimulations = tournament?.matches?.length ?? 0;
+  const volatilityIndex = rankings.length > 1 ? Math.round(Math.abs((rankings[0]?.elo_rating ?? 0) - (rankings[Math.min(5, rankings.length - 1)]?.elo_rating ?? 0)) / 10) : 0;
+  const qualificationTension = rankings.length > 8 ? Math.round(Math.max(0, (rankings[7]?.elo_rating ?? 0) - (rankings[11]?.elo_rating ?? 0)) / 10) : 0;
 
   return (
     <div className="page-container">
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="layout-hero">
-          <div>
-            <div className="section-kicker">
-              World Cup intelligence
-            </div>
-            <h1 style={{ fontSize: "1.85rem", marginBottom: 10 }}>What is happening in the World Cup ecosystem right now?</h1>
-            <p style={{ color: "var(--color-text-secondary)", maxWidth: 760, lineHeight: 1.65, marginBottom: 14 }}>
-              Live backend rankings, tournament state, and prediction feeds are surfaced here first. Dev-only mock data stays explicit behind a flag.
+      <section
+        className="wc-card"
+        style={{
+          minHeight: "calc(100vh - 124px)",
+          display: "grid",
+          alignItems: "center",
+          textAlign: "center",
+          padding: "48px 28px 40px",
+          marginBottom: 22,
+        }}
+      >
+        <div style={{ maxWidth: 980, margin: "0 auto", display: "grid", gap: 22, justifyItems: "center" }}>
+          <div className="wc-badge wc-badge-gold">FIFA WORLD CUP 2026 · INTELLIGENCE PLATFORM</div>
+          <div style={{ display: "grid", gap: 12, justifyItems: "center" }}>
+            <h1 className="wc-hero-title">The World Cup, Decoded.</h1>
+            <p style={{ maxWidth: 820, margin: 0, color: "var(--color-text-secondary)", fontSize: "1.125rem", lineHeight: 1.7 }}>
+              AI-powered predictions, match simulations, and tournament intelligence.
             </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button className="btn btn-primary" onClick={() => navigate("/tournament")}>Open Tournament View</button>
-              <button className="btn" onClick={() => navigate("/predictions")}>Open Predictor</button>
-              <button className="btn" onClick={() => navigate("/rankings")}>Open Rankings</button>
-            </div>
           </div>
 
-          <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>System</div>
-                <div style={{ fontSize: "1rem", fontWeight: 700 }}>{healthError ? "Backend issue" : health?.status ?? "Checking"}</div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            <button className="btn btn-primary" onClick={() => navigate("/predictions")}>Explore Predictions</button>
+            <button className="btn btn-green" onClick={() => navigate("/rankings")}>Live Standings</button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, width: "100%", maxWidth: 760 }}>
+            {[
+              { label: "Live feed", value: dataState },
+              { label: "Top team", value: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(topTeam)} size={18} /><span>{topTeam}</span></span> },
+              { label: "Next fixture", value: nextMatch ? nextMatch.match : "Awaiting schedule" },
+            ].map((item) => (
+              <div key={item.label} className="wc-stat-tile">
+                <div className="wc-stat-number" style={{ fontSize: "1.75rem" }}>{item.value}</div>
+                <div className="wc-stat-label" style={{ marginTop: 6 }}>{item.label}</div>
               </div>
-              <div className="badge badge-info">{USE_MOCKS ? "DEV MOCKS" : dataState}</div>
-            </div>
-            <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: 10 }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Tournament state</div>
-              <div style={{ fontWeight: 700 }}>{tournament?.champion ?? "Awaiting live simulation"}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)", marginTop: 4 }}>
-                Runner-up: {tournament?.runner_up ?? "TBD"}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      <div className="layout-2col" style={{ marginBottom: 16 }}>
-        <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <div>
-              <h2 style={{ fontSize: "1rem", marginBottom: 4 }}>Featured Match Intelligence</h2>
-              <div style={{ color: "var(--color-text-muted)", fontSize: "0.8125rem" }}>Broadcast-style probability view</div>
-            </div>
-            <div className="badge badge-success">Live feed</div>
-          </div>
-
-          {nextMatch ? (
-            <>
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16, marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: 800, marginBottom: 6 }}>{nextMatch.match}</div>
-                  <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-                    Current matchup pulled from the prediction engine and surfaced without frontend-derived odds.
-                  </div>
-                </div>
-                <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-                  <div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Home win</div>
-                    <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{nextMatch.home_win}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Draw</div>
-                    <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{nextMatch.draw}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Away win</div>
-                    <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{nextMatch.away_win}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="layout-3col">
-                {[
-                  { label: "Top team", value: topTeam },
-                  { label: "Featured matches", value: featuredMatches },
-                  { label: "Backend version", value: health?.version ?? "-" },
-                ].map((item) => (
-                  <div key={item.label} className="card-compact">
-                    <div className="metric">
-                      <span className="metric-label">{item.label}</span>
-                      <span className="metric-value" style={{ fontSize: "1rem" }}>{item.value}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div style={{ color: "var(--color-text-muted)", padding: "10px 0" }}>No upcoming match feed available.</div>
-          )}
-        </div>
-
-        <div style={{ display: "grid", gap: 10 }}>
-          <div className="card" style={{ minHeight: 118 }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 6 }}>System status</div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: 4 }}>{healthError ? "Backend offline" : health?.status ?? "Checking"}</div>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-              {health?.endpoints?.predictions ?? "Waiting on backend health response."}
-            </div>
-          </div>
-
-          <div className="card" style={{ minHeight: 118 }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 6 }}>Simulation readiness</div>
-            <div style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: 4 }}>{simulationState}</div>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-              Tournament results and play-as journeys remain driven by the backend simulation engine.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {healthError && (
-        <div className="card-compact" style={{ borderLeft: "3px solid var(--color-red)", marginBottom: 16 }}>
-          <span style={{ color: "var(--color-red)", fontWeight: 600, fontSize: "0.8125rem" }}>
-            Backend unreachable: {healthError}
-          </span>
-        </div>
-      )}
+      </section>
 
       {upcomingNote && (
-        <div style={{ background: "rgba(88,166,255,0.08)", border: "1px solid rgba(88,166,255,0.2)", borderRadius: 6, padding: "8px 12px", fontSize: "0.8125rem", color: "var(--color-accent)", marginBottom: 14 }}>
+        <div style={{ marginBottom: 14, background: "rgba(212, 175, 55, 0.08)", border: "1px solid rgba(212, 175, 55, 0.18)", borderRadius: 12, padding: "10px 12px", color: "#f4e1a0", fontSize: "0.875rem" }}>
           ℹ {upcomingNote}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16, marginBottom: 16 }}>
-        <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h2 style={{ fontSize: "1rem" }}>Featured Matches</h2>
-            <button className="btn" onClick={() => navigate("/predictions")}>Open Predictor</button>
-          </div>
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Match</th>
-                  <th className="text-center">Home Win</th>
-                  <th className="text-center">Draw</th>
-                  <th className="text-center">Away Win</th>
-                </tr>
-              </thead>
-              <tbody>
-                {upcoming.length > 0 ? (
-                  upcoming.map((match) => (
-                    <tr key={match.match}>
-                      <td style={{ fontWeight: 600 }}>{match.match}</td>
-                      <td className="text-center">{match.home_win}</td>
-                      <td className="text-center">{match.draw}</td>
-                      <td className="text-center">{match.away_win}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} style={{ color: "var(--color-text-muted)", padding: 16 }}>
-                      No upcoming match feed available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      {nextMatch ? (
+        <div style={{ marginBottom: 22 }}>
+          <FeaturedMatchCard match={nextMatch} onOpenPredictions={() => navigate("/predictions")} />
         </div>
+      ) : (
+        <section className="wc-card" style={{ marginBottom: 22 }}>
+          <div className="wc-card-header">
+            <div className="wc-card-title-group">
+              <div className="wc-eyebrow">Featured match</div>
+              <h2 className="wc-section-title">Broadcast preview</h2>
+            </div>
+          </div>
+          <div style={{ color: "var(--color-text-muted)" }}>No upcoming match feed available.</div>
+        </section>
+      )}
 
-        <div className="card">
-          <h2 style={{ fontSize: "1rem", marginBottom: 12 }}>Broadcast Notes</h2>
+      <div className="layout-2col" style={{ marginBottom: 22 }}>
+        <section className="wc-card">
+          <div className="wc-card-header">
+            <div className="wc-card-title-group">
+              <div className="wc-eyebrow">Championship odds</div>
+              <h2 className="wc-section-title">Title race leaders</h2>
+              <div className="card-subtitle">Based on current rankings strength · Win probability proxy</div>
+            </div>
+            <div className="wc-badge">Top 8</div>
+          </div>
           <div style={{ display: "grid", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Intelligence story</div>
-              <div style={{ fontWeight: 600 }}>{topTeam} remains the current reference point.</div>
-            </div>
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Backend status</div>
-              <div style={{ fontWeight: 600 }}>{health?.endpoints?.predictions ?? "Unknown"}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Simulation readiness</div>
-              <div style={{ fontWeight: 600 }}>{health?.endpoints?.simulation ?? "Unknown"}</div>
-            </div>
+            {topRankings.length > 0 ? (
+              topRankings.map((row, index) => {
+                const chance = Math.min(35, Math.max(8, Math.round((row.elo_rating / topElo) * 35)));
+                const scaledWidth = `${(chance / 35) * 100}%`;
+                const barColor = row.rank === 1 ? "#d4af37" : row.rank <= 3 ? "#22c55e" : row.rank <= 6 ? "#3b82f6" : "rgba(255,255,255,0.25)";
+                const rankIcon = row.rank === 1 ? "🏆" : row.rank === 2 ? "🥈" : row.rank === 3 ? "🥉" : "";
+                return (
+                  <div key={row.country_uid} style={{ display: "grid", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <span style={{ fontSize: 18 }}>{rankIcon}</span>
+                        <FlagImg code={teamFlagCode(row.country_name)} size={18} />
+                        <span style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.country_name}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        {index === 0 ? <span className="wc-badge wc-badge-gold">#1</span> : <span className="wc-pill">#{index + 1}</span>}
+                        <span className="wc-mono" style={{ fontSize: "1.1rem", fontWeight: 700 }}>{percent(chance)}</span>
+                      </div>
+                    </div>
+                    <div className="wc-odds-bar">
+                      <div className="wc-odds-fill odds-bar-fill" style={{ width: scaledWidth, background: barColor }} />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ color: "var(--color-text-muted)" }}>No live odds available yet.</div>
+            )}
           </div>
-        </div>
+        </section>
+
+        <section className="wc-card">
+          <div className="wc-card-header">
+            <div className="wc-card-title-group">
+              <div className="wc-eyebrow">Tournament pulse</div>
+              <h2 className="wc-section-title">Live tension indicators</h2>
+            </div>
+            <div className="wc-badge wc-badge-gold">{simulationState}</div>
+          </div>
+
+          <div className="wc-stat-grid">
+            {[
+              { label: "Active simulations", value: activeSimulations },
+              { label: "Volatility index", value: volatilityIndex },
+              { label: "Qualification tension", value: qualificationTension },
+              { label: "Top mover", value: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(topMover)} size={18} /><span>{topMover}</span></span> },
+            ].map((item) => (
+              <div key={item.label} className="wc-stat-tile">
+                <div className="wc-stat-number">{item.value}</div>
+                <div className="wc-stat-label" style={{ marginTop: 6 }}>{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <div className="card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h2 style={{ fontSize: "1rem" }}>Rankings Preview</h2>
-          <button className="btn" onClick={() => navigate("/rankings")}>Open Rankings</button>
-        </div>
-        {rankingsNote && (
-          <div style={{ background: "rgba(88,166,255,0.08)", border: "1px solid rgba(88,166,255,0.2)", borderRadius: 6, padding: "8px 12px", fontSize: "0.8125rem", color: "var(--color-accent)", marginBottom: 12 }}>
-            ℹ {rankingsNote}
-          </div>
-        )}
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Country</th>
-                <th className="text-right">Elo</th>
-                <th className="text-right">Attack</th>
-                <th className="text-right">Defense</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rankings.length > 0 ? (
-                rankings.map((country) => (
-                  <tr key={country.country_uid}>
-                    <td>{country.rank}</td>
-                    <td style={{ fontWeight: 600 }}>{country.country_name}</td>
-                    <td className="text-right text-mono">{country.elo_rating}</td>
-                    <td className="text-right text-mono">{country.attack_rating}</td>
-                    <td className="text-right text-mono">{country.defense_rating}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} style={{ color: "var(--color-text-muted)", padding: 16 }}>
-                    No live rankings available yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ marginBottom: 22 }}>
+        <StandingsTable
+          rows={topStandings}
+          title="Current standings"
+          subtitle={rankingsNote || undefined}
+          onOpenRankings={() => navigate("/rankings")}
+        />
       </div>
+
+      {healthError && (
+        <div className="wc-card" style={{ marginBottom: 16, borderLeft: "3px solid var(--wc-red)" }}>
+          <span style={{ color: "#ffb3ae", fontWeight: 600, fontSize: "0.875rem" }}>Backend unreachable: {healthError}</span>
+        </div>
+      )}
+
+      {health?.data_available === false && !healthError && (
+        <div className="wc-card" style={{ marginBottom: 16, borderLeft: "3px solid var(--wc-gold)" }}>
+          <span style={{ color: "#f4e1a0", fontWeight: 600, fontSize: "0.875rem" }}>Backend is responding, but live data is not yet marked available.</span>
+        </div>
+      )}
     </div>
   );
 }

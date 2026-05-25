@@ -3,12 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="WC26 Intelligence Platform — Football analytics, predictions, and tournament simulation." />
+    <meta name="description" content="FC Analytics — Football analytics, predictions, and tournament simulation." />
     <meta name="theme-color" content="#0d1117" />
-    <title>WC26 Intelligence Platform</title>
+    <title>FC Analytics</title>
+    <link rel="icon" type="image/webp" href="https://imgs.search.brave.com/M6EmsapjvWCxIaGgnWVVtsZoHw5_wrlpPi-8hIOVZug/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/cHJvZC53ZWJzaXRl/LWZpbGVzLmNvbS82OGY1NTA5OTI1NzBjYTAzMjI3MzdkYzIvNjlmNGE4MmUzNjg1NzMxYTNhYjUwODZlX2ZpZmEtd29ybGQtY3VwLTIwMjYtb2Zm/aWNpYWwtbG9nby1m/b290eWxvZ29zLXdoaXRlLnBuZw" />
+    <link rel="shortcut icon" href="/worldcup_icon.webp" />
+    <script>
+      (() => {
+        const fallback = "/worldcup_icon.webp";
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (!favicon) return;
+        const test = new Image();
+        test.onload = () => {};
+        test.onerror = () => {
+          favicon.setAttribute("href", fallback);
+        };
+        test.src = favicon.getAttribute("href") || fallback;
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

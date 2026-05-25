@@ -9,17 +9,19 @@
  *   - Match editing (score override + resimulate)
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+import { useEffect } from "react";
 import type { TournamentMatchResponse, TournamentStateResponse } from "@/contracts";
 import {
   apiGet,
   apiPost,
-  normalizeState,
   stageTitle,
   stageRank,
   scoreText,
   STAGE_ORDER,
 } from "@/services/api";
+import { FlagImg } from "@/components/FlagImg";
+import { teamFlagCode } from "@/lib/flags";
 
 // ---- helpers ----
 function MatchCard({
@@ -49,7 +51,7 @@ function MatchCard({
   if (match.penalties) extraBits.push(`Pens ${match.penalty_score || ""}`);
 
   return (
-    <div className="match-card" style={{ marginBottom: 8 }}>
+    <div className="match-card wc-card" style={{ marginBottom: 8, padding: 16, display: "grid", gap: 12 }}>
       <div className="match-card-header">
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
           <span className={chipClass}>{stageTitle(stage)}</span>
@@ -59,9 +61,28 @@ function MatchCard({
           M{match.match_id}
         </span>
       </div>
-      <div className="teams">{match.home_team || "TBD"} vs {match.away_team || "TBD"}</div>
+      <div className="teams" style={{ display: "grid", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <FlagImg code={teamFlagCode(match.home_team || "TBD")} size={28} />
+            <span style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{match.home_team || "TBD"}</span>
+          </div>
+          <span className="wc-pill wc-pill-blue">Home</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <FlagImg code={teamFlagCode(match.away_team || "TBD")} size={28} />
+            <span style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{match.away_team || "TBD"}</span>
+          </div>
+          <span className="wc-pill wc-pill-gold">Away</span>
+        </div>
+      </div>
       <div className="score">{scoreText(match as Record<string, unknown>)}</div>
-      <div className="meta">Winner: {match.winner || "TBD"}</div>
+      <div className="meta" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span>Winner:</span>
+        <FlagImg code={teamFlagCode(match.winner || "TBD")} size={18} />
+        <span>{match.winner || "TBD"}</span>
+      </div>
       {extraBits.length > 0 && (
         <div className="meta" style={{ color: "var(--color-text-muted)" }}>
           {extraBits.join(" · ")}
@@ -209,6 +230,12 @@ export default function TournamentPage() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  const QUICK_TOURNAMENT_SIMULATIONS = 2;
+
+  useEffect(() => {
+    loadState(true, QUICK_TOURNAMENT_SIMULATIONS);
+  }, []);
+
   const loadState = useCallback(async (refresh: boolean, simulations?: number) => {
     setLoading(true);
     let params = `?refresh=${refresh}`;
@@ -216,7 +243,9 @@ export default function TournamentPage() {
     const res = await apiGet<TournamentStateResponse>(`/api/v1/tournament_results${params}`);
     setLoading(false);
     if (!res.error && res.data) {
-      setState(normalizeState(res.data) as TournamentStateResponse);
+      const payload = (res.data as { data?: TournamentStateResponse }).data ?? (res.data as TournamentStateResponse);
+      console.log("Tournament response:", payload);
+      setState(payload);
     } else if (res.error) {
       setState(null);
     }
@@ -225,7 +254,9 @@ export default function TournamentPage() {
   const handleOverride = async (payload: Record<string, unknown>) => {
     const res = await apiPost<TournamentStateResponse>("/api/v1/override_match", payload);
     if (!res.error && res.data) {
-      setState(normalizeState(res.data) as TournamentStateResponse);
+      const payloadData = (res.data as { data?: TournamentStateResponse }).data ?? (res.data as TournamentStateResponse);
+      console.log("Tournament override response:", payloadData);
+      setState(payloadData);
       setEditingId(null);
     }
   };
@@ -238,14 +269,12 @@ export default function TournamentPage() {
 
   return (
     <div className="page-container">
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className="wc-card section-card" style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: "0.75rem", letterSpacing: 1.2, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 8 }}>
-              Simulation center
-            </div>
-            <h1 style={{ fontSize: "1.7rem", marginBottom: 8 }}>Tournament simulation intelligence</h1>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", maxWidth: 760, lineHeight: 1.6 }}>
+          <div style={{ display: "grid", gap: 10 }}>
+            <div className="eyebrow">Simulation center</div>
+            <h1 className="page-title" style={{ fontSize: "1.75rem", marginBottom: 0 }}>Tournament simulation intelligence</h1>
+            <p className="page-sub" style={{ maxWidth: 760 }}>
               Run the full tournament model, edit non-final matches, and resimulate from the impacted stage onward.
             </p>
           </div>
@@ -253,7 +282,7 @@ export default function TournamentPage() {
             <button
               className="btn btn-primary"
               disabled={loading}
-              onClick={() => loadState(true, 10)}
+              onClick={() => loadState(true, QUICK_TOURNAMENT_SIMULATIONS)}
             >
               {loading ? <><span className="spinner" /> Simulating...</> : "Run Tournament Simulation"}
             </button>
@@ -265,16 +294,7 @@ export default function TournamentPage() {
       </div>
 
       {!state && !loading && (
-        <div
-          style={{
-            background: "rgba(88,166,255,0.08)",
-            border: "1px solid rgba(88,166,255,0.2)",
-            borderRadius: 6,
-            padding: "8px 12px",
-            fontSize: "0.8125rem",
-            color: "var(--color-accent)",
-          }}
-        >
+        <div className="card-compact" style={{ color: "var(--color-accent)" }}>
           ℹ No tournament state available yet.
         </div>
       )}
@@ -282,66 +302,60 @@ export default function TournamentPage() {
       {state && (
         <>
           <div className="layout-hero-compact" style={{ marginBottom: 16 }}>
-            <div className="card">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Champion</div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{state.champion || "TBD"}</div>
+            <div className="wc-card section-card" style={{ display: "grid", gap: 14 }}>
+              <div className="podium-row">
+                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
+                  <div className="podium-label">Champion</div>
+                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.champion || "TBD")} size={20} /><span>{state.champion || "TBD"}</span></div>
                 </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Runner-up</div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{state.runner_up || "TBD"}</div>
+                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
+                  <div className="podium-label">Runner-up</div>
+                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.runner_up || "TBD")} size={20} /><span>{state.runner_up || "TBD"}</span></div>
                 </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Third Place</div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{state.third_place || "TBD"}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Matches</div>
-                  <div style={{ fontSize: "1.25rem", fontWeight: 800 }}>{matches.length}</div>
+                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
+                  <div className="podium-label">Third Place</div>
+                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.third_place || "TBD")} size={20} /><span>{state.third_place || "TBD"}</span></div>
                 </div>
               </div>
 
-              <div style={{ display: "grid", gap: 8 }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Tournament pulse</div>
-                <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                  {matches.length > 0
-                    ? `${matches.filter((m) => m.stage === "final").length > 0 ? "The final is staged and the bracket is ready for review." : "The bracket is progressing through the knockout path."}`
-                    : "Run a simulation to generate the latest knockout projection and group-state outcomes."}
-                </div>
-              </div>
+              {/* Matches summary and tournament pulse removed — streamlined UI */}
             </div>
 
-            <div className="card">
+            <div className="wc-card" style={{ display: "grid", gap: 10, padding: 20 }}>
               <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 8 }}>Match control summary</div>
-              <div style={{ display: "grid", gap: 10 }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)" }}>Editability</span>
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{matches.some((m) => m.editable) ? "Available" : "Locked"}</span>
+              <div style={{ display: "grid", gap: 0 }}>
+                <div className="control-row">
+                  <div className="control-row-header">
+                    <span className="control-label">Editability</span>
+                    <span className="control-value">{matches.some((m) => m.editable) ? "Available" : "Locked"}</span>
                   </div>
-                  <div className="prob-bar"><div className="prob-bar-fill" style={{ width: matches.some((m) => m.editable) ? "78%" : "32%", background: "var(--color-accent)" }} /></div>
+                  <div className="control-bar-track"><div className="control-bar-fill" style={{ width: matches.some((m) => m.editable) ? "78%" : "32%" }} /></div>
                 </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)" }}>Bracket coverage</span>
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{matches.length}</span>
+                <div className="control-row">
+                  <div className="control-row-header">
+                    <span className="control-label">Bracket coverage</span>
+                    <span className="control-value">{matches.length}</span>
                   </div>
-                  <div className="prob-bar"><div className="prob-bar-fill" style={{ width: `${Math.min(100, matches.length * 5)}%`, background: "var(--color-green)" }} /></div>
+                  <div className="control-bar-track"><div className="control-bar-fill" style={{ width: `${Math.min(100, matches.length * 5)}%` }} /></div>
                 </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)" }}>Group tables</span>
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{Object.keys(groupStandings).length}</span>
+                <div className="control-row" style={{ borderBottom: "none" }}>
+                  <div className="control-row-header">
+                    <span className="control-label">Group tables</span>
+                    <span className="control-value">{Object.keys(groupStandings).length}</span>
                   </div>
-                  <div className="prob-bar"><div className="prob-bar-fill" style={{ width: `${Math.min(100, Object.keys(groupStandings).length * 10)}%`, background: "var(--color-gold)" }} /></div>
+                  <div className="control-bar-track"><div className="control-bar-fill" style={{ width: `${Math.min(100, Object.keys(groupStandings).length * 10)}%` }} /></div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Group Stage Results — mirrors st.subheader("Group Stage Results") + expanders */}
-          <h2 style={{ fontSize: "1rem", marginBottom: 10 }}>Group Stage Results</h2>
+          <div className="section-heading">
+            <div>
+              <h2 style={{ fontSize: "1rem", marginBottom: 4 }}>Group Stage Results</h2>
+              <div style={{ color: "var(--color-text-muted)", fontSize: "0.8125rem" }}>Group tables and qualification flow</div>
+            </div>
+          </div>
           {Object.keys(groupStandings)
             .sort()
             .map((groupName) => {
@@ -361,9 +375,13 @@ export default function TournamentPage() {
                     <tbody>
                       {rows.map((row, i) => (
                         <tr key={i}>
-                          {Object.values(row || {}).map((val, j) => (
-                            <td key={j}>{String(val ?? "")}</td>
-                          ))}
+                          {Object.entries(row || {}).map(([key, val], j) => {
+                            const text = String(val ?? "");
+                            if (key.toLowerCase().includes("team") || key.toLowerCase().includes("country")) {
+                              return <td key={j} style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(text)} size={16} /><span>{text}</span></td>;
+                            }
+                            return <td key={j}>{text}</td>;
+                          })}
                         </tr>
                       ))}
                     </tbody>
@@ -386,7 +404,7 @@ export default function TournamentPage() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
                     gap: 8,
                   }}
                 >
