@@ -1,14 +1,16 @@
 from fastapi import FastAPI
+from fastapi import WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 import os
 
 from app.core.config import settings
-from app.core.database import init_db
+from app.core.database import PostgresSessionLocal, init_db
 from app.core.logging import setup_logging
 from app.api.v1.router import api_router
 from app.api.v1.endpoints import health
+from app.services.auction_ws import handle_connection
 
 logger = logging.getLogger(__name__)
 setup_logging()
@@ -36,7 +38,12 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
+        allow_origins=[
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -47,3 +54,19 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.websocket("/ws/auction/{league_id}")
+async def auction_websocket(
+    websocket: WebSocket,
+    league_id: str,
+    user_id: str,
+    username: str,
+):
+    await websocket.accept()
+    if PostgresSessionLocal is None:
+        await websocket.close(code=1011)
+        return
+
+    async with PostgresSessionLocal() as db:
+        await handle_connection(league_id, user_id, username, websocket, db)
