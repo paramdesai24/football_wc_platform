@@ -222,6 +222,25 @@ nav.nav-links,
   border-bottom: 2px solid #d4af37;
 }
 
+/* Auction room responsive grid */
+.auction-room-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .auction-room-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-room-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .nav-link-cta {
   margin-left: 8px;
 }

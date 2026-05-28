@@ -1,0 +1,101 @@
+import { create } from "zustand";
+
+export interface AuctionPlayer {
+  id: string;
+  name: string;
+  position: string;
+  tier: string;
+  base_price: number;
+  market_value: number;
+  flag_code: string;
+  image_url: string;
+  club: string;
+  goals_2526: number;
+  assists_2526: number;
+  minutes_2526: number;
+  form_score: number;
+}
+
+export interface RoomUser {
+  username: string;
+  budget_left: number;
+  squad_size: number;
+}
+
+interface UpcomingPlayer {
+  name: string;
+  position: string;
+  tier: string;
+  flag_code: string;
+}
+
+interface AuctionState {
+  leagueId: string | null;
+  userId: string | null;
+  username: string | null;
+  status: string;
+  currentPlayer: AuctionPlayer | null;
+  currentHighBid: number;
+  currentBidderId: string | null;
+  currentNominator: string | null;
+  users: Record<string, RoomUser>;
+  upcomingPlayers: UpcomingPlayer[];
+  myBudget: number;
+  timerSeconds: number;
+  maxTimerSeconds: number;
+  messages: string[];
+
+  setLeague: (id: string, userId: string, username: string) => void;
+  applyServerState: (payload: any) => void;
+  setCurrentPlayer: (player: AuctionPlayer | null) => void;
+  setHighBid: (amount: number, bidderId: string | null) => void;
+  setUpcoming: (players: UpcomingPlayer[]) => void;
+  setTimer: (s: number) => void;
+  setMaxTimer: (max: number) => void;
+  setStatus: (status: string) => void;
+  addMessage: (msg: string) => void;
+  reset: () => void;
+}
+
+const initialState = {
+  leagueId: null,
+  userId: null,
+  username: null,
+  status: "waiting",
+  currentPlayer: null,
+  currentHighBid: 0,
+  currentBidderId: null,
+  currentNominator: null,
+  users: {},
+  upcomingPlayers: [],
+  myBudget: 5000,
+  timerSeconds: 30,
+  maxTimerSeconds: 60,
+  messages: [],
+};
+
+export const useAuctionStore = create<AuctionState>((set, get) => ({
+  ...initialState,
+
+  setLeague: (id, userId, username) => set({ leagueId: id, userId, username }),
+
+  applyServerState: (payload) =>
+    set({
+      status: payload.status,
+      currentPlayer: payload.current_player,
+      currentHighBid: payload.current_high_bid ?? 0,
+      currentBidderId: payload.current_bidder_id ?? null,
+      currentNominator: payload.current_nominator ?? null,
+      users: payload.users ?? {},
+      myBudget: payload.users?.[get().userId ?? ""]?.budget_left ?? get().myBudget,
+    }),
+
+  setCurrentPlayer: (player) => set({ currentPlayer: player }),
+  setHighBid: (amount, bidderId) => set({ currentHighBid: amount, currentBidderId: bidderId }),
+  setUpcoming: (players) => set({ upcomingPlayers: players }),
+  setTimer: (s) => set({ timerSeconds: s }),
+  setMaxTimer: (max) => set({ maxTimerSeconds: max }),
+  setStatus: (status) => set({ status }),
+  addMessage: (msg) => set((state) => ({ messages: [msg, ...state.messages].slice(0, 50) })),
+  reset: () => set(initialState),
+}));

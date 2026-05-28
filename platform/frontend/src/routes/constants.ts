@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: "/",
+  AUCTION: "/auction",
   PREDICTIONS: "/predictions",
   RANKINGS: "/rankings",
   TEAM_ANALYTICS: "/analytics",
@@ -12,6 +13,7 @@ export const ROUTES = {
 /** Sidebar nav — mirrors the Streamlit sidebar exactly */
 export const NAV_ITEMS = [
   { label: "Dashboard", path: ROUTES.HOME, icon: "dashboard" },
+  { label: "Auction", path: ROUTES.AUCTION, icon: "gavel" },
   { label: "Predictions", path: ROUTES.PREDICTIONS, icon: "target" },
   { label: "Rankings", path: ROUTES.RANKINGS, icon: "leaderboard" },
   { label: "Analytics", path: ROUTES.TEAM_ANALYTICS, icon: "analytics" },

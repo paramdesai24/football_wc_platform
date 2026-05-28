@@ -3,8 +3,8 @@ import { NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "@/routes/constants";
 
 function NavIcon() {
-  const PRIMARY = "https://imgs.search.brave.com/M6EmsapjvWCxIaGgnWVVtsZoHw5_wrlpPi-8hIOVZug/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/cHJvZC53ZWJzaXRl/LWZpbGVzLmNvbS82/OGY1NTA5OTI1NzBj/YTAzMjI3MzdkYzIv/NjlmNGE4MmUzNjg1/NzMxYTNhYjUwODZlX2ZpZmEtd29ybGQtY3VwLTIwMjYtb2Zm/aWNpYWwtbG9nby1m/b290eWxvZ29zLXdo/aXRlLnBuZw";
-  const FALLBACK = "/worldcup_icon.webp";
+  const PRIMARY = "/worldcup_icon.webp";
+  const FALLBACK = "https://imgs.search.brave.com/M6EmsapjvWCxIaGgnWVVtsZoHw5_wrlpPi-8hIOVZug/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/cHJvZC53ZWJzaXRl/LWZpbGVzLmNvbS82/OGY1NTA5OTI1NzBj/YTAzMjI3MzdkYzIv/NjlmNGE4MmUzNjg1/NzMxYTNhYjUwODZlX2ZpZmEtd29ybGQtY3VwLTIwMjYtb2Zm/aWNpYWwtbG9nby1m/b290eWxvZ29zLXdo/aXRlLnBuZw";
   const [src, setSrc] = useState(PRIMARY);
 
   useEffect(() => {

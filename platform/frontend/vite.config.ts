@@ -5,6 +5,9 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: ['react-use-websocket'],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
