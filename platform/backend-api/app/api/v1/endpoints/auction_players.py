@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func, select
@@ -12,6 +12,13 @@ from app.models.auction_models import AuctionPlayer
 router = APIRouter(prefix="/auction/players", tags=["auction-players"])
 
 
+def _normalized_search_expr(value):
+    # Make player search tolerant of accents and common transliterations.
+    source_chars = "áàäâãåÁÀÄÂÃÅéèëêÉÈËÊíìïîÍÌÏÎóòöôõÓÒÖÔÕúùüûÚÙÜÛçÇñÑ"
+    target_chars = "aaaaaaAAAAAAeeeeEEEEiiiiIIIIoooooOOOOOuuuuUUUUcCnN"
+    return func.lower(func.translate(value, source_chars, target_chars))
+
+
 def _serialize_row(row: AuctionPlayer) -> dict[str, Any]:
     data = {key: value for key, value in row.__dict__.items() if not key.startswith("_")}
     return data
@@ -21,7 +28,7 @@ def _serialize_row(row: AuctionPlayer) -> dict[str, Any]:
 async def get_players(
     position: str | None = Query(None),
     tier: str | None = Query(None),
-    iso_code: str | None = Query(None),
+    iso_code: List[str] | None = Query(None),
     search: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -33,9 +40,10 @@ async def get_players(
     if tier:
         filters.append(AuctionPlayer.tier == tier)
     if iso_code:
-        filters.append(AuctionPlayer.iso_code == iso_code.upper())
+        filters.append(AuctionPlayer.iso_code.in_([c.upper() for c in iso_code]))
     if search:
-        filters.append(AuctionPlayer.name.ilike(f"%{search}%"))
+        normalized_search = _normalized_search_expr(func.cast(search, AuctionPlayer.name.type))
+        filters.append(_normalized_search_expr(AuctionPlayer.name).like(f"%{search.lower()}%"))
 
     stmt = select(AuctionPlayer)
     if filters:
