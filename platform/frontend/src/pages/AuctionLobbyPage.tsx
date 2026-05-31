@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "@/services/api";
+import { toast } from "@/store/toastStore";
+import { useIdentityStore } from "@/store/identityStore";
 
 function fieldLabel(): React.CSSProperties {
   return {
@@ -46,15 +48,31 @@ function actionButton(primary = true): React.CSSProperties {
 
 export default function AuctionLobbyPage() {
   const navigate = useNavigate();
-  const [createForm, setCreateForm] = useState({ name: "", host_id: "", budget: 5000, squad_size: 15 });
-  const [joinForm, setJoinForm] = useState({ invite_code: "", user_id: "", team_name: "" });
-  const [hostTeamName, setHostTeamName] = useState("");
+  const identity = useIdentityStore();
+  const [createForm, setCreateForm] = useState({ name: "", host_id: identity.userId || "", budget: 50000, squad_size: 15 });
+  const [joinForm, setJoinForm] = useState({ invite_code: "", user_id: identity.userId || "", team_name: identity.teamName || identity.username || "" });
+  const [hostTeamName, setHostTeamName] = useState(identity.username || identity.teamName || "");
   const [createLoading, setCreateLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [createError, setCreateError] = useState("");
   const [joinError, setJoinError] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [createdLeagueId, setCreatedLeagueId] = useState("");
+
+  useEffect(() => {
+    if (!createForm.host_id && identity.userId) {
+      setCreateForm((current) => ({ ...current, host_id: identity.userId }));
+    }
+    if (!joinForm.user_id && identity.userId) {
+      setJoinForm((current) => ({ ...current, user_id: identity.userId }));
+    }
+    if (!joinForm.team_name && (identity.teamName || identity.username)) {
+      setJoinForm((current) => ({ ...current, team_name: identity.teamName || identity.username }));
+    }
+    if (!hostTeamName && (identity.username || identity.teamName)) {
+      setHostTeamName(identity.username || identity.teamName);
+    }
+  }, [createForm.host_id, hostTeamName, identity.teamName, identity.userId, identity.username, joinForm.team_name, joinForm.user_id]);
 
   async function handleCreate() {
     setCreateLoading(true);
@@ -72,10 +90,33 @@ export default function AuctionLobbyPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Failed to create league");
+      toast.success(`League created! Invite code: ${data.invite_code}`);
       setInviteCode(String(data.invite_code ?? ""));
       setCreatedLeagueId(String(data.league_id ?? ""));
+      // Auto-join the host so they immediately enter the auction room with host controls
+      try {
+        const invite = String(data.invite_code ?? "").trim().toUpperCase();
+        const joinRes = await fetch(`${API_BASE}/api/v1/leagues/${invite}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: createForm.host_id,
+            team_name: hostTeamName || `${createForm.host_id}'s Team`,
+          }),
+        });
+        const joinData = await joinRes.json();
+        if (!joinRes.ok) throw new Error(joinData.detail ?? 'Failed to join newly created league');
+        // navigate into the auction room as the host
+        navigate(`/auction/room/${joinData.league_id}?userId=${createForm.host_id}&username=${encodeURIComponent(createForm.host_id)}`);
+        return;
+      } catch (err) {
+        // If auto-join fails, surface the error but keep the invite code visible
+        setCreateError(err instanceof Error ? err.message : String(err));
+      }
     } catch (error: unknown) {
-      setCreateError(error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error(message);
+      setCreateError(message);
     } finally {
       setCreateLoading(false);
     }
@@ -95,7 +136,9 @@ export default function AuctionLobbyPage() {
       if (!res.ok) throw new Error(data.detail ?? "Failed to join league");
       navigate(`/auction/room/${data.league_id}?userId=${joinForm.user_id}&username=${encodeURIComponent(joinForm.user_id)}`);
     } catch (error: unknown) {
-      setJoinError(error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error(message);
+      setJoinError(message);
     } finally {
       setJoinLoading(false);
     }
@@ -163,7 +206,17 @@ export default function AuctionLobbyPage() {
 
           <div>
             <label style={fieldLabel()}>Your username</label>
-            <input className="input-field" style={inputStyle()} value={createForm.host_id} onChange={(event) => setCreateForm((current) => ({ ...current, host_id: event.target.value }))} placeholder="username" />
+            <input
+              className="input-field"
+              style={inputStyle()}
+              value={createForm.host_id}
+              onChange={(event) => {
+                const value = event.target.value;
+                setCreateForm((current) => ({ ...current, host_id: value }));
+                identity.setUserId(value);
+              }}
+              placeholder="username"
+            />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -234,7 +287,12 @@ export default function AuctionLobbyPage() {
                       style={inputStyle()}
                       placeholder='e.g. The Galacticos'
                       value={hostTeamName}
-                      onChange={(e) => setHostTeamName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setHostTeamName(value);
+                        identity.setUsername(value);
+                        identity.setTeamName(value);
+                      }}
                     />
                     <button
                       style={actionButton(true)}
@@ -282,12 +340,33 @@ export default function AuctionLobbyPage() {
 
           <div>
             <label style={fieldLabel("Your username")}>Your username</label>
-            <input className="input-field" style={inputStyle()} value={joinForm.user_id} onChange={(event) => setJoinForm((current) => ({ ...current, user_id: event.target.value }))} placeholder="username" />
+            <input
+              className="input-field"
+              style={inputStyle()}
+              value={joinForm.user_id}
+              onChange={(event) => {
+                const value = event.target.value;
+                setJoinForm((current) => ({ ...current, user_id: value }));
+                identity.setUserId(value);
+              }}
+              placeholder="username"
+            />
           </div>
 
           <div>
             <label style={fieldLabel("Team name")}>Team name</label>
-            <input className="input-field" style={inputStyle()} value={joinForm.team_name} onChange={(event) => setJoinForm((current) => ({ ...current, team_name: event.target.value }))} placeholder="My Dream Team" />
+            <input
+              className="input-field"
+              style={inputStyle()}
+              value={joinForm.team_name}
+              onChange={(event) => {
+                const value = event.target.value;
+                setJoinForm((current) => ({ ...current, team_name: value }));
+                identity.setTeamName(value);
+                identity.setUsername(value);
+              }}
+              placeholder="My Dream Team"
+            />
           </div>
 
           {joinError && <div style={{ color: "#f87171", fontSize: 13 }}>{joinError}</div>}

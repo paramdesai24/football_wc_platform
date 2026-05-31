@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { API_BASE } from "@/services/api";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type LeagueMember = {
   user_id: string;
@@ -137,6 +138,12 @@ export default function LeaguePage() {
 
       {loading ? (
         <section className="wc-card" style={{ padding: 24 }}>Loading league data...</section>
+      ) : members.length <= 1 ? (
+        <EmptyState
+          icon="👤"
+          title="Waiting for league members"
+          description="Only the host is in this league so far. Share the invite code to get more managers into the auction."
+        />
       ) : (
         <section style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
           {members.map((member) => {

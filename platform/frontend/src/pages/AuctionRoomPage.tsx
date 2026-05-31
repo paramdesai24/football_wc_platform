@@ -3,6 +3,8 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { apiGet, API_BASE } from "@/services/api";
 import { useAuctionSocket } from "@/hooks/useAuctionSocket";
 import { useAuctionStore } from "@/store/auctionStore";
+import { useIdentityStore } from "@/store/identityStore";
+import { ReconnectionBanner } from "@/components/auction/ReconnectionBanner";
 import { AuctionTimer } from "@/components/auction/AuctionTimer";
 import { ActivityFeed } from "@/components/auction/ActivityFeed";
 import { BidControls } from "@/components/auction/BidControls";
@@ -58,20 +60,36 @@ export default function AuctionRoomPage() {
   const navigate = useNavigate();
   const { id: leagueId = "" } = useParams();
   const [searchParams] = useSearchParams();
+  const storedUserId = useIdentityStore((state) => state.userId);
+  const storedUsername = useIdentityStore((state) => state.username);
+  const setStoredUserId = useIdentityStore((state) => state.setUserId);
+  const setStoredUsername = useIdentityStore((state) => state.setUsername);
   const paramUserId = searchParams.get("userId") ?? "";
-  const paramUsername = searchParams.get("username") ?? paramUserId;
+  const paramUsername = searchParams.get("username") ?? "";
   const store = useAuctionStore();
   const previousLeagueIdRef = useRef<string | null>(null);
-  const [userId, setUserId] = useState(paramUserId);
-  const [username, setUsername] = useState(paramUsername);
+  const [localUserId, setLocalUserId] = useState(paramUserId || storedUserId || "");
+  const [localUsername, setLocalUsername] = useState(paramUsername || storedUsername || "");
   const [leagueName, setLeagueName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [leagueRules, setLeagueRules] = useState<LeagueRules | null>(null);
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
-    setUserId(paramUserId);
-    setUsername(paramUsername);
-  }, [paramUserId, paramUsername]);
+    if (paramUserId) {
+      setStoredUserId(paramUserId);
+      setLocalUserId(paramUserId);
+    } else if (!localUserId && storedUserId) {
+      setLocalUserId(storedUserId);
+    }
+
+    if (paramUsername) {
+      setStoredUsername(paramUsername);
+      setLocalUsername(paramUsername);
+    } else if (!localUsername && storedUsername) {
+      setLocalUsername(storedUsername);
+    }
+  }, [localUserId, localUsername, paramUserId, paramUsername, setStoredUserId, setStoredUsername, storedUserId, storedUsername]);
 
   useEffect(() => {
     if (previousLeagueIdRef.current && previousLeagueIdRef.current !== leagueId) {
@@ -81,12 +99,12 @@ export default function AuctionRoomPage() {
   }, [leagueId]);
 
   useEffect(() => {
-    if (leagueId && userId && username) {
-      store.setLeague(leagueId, userId, username);
-      localStorage.setItem("auction:userId", userId);
-      localStorage.setItem("auction:username", username);
+    if (leagueId && localUserId && localUsername) {
+      store.setLeague(leagueId, localUserId, localUsername);
+      localStorage.setItem("auction:userId", localUserId);
+      localStorage.setItem("auction:username", localUsername);
     }
-  }, [leagueId, userId, username]);
+  }, [leagueId, localUserId, localUsername]);
 
   useEffect(() => {
     if (!leagueId) return;
@@ -99,24 +117,28 @@ export default function AuctionRoomPage() {
         if (league) {
           setLeagueRules(league);
           if (league.name) setLeagueName(league.name);
-          setIsHost(league.host_id === userId);
+          if (league.invite_code) setInviteCode(league.invite_code);
+          setIsHost(league.host_id === localUserId);
         }
       })
       .catch(() => {});
     return () => { mounted = false; };
-  }, [leagueId, userId]);
+  }, [leagueId, localUserId]);
 
-  const { placeBid, startAuction, isConnected } = useAuctionSocket(leagueId, userId, username);
+  const { placeBid, startAuction, skipPlayer, isConnected } = useAuctionSocket(leagueId, localUserId, localUsername);
   const maxTimerSeconds = useAuctionStore((s) => s.maxTimerSeconds);
   const upcomingPlayers = useAuctionStore((s) => s.upcomingPlayers);
   const users = useAuctionStore((s) => s.users);
   const positionCaps = getPositionCaps(leagueRules);
   const auctionStatus = useAuctionStore((s) => s.status);
+  const connectionStatus = useAuctionStore((s) => s.connectionStatus);
 
-  const joined = Boolean(leagueId && userId && username);
+  const joined = Boolean(leagueId && localUserId && localUsername);
 
   return (
-    <div className="page-content">
+    <>
+      <ReconnectionBanner />
+      <div className="page-content" style={{ paddingTop: connectionStatus === 'connected' ? undefined : 0 }}>
       <section className="wc-card" style={{ padding: 20, display: "grid", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
@@ -125,34 +147,75 @@ export default function AuctionRoomPage() {
               <h1 style={{ margin: "6px 0 0", fontFamily: "var(--font-display)", fontSize: "clamp(2rem, 5vw, 3rem)" }}>{leagueName || (leagueId ? `League ${leagueId.slice(0,8)}...` : 'room')}</h1>
               <button
                 onClick={() => navigate('/auction/info')}
+                aria-label="Player pool and how to play"
                 style={{
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.12)',
                   borderRadius: '50%',
-                  width: 34, height: 34,
+                  width: 36,
+                  height: 36,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
-                  fontSize: 16,
-                  color: 'rgba(255,255,255,0.6)',
+                  color: 'rgba(255,255,255,0.9)',
                   flexShrink: 0,
                 }}
                 title="Player pool & how to play"
               >
-                ℹ️
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.2" fill="none" />
+                  <rect x="11.5" y="10.5" width="1" height="5" fill="currentColor" />
+                  <circle cx="12" cy="7.2" r="0.7" fill="currentColor" />
+                </svg>
               </button>
             </div>
           </div>
-          <div style={{ color: isConnected ? "#86efac" : "var(--color-text-muted)", fontWeight: 700 }}>{isConnected ? "Connected" : "Disconnected"}</div>
+          <div style={{ display: 'grid', gap: 6, alignItems: 'center', justifyItems: 'end' }}>
+            <div style={{ color: isConnected ? "#86efac" : "var(--color-text-muted)", fontWeight: 700 }}>{isConnected ? "Connected" : "Disconnected"}</div>
+            {inviteCode && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 700 }}>Invite</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, color: '#e3c15c' }}>{inviteCode}</div>
+                <button
+                  onClick={async () => { try { await navigator.clipboard.writeText(inviteCode); } catch {} }}
+                  title="Copy invite code"
+                  style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="9" y="9" width="9" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
+                    <rect x="6" y="6" width="9" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="layout-3col">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>User ID</span>
-            <input value={userId} onChange={(event) => setUserId(event.target.value)} placeholder="manager-1" style={inputStyle} />
+            <input
+              value={localUserId}
+              onChange={(event) => {
+                const value = event.target.value;
+                setLocalUserId(value);
+                setStoredUserId(value);
+              }}
+              placeholder="manager-1"
+              style={inputStyle}
+            />
           </label>
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>Username</span>
-            <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Your name" style={inputStyle} />
+            <input
+              value={localUsername}
+              onChange={(event) => {
+                const value = event.target.value;
+                setLocalUsername(value);
+                setStoredUsername(value);
+              }}
+              placeholder="Your name"
+              style={inputStyle}
+            />
           </label>
           <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
             {isHost && (
@@ -235,6 +298,27 @@ export default function AuctionRoomPage() {
             myUserId={store.userId}
             onBid={placeBid}
           />
+          {/* Host skip control: only when there are no bids on the current player */}
+          {isHost && store.currentPlayer && (store.currentHighBid ?? 0) <= 0 && (
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => skipPlayer()}
+                disabled={!joined}
+                style={{
+                  minHeight: 40,
+                  padding: '0 14px',
+                  borderRadius: 10,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'transparent',
+                  color: '#fff',
+                  cursor: joined ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Skip Player
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={{ display: "grid", gap: 16 }}>
@@ -259,7 +343,8 @@ export default function AuctionRoomPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

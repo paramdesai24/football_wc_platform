@@ -1,6 +1,7 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { useAuctionStore } from "@/store/auctionStore";
 import { WS_BASE } from "@/services/api";
+import { toast } from "@/store/toastStore";
 
 export function useAuctionSocket(leagueId: string, userId: string, username: string) {
   const store = useAuctionStore();
@@ -9,6 +10,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     : (useWebSocket as unknown as { default?: typeof useWebSocket }).default ?? useWebSocket;
   const OPEN_STATE = typeof ReadyState?.OPEN === "number" ? ReadyState.OPEN : 1;
 
+  // If userId is empty, the WebSocket won't connect.
   const wsUrl = leagueId && userId && username
     ? `${WS_BASE.replace(/\/$/, '')}/ws/auction/${leagueId}?user_id=${encodeURIComponent(userId)}&username=${encodeURIComponent(username)}`
     : null;
@@ -16,11 +18,17 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
   const { sendJsonMessage, readyState } = resolvedUseWebSocket(wsUrl, {
     shouldReconnect: () => true,
     reconnectInterval: 3000,
+    reconnectAttempts: 20,
     onOpen: () => {
+      store.setConnectionStatus('connected');
       store.addMessage("🟢 Connected to auction room");
     },
     onClose: () => {
+      store.setConnectionStatus('reconnecting');
       store.addMessage("🔌 Connection closed, retrying...");
+    },
+    onError: () => {
+      store.setConnectionStatus('disconnected');
     },
     onMessage: (event: MessageEvent<string>) => {
       const { type, payload } = JSON.parse(event.data as string) as { type: string; payload: any };
@@ -60,6 +68,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
 
       if (type === "bid_rejected") {
         store.addMessage(`⚠️ Bid rejected: ${payload?.reason ?? "Unknown reason"}`);
+        toast.warning(payload?.reason ?? "Unknown reason");
       }
 
       if (type === "bid_placed") {
@@ -71,6 +80,12 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
 
       if (type === "player_sold") {
         store.addMessage(`✅ ${payload.player.name} → ${payload.winner} for ${payload.price} coins`);
+        toast.success(`${payload.player?.name} → ${payload.winner} for ${payload.price} coins`);
+        store.setCurrentPlayer(null);
+      }
+
+      if (type === "player_skipped") {
+        store.addMessage(`⏭️ ${payload.player?.name ?? 'Player'} skipped by ${payload.skipped_by}`);
         store.setCurrentPlayer(null);
       }
 
@@ -84,6 +99,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
 
       if (type === "error") {
         store.addMessage(`❌ ${payload.message}`);
+        toast.error(payload.message);
       }
     },
   });
@@ -93,7 +109,11 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     store.addMessage("🎬 Auction start requested");
     sendJsonMessage({ type: "start_auction", payload: {} });
   };
+  const skipPlayer = () => {
+    store.addMessage("⏭️ Skip requested");
+    sendJsonMessage({ type: "skip_player", payload: {} });
+  };
   const isConnected = readyState === OPEN_STATE || readyState === 1;
 
-  return { placeBid, startAuction, isConnected };
+  return { placeBid, startAuction, skipPlayer, isConnected };
 }

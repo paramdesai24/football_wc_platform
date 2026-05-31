@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/services/api";
+import { toast } from "@/store/toastStore";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 type PerfRow = {
   player_id?: string;
@@ -27,6 +30,7 @@ export default function AdminMatchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showRecalcConfirm, setShowRecalcConfirm] = useState(false);
 
   const pageStyle: React.CSSProperties = {
     maxWidth: 860,
@@ -185,6 +189,7 @@ export default function AdminMatchPage() {
         return;
       }
 
+      toast.success(`Match ${data.match_id} processed successfully for all leagues`);
       setSuccess(`✅ Match ${data.match_id} processed successfully for all leagues`);
       setRows([]);
       setMatchId("");
@@ -193,7 +198,9 @@ export default function AdminMatchPage() {
       setHomeScore(0);
       setAwayScore(0);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Network error — is the backend running?");
+      const message = e instanceof Error ? e.message : "Network error — is the backend running?";
+      toast.error(message);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -210,8 +217,10 @@ export default function AdminMatchPage() {
         setError(data.detail ?? data.message ?? `Error ${res.status}`);
         return;
       }
+      toast.success(`Recalculated points from ${data.count} matches`);
       setSuccess(`✅ Recalculated points from ${data.count} matches`);
     } catch {
+      toast.error('Recalculation failed');
       setError('Recalculation failed');
     } finally {
       setLoading(false);
@@ -230,9 +239,12 @@ export default function AdminMatchPage() {
         return
       }
       const processed = (data.results ?? []).filter((r: any) => r.status === 'processed').length
+      toast.success(`Scraped ${data.scraped} matches — ${processed} new matches processed`)
       setSuccess(`✅ Scraped ${data.scraped} matches — ${processed} new matches processed`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Scrape failed')
+      const message = err instanceof Error ? err.message : 'Scrape failed'
+      toast.error(message)
+      setError(message)
     } finally { setLoading(false) }
   }
 
@@ -325,9 +337,17 @@ export default function AdminMatchPage() {
           <button style={ghostBtn} onClick={addRow}>+ Add Player</button>
         </div>
 
-        <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-          {rows.map((p, i) => (
-            <div key={i} style={{ display: 'grid', gap: 8 }}>
+        {rows.length === 0 ? (
+          <EmptyState
+            icon="📝"
+            title="No player performances yet"
+            description="Add player rows to record goals, assists, minutes, and cards for this match."
+            action={{ label: "+ Add Player", onClick: addRow }}
+          />
+        ) : (
+          <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+            {rows.map((p, i) => (
+              <div key={i} style={{ display: 'grid', gap: 8 }}>
               <div>
                 <label style={fieldLabel}>Player Name</label>
                 <input style={inputStyle} value={p.name ?? ''} onChange={(e) => handleSearchChange(i, e.target.value)} />
@@ -392,9 +412,10 @@ export default function AdminMatchPage() {
                 </label>
                 <button style={dangerBtn} onClick={() => removeRow(i)}>Remove</button>
               </div>
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={card}>
@@ -405,37 +426,55 @@ export default function AdminMatchPage() {
           <button style={ghostBtn} onClick={handleScrape} disabled={loading}>🔄 Scrape Latest WC Results</button>
           <button
             style={ghostBtn}
-            onClick={async () => {
-              setLoading(true)
-              setError('')
-              setSuccess('')
-              console.log('Hitting recalculate endpoint:', `${API_BASE}/api/v1/admin/matches/recalculate`)
-              try {
-                const res = await fetch(`${API_BASE}/api/v1/admin/matches/recalculate`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                })
-                console.log('Recalculate status:', res.status)
-                const data = await res.json()
-                console.log('Recalculate response:', data)
-                if (!res.ok) {
-                  setError(data.detail ?? data.message ?? `Error ${res.status}`)
-                  return
-                }
-                setSuccess(`✅ Recalculated points from ${data.count} match${data.count !== 1 ? 'es' : ''}`)
-              } catch (err) {
-                console.error('Recalculate error:', err)
-                setError(err instanceof Error ? err.message : 'Network error — is the backend running?')
-              } finally {
-                setLoading(false)
-              }
-            }}
+            onClick={() => setShowRecalcConfirm(true)}
             disabled={loading}
           >
             Recalculate All Points
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showRecalcConfirm}
+        title="Recalculate all points?"
+        description="This will reprocess every match and update league points. This action can change standings."
+        confirmLabel="Recalculate"
+        cancelLabel="Keep Current"
+        danger
+        onConfirm={() => {
+          setShowRecalcConfirm(false)
+          void (async () => {
+            setLoading(true)
+            setError('')
+            setSuccess('')
+            console.log('Hitting recalculate endpoint:', `${API_BASE}/api/v1/admin/matches/recalculate`)
+            try {
+              const res = await fetch(`${API_BASE}/api/v1/admin/matches/recalculate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+              })
+              console.log('Recalculate status:', res.status)
+              const data = await res.json()
+              console.log('Recalculate response:', data)
+              if (!res.ok) {
+                const message = data.detail ?? data.message ?? `Error ${res.status}`
+                toast.error(message)
+                setError(message)
+                return
+              }
+              setSuccess(`✅ Recalculated points from ${data.count} match${data.count !== 1 ? 'es' : ''}`)
+            } catch (err) {
+              console.error('Recalculate error:', err)
+              const message = err instanceof Error ? err.message : 'Network error — is the backend running?'
+              toast.error(message)
+              setError(message)
+            } finally {
+              setLoading(false)
+            }
+          })()
+        }}
+        onCancel={() => setShowRecalcConfirm(false)}
+      />
     </div>
   );
 }

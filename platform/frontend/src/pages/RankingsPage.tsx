@@ -11,6 +11,7 @@ import { getMockCountryRankings } from "@/dev/mockResponses";
 import type { CountryRankingRow } from "@/contracts";
 import { StandingsTable } from "@/components/tables/StandingsTable";
 import { smartScoreBar, ratingBar } from "@/utils/statBar";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const CONFEDERATIONS = ["All", "UEFA", "CONMEBOL", "CONCACAF", "CAF", "AFC", "OFC"];
 
@@ -172,9 +173,17 @@ export default function RankingsPage() {
         </div>
       )}
 
-      <div className="table-scroll-wrapper">
-        <StandingsTable rows={data} title="Full table" />
-      </div>
+      {data.length === 0 ? (
+        <EmptyState
+          icon="📊"
+          title="No rankings yet"
+          description="There isn’t any live rankings data for this filter yet. Try a different confederation or widen the table depth."
+        />
+      ) : (
+        <div className="table-scroll-wrapper">
+          <StandingsTable rows={data} title="Full table" />
+        </div>
+      )}
     </div>
   );
 }

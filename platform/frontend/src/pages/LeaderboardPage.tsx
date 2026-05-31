@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE } from "@/services/api";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type LeaderboardRow = {
   rank: number;
@@ -82,6 +83,14 @@ export default function LeaderboardPage() {
 
         {loading ? (
           <div style={{ padding: 24 }}>Loading leaderboard...</div>
+        ) : leaderboard.every((member) => Number(member.total_points ?? 0) === 0) ? (
+          <div style={{ padding: 18 }}>
+            <EmptyState
+              icon="🏁"
+              title="No points yet"
+              description="No matches have been scored for this league yet. Once results are processed, the leaderboard will populate automatically."
+            />
+          </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>

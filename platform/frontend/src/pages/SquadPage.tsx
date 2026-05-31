@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_BASE } from "@/services/api";
 import { FlagImg } from "@/components/FlagImg";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type SquadRow = {
   player?: {
@@ -101,6 +102,12 @@ export default function SquadPage() {
       {error && <div style={{ color: "#f87171", fontSize: 13 }}>{error}</div>}
       {loading ? (
         <section className="wc-card" style={{ padding: 24 }}>Loading squad...</section>
+      ) : squad.length === 0 ? (
+        <EmptyState
+          icon="🪑"
+          title="No squad yet"
+          description="This manager has not bought any players yet. Head to the auction room to start building the squad."
+        />
       ) : (
         <div style={{ display: "grid", gap: 18 }}>
           {(["GK", "DEF", "MID", "FWD"] as const).map((position) => {

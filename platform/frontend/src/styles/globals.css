@@ -252,6 +252,91 @@ nav.nav-links,
   letter-spacing: 0.02em;
 }
 
+/* ─── PAGE TRANSITIONS ───────────────────────────── */
+.page-fade {
+  animation: pageFadeIn 0.15s ease both;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-enter {
+  animation: cardEnter 0.2s ease both;
+}
+
+.card-enter-delay-1 {
+  animation-delay: 0.05s;
+}
+
+.card-enter-delay-2 {
+  animation-delay: 0.1s;
+}
+
+.card-enter-delay-3 {
+  animation-delay: 0.15s;
+}
+
+.card-enter-delay-4 {
+  animation-delay: 0.2s;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes dialogEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .wc-stat-number {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: 700;
