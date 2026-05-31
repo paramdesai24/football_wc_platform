@@ -26,8 +26,23 @@ function NavIcon() {
 }
 
 export function TopNavBar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const nav = document.querySelector('.navbar');
+      if (nav && !nav.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   return (
     <header
+      className={`navbar${menuOpen ? " menu-open" : ""}`}
       style={{
         position: "sticky",
         top: 0,
@@ -66,6 +81,38 @@ export function TopNavBar() {
           <span className="nav-brand-name">FC Analytics</span>
         </NavLink>
 
+        <div className="nav-mobile-shell">
+          {/* Hamburger button — mobile only */}
+          <button
+            type="button"
+            className={`nav-hamburger${menuOpen ? " open" : ""}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            <span className={`nav-ham-bar${menuOpen ? " open" : ""}`} />
+            <span className={`nav-ham-bar${menuOpen ? " open" : ""}`} />
+            <span className={`nav-ham-bar${menuOpen ? " open" : ""}`} />
+          </button>
+
+          {/* Mobile dropdown menu */}
+          {menuOpen && (
+            <nav className="nav-mobile-menu">
+              {NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === "/"}
+                  className={({ isActive }) => `nav-mobile-link${isActive ? " active" : ""}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+          )}
+        </div>
+
         <nav className="nav-links">
           {NAV_ITEMS.map((item) => (
             <NavLink
@@ -79,6 +126,7 @@ export function TopNavBar() {
           ))}
         </nav>
       </div>
+
     </header>
   );
 }

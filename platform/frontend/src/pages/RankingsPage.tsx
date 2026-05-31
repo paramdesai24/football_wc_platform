@@ -64,7 +64,7 @@ export default function RankingsPage() {
   }, [conf, limit]);
 
   return (
-    <div className="page-container">
+    <div className="page-content">
       <div className="wc-card" style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ display: "grid", gap: 10 }}>
@@ -172,7 +172,9 @@ export default function RankingsPage() {
         </div>
       )}
 
-      <StandingsTable rows={data} title="Full table" />
+      <div className="table-scroll-wrapper">
+        <StandingsTable rows={data} title="Full table" />
+      </div>
     </div>
   );
 }

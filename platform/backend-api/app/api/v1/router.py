@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, countries, players, predictions, simulation, analytics, tournament, auction_players, leagues, rooms
+from app.api.v1.endpoints import health, countries, players, predictions, simulation, analytics, tournament, auction_players, leagues, rooms, match_admin
 
 api_router = APIRouter()
 api_router.include_router(countries.router, prefix="/countries", tags=["Countries"])
@@ -11,3 +11,4 @@ api_router.include_router(tournament.router, tags=["Tournament"])
 api_router.include_router(auction_players.router)
 api_router.include_router(leagues.router)
 api_router.include_router(rooms.router)
+api_router.include_router(match_admin.router)

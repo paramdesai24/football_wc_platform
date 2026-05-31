@@ -113,6 +113,59 @@ export default function AboutPage() {
         </section>
       </div>
 
+      <section className="wc-card" style={{ marginBottom: 18 }}>
+        <div className="wc-card-header">
+          <div className="wc-card-title-group">
+            <div className="eyebrow">Auction system</div>
+            <h2 className="wc-section-title">How the auction works (overview)</h2>
+          </div>
+          <div className="wc-badge">Realtime · Server-authoritative</div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div className="card-compact" style={{ color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+            The auction system lets managers create private leagues, nominate players, and bid in real time. It is
+            implemented as a server-authoritative flow where the backend maintains the single source of truth for rooms,
+            nomination queues, timers, and squad state. The frontend listens to WebSocket events and renders the live
+            bidding board and squad composition.
+          </div>
+
+          <div style={{ display: 'grid', gap: 8 }}>
+            <div className="card-compact">
+              <strong>Key endpoints</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
+                - Player catalog: <code>/api/v1/auction/players</code>
+                <br />- League management: <code>/api/v1/leagues</code>
+                <br />- WebSocket room: <code>/ws/auction/{'{league_id}'}</code>
+              </div>
+            </div>
+
+            <div className="card-compact">
+              <strong>Realtime events</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  <li><code>player_nominated</code> — server nominates a player and starts a timer</li>
+                  <li><code>bid_placed</code> — accepted bid resets the shorter timer</li>
+                  <li><code>bid_rejected</code> — rejected with reason (budget, squad limits, etc.)</li>
+                  <li><code>player_sold</code> — player assigned to the winner and persisted</li>
+                  <li><code>room_state</code> — periodic snapshot of users, budgets and squads</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="card-compact">
+              <strong>Business rules</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
+                - Only the league host can start an auction.
+                <br />- Squad composition and position caps are enforced server-side at bid time.
+                <br />- Timers: initial nomination 60s; after first bid 30s; new bids reset to 30s.
+                <br />- All transactions (bids, sales) are recorded to the backend DB so state survives restarts.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="layout-2col" style={{ marginBottom: 18 }}>
         <section className="wc-card">
           <div className="wc-card-header">

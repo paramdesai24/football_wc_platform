@@ -37,13 +37,14 @@ type Phase = "grid" | "detail" | "match";
 function getPositionEmoji(position: string): string {
   const p = (position || "").toLowerCase();
   if (p.includes("champion") || p.includes("winner")) return "🏆";
+  // Check more specific stages first to avoid substring collisions (e.g. "quarter-final" contains "final")
+  if (p.includes("quarter")) return "QF";
+  if (p.includes("semi")) return "SF";
+  if (p.includes("round of 16")) return "R16";
+  if (p.includes("round of 32")) return "R32";
   if (p.includes("runner") || p.includes("final") || p.includes("second")) return "🥈";
   if (p.includes("third")) return "🥉";
   if (p.includes("fourth") || p.includes("4th")) return "4️⃣";
-  if (p.includes("semi")) return "SF";
-  if (p.includes("quarter")) return "QF";
-  if (p.includes("round of 16")) return "R16";
-  if (p.includes("round of 32")) return "R32";
   return (position || "?").slice(0, 3).toUpperCase();
 }
 

@@ -218,6 +218,24 @@ export default function AdminMatchPage() {
     }
   }
 
+  async function handleScrape() {
+    setLoading(true)
+    setError('')
+    setSuccess('')
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/admin/matches/scrape`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.detail ?? data.message ?? 'Scrape failed')
+        return
+      }
+      const processed = (data.results ?? []).filter((r: any) => r.status === 'processed').length
+      setSuccess(`✅ Scraped ${data.scraped} matches — ${processed} new matches processed`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Scrape failed')
+    } finally { setLoading(false) }
+  }
+
   async function handleSearchChange(idx: number, value: string) {
     updateRow(idx, { name: value, player_id: undefined });
     setSearch(value);
@@ -384,6 +402,7 @@ export default function AdminMatchPage() {
         {success && <div style={{ color: '#22c55e' }}>{success}</div>}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button style={primaryBtn} onClick={handleSubmit} disabled={loading}>{loading ? 'Processing...' : 'Submit Result'}</button>
+          <button style={ghostBtn} onClick={handleScrape} disabled={loading}>🔄 Scrape Latest WC Results</button>
           <button
             style={ghostBtn}
             onClick={async () => {

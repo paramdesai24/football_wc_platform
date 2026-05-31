@@ -93,7 +93,7 @@ export default function TeamAnalyticsPage() {
     : [];
 
   return (
-    <div className="page-container">
+    <div className="page-content">
       <div className="wc-card section-card" style={{ marginBottom: 18 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ display: "grid", gap: 8 }}>
@@ -123,7 +123,7 @@ export default function TeamAnalyticsPage() {
         </div>
       </div>
 
-      <div className="layout-hero-compact analytics-controls" style={{ marginBottom: 16 }}>
+      <div className="layout-hero-compact analytics-controls">
         <div className="wc-card" style={{ display: "grid", gap: 14, padding: "20px 24px" }}>
           <div className="analytics-field">
             <label className="field-label">Select team</label>

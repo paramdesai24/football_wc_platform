@@ -3,7 +3,8 @@
  * Mirrors the http_get / http_post helpers from app.py.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "";
+export const WS_BASE = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
 
 // In dev, Vite proxy forwards /api -> backend.
 // The Streamlit app uses /api/v1/ prefix.

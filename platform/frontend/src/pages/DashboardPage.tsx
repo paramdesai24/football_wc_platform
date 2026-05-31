@@ -127,7 +127,7 @@ export default function DashboardPage() {
   const qualificationTension = rankings.length > 8 ? Math.round(Math.max(0, (rankings[7]?.elo_rating ?? 0) - (rankings[11]?.elo_rating ?? 0)) / 10) : 0;
 
   return (
-    <div className="page-container">
+    <div className="page-content">
       <section
         className="wc-card"
         style={{
@@ -153,7 +153,7 @@ export default function DashboardPage() {
             <button className="btn btn-green" onClick={() => navigate("/rankings")}>Live Standings</button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, width: "100%", maxWidth: 760 }}>
+          <div className="layout-3col" style={{ width: "100%", maxWidth: 760 }}>
             {[
               { label: "Live feed", value: dataState },
               { label: "Top team", value: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(topTeam)} size={18} /><span>{topTeam}</span></span> },
@@ -190,7 +190,7 @@ export default function DashboardPage() {
         </section>
       )}
 
-      <div className="layout-2col" style={{ marginBottom: 22 }}>
+      <div className="layout-2col">
         <section className="wc-card">
           <div className="wc-card-header">
             <div className="wc-card-title-group">

@@ -1,0 +1,128 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { API_BASE } from "@/services/api";
+
+type LeaderboardRow = {
+  rank: number;
+  user_id?: string;
+  team_name?: string;
+  total_points?: number;
+  budget_left?: number;
+  squad_size?: number;
+};
+
+type LeagueData = {
+  name?: string;
+  squad_size?: number;
+};
+
+function rowBorder(rank: number): React.CSSProperties {
+  if (rank === 1) return { borderLeft: "3px solid var(--wc-gold)" };
+  if (rank === 2) return { borderLeft: "3px solid rgba(192,192,192,0.6)" };
+  if (rank === 3) return { borderLeft: "3px solid rgba(205,127,50,0.6)" };
+  return {};
+}
+
+export default function LeaderboardPage() {
+  const { id = "" } = useParams();
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [league, setLeague] = useState<LeagueData | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  async function fetchLeaderboard() {
+    try {
+      const [leagueRes, leaderboardRes] = await Promise.all([
+        fetch(`${API_BASE}/api/v1/leagues/${id}`),
+        fetch(`${API_BASE}/api/v1/leagues/${id}/leaderboard`),
+      ]);
+      const leagueData = await leagueRes.json();
+      const leaderboardData = await leaderboardRes.json();
+      if (!leagueRes.ok) throw new Error(leagueData.detail ?? "Failed to load league");
+      if (!leaderboardRes.ok) throw new Error(leaderboardData.detail ?? "Failed to load leaderboard");
+      setLeague(leagueData.league ?? null);
+      setLeaderboard(Array.isArray(leaderboardData.leaderboard) ? leaderboardData.leaderboard : []);
+      setUpdatedAt(new Date().toLocaleString());
+      setError("");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLeaderboard();
+    const interval = window.setInterval(fetchLeaderboard, 30000);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  return (
+    <div className="page-container" style={{ display: "grid", gap: 18 }}>
+      <section className="wc-card section-card" style={{ padding: 24, display: "grid", gap: 10 }}>
+        <div className="eyebrow">Live leaderboard</div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gap: 4 }}>
+            <h1 className="page-title" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", marginBottom: 0 }}>{league?.name || `League ${id}`}</h1>
+            <p className="page-sub" style={{ maxWidth: 760, margin: 0 }}>Live league standings, refreshed every 30 seconds.</p>
+          </div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "#fff" }}>{league?.squad_size ?? 0} squad</div>
+        </div>
+      </section>
+
+      {error && <div style={{ color: "#f87171", fontSize: 13 }}>{error}</div>}
+
+      <section className="wc-card" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ padding: 18, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="eyebrow">Live leaderboard</div>
+          <h2 className="wc-section-title" style={{ margin: 0 }}>Current standings</h2>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 24 }}>Loading leaderboard...</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+              <thead>
+                <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.72)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase" }}>
+                  <Th>Rank</Th>
+                  <Th>Team</Th>
+                  <Th>User</Th>
+                  <Th>Points</Th>
+                  <Th>Squad Size</Th>
+                  <Th>Budget Left</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((row) => (
+                  <tr key={`${row.rank}-${row.user_id}`} style={{ ...rowBorder(row.rank), background: row.rank <= 3 ? "rgba(255,255,255,0.02)" : "transparent" }}>
+                    <Td>{row.rank}</Td>
+                    <Td>{row.team_name || "Unnamed Team"}</Td>
+                    <Td>{row.user_id || "-"}</Td>
+                    <Td><span style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700 }}>{row.total_points ?? 0}</span></Td>
+                    <Td><span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700 }}>{row.squad_size ?? 0}</span></Td>
+                    <Td><span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700 }}>{row.budget_left ?? 0}</span></Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div style={{ padding: "12px 18px 18px", color: "var(--color-text-secondary)", fontSize: 12 }}>
+          Last updated: {updatedAt || "--"}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return <th style={{ padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{children}</th>;
+}
+
+function Td({ children }: { children: React.ReactNode }) {
+  return <td style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", color: "#fff", verticalAlign: "middle" }}>{children}</td>;
+}

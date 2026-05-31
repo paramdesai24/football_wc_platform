@@ -101,6 +101,94 @@ async def submit_match_result(req: MatchResultInput, db: AsyncSession = Depends(
     return {"status": "processed", "match_id": req.match_id}
 
 
+@router.post("/scrape")
+async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
+    """
+    Fetch completed WC 2026 matches from football-data.org and enrich each
+    match with full player stats (minutes, cards, saves, clean sheets) from
+    API-Football. Falls back to FD-only scorers when API-Football is unavailable.
+    """
+    from app.services.match_scraper import (
+        fd_fetch_completed_matches,
+        fd_parse_match,
+        scrape_match_full,
+    )
+    from app.models.auction_models import AuctionPlayer
+
+    completed = await fd_fetch_completed_matches()
+    results   = []
+
+    for raw in completed:
+        parsed   = fd_parse_match(raw)
+        match_id = parsed["match_id"]
+
+        # Skip already processed matches
+        existing = await db.execute(select(WCMatch).where(WCMatch.id == match_id))
+        if existing.scalar_one_or_none():
+            results.append({"match_id": match_id, "status": "already_processed"})
+            continue
+
+        # Get full player stats (API-Football primary, FD fallback)
+        perf_data = await scrape_match_full(parsed)
+
+        # Match players to auction_players by name + team ISO code
+        performances = []
+        unmatched    = []
+        for p in perf_data:
+            player_result = await db.execute(
+                select(AuctionPlayer)
+                .where(AuctionPlayer.name.ilike(f"%{p['name']}%"))
+                .where(AuctionPlayer.iso_code.in_([
+                    parsed["home_code"], parsed["away_code"]
+                ]))
+                .limit(1)
+            )
+            player = player_result.scalar_one_or_none()
+            if player:
+                performances.append(PlayerPerformance(
+                    match_id=match_id,
+                    player_id=player.id,
+                    goals=p["goals"],
+                    assists=p["assists"],
+                    minutes_played=p["minutes"],
+                    yellow_cards=p["yellow_cards"],
+                    red_cards=p["red_cards"],
+                    clean_sheet=p["clean_sheet"],
+                    saves=p["saves"],
+                ))
+            else:
+                unmatched.append(p["name"])
+
+        # Persist match record
+        match = WCMatch(
+            id=match_id,
+            stage=parsed["stage"],
+            home_code=parsed["home_code"],
+            away_code=parsed["away_code"],
+            home_score=parsed["home_score"],
+            away_score=parsed["away_score"],
+            status="completed",
+        )
+        await db.merge(match)
+        for perf in performances:
+            await db.merge(perf)
+        await db.commit()
+
+        # Run FPL-style scoring for this match
+        await process_match_scores(match_id, db)
+
+        results.append({
+            "match_id":          match_id,
+            "status":            "processed",
+            "players_matched":   len(performances),
+            "players_unmatched": len(unmatched),
+            "unmatched_names":   unmatched[:10],
+            "data_source":       perf_data[0]["source"] if perf_data else "none",
+        })
+
+    return {"scraped": len(results), "results": results}
+
+
 @router.post("/recalculate")
 async def recalculate_all_points(db: AsyncSession = Depends(get_postgres_db)):
     """

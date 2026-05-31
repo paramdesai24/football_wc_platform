@@ -12,10 +12,15 @@ interface BidControlsProps {
 export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, onBid }: BidControlsProps) {
   const [bidAmount, setBidAmount] = useState(String(Math.max(currentBid + 50, 50)));
   const currentPlayer = useAuctionStore((state) => state.currentPlayer);
+  const basePrice = Number(currentPlayer?.base_price ?? 0);
 
   useEffect(() => {
+    if (currentBid <= 0 && basePrice > 0) {
+      setBidAmount(String(basePrice));
+      return;
+    }
     setBidAmount(String(Math.max(currentBid + 50, 50)));
-  }, [currentBid]);
+  }, [currentBid, basePrice]);
 
   const parsedBid = Number(bidAmount);
   const bidDisabled = Number.isNaN(parsedBid) || parsedBid <= currentBid || parsedBid > myBudget;
@@ -68,8 +73,8 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
         </div>
         <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
           {(!currentBid || currentBid <= 0)
-            ? `No bids yet · Starting price: ${(currentPlayer?.base_price ?? 0).toLocaleString()} coins`
-            : `Current bid: ${currentBid.toLocaleString()} coins`} · Your budget: {myBudget.toLocaleString()} coins
+            ? `Opening bid: ${basePrice.toLocaleString()} coins (base price) · Your budget: ${myBudget.toLocaleString()} coins`
+            : `Current bid: ${currentBid.toLocaleString()} coins · Minimum next: ${(currentBid + 10).toLocaleString()} coins · Your budget: ${myBudget.toLocaleString()} coins`}
         </div>
       </div>
     </div>

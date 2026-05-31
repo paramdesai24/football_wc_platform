@@ -1,5 +1,6 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { useAuctionStore } from "@/store/auctionStore";
+import { WS_BASE } from "@/services/api";
 
 export function useAuctionSocket(leagueId: string, userId: string, username: string) {
   const store = useAuctionStore();
@@ -9,7 +10,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
   const OPEN_STATE = typeof ReadyState?.OPEN === "number" ? ReadyState.OPEN : 1;
 
   const wsUrl = leagueId && userId && username
-    ? `ws://localhost:8000/ws/auction/${leagueId}?user_id=${userId}&username=${encodeURIComponent(username)}`
+    ? `${WS_BASE.replace(/\/$/, '')}/ws/auction/${leagueId}?user_id=${encodeURIComponent(userId)}&username=${encodeURIComponent(username)}`
     : null;
 
   const { sendJsonMessage, readyState } = resolvedUseWebSocket(wsUrl, {
@@ -34,7 +35,17 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
       }
 
       if (type === "room_state") {
-        store.applyServerState(payload);
+        const existingUsers = useAuctionStore.getState().users ?? {};
+        const users = Object.fromEntries(
+          Object.entries(payload.users ?? {}).map(([userId, user]) => [
+            userId,
+            {
+              ...user,
+              squad: (user as any)?.squad ?? (existingUsers[userId] as any)?.squad ?? [],
+            },
+          ]),
+        );
+        store.applyServerState({ ...payload, users });
       }
 
       if (type === "player_nominated") {
@@ -44,7 +55,11 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
         store.setHighBid(0, null);
         store.setUpcoming(payload.upcoming ?? []);
         store.setTimer(payload.timer);
-        store.addMessage(`🎯 Now bidding: ${payload.player.name}`);
+        store.addMessage(`🎯 Now bidding: ${payload.player.name} · Base: ${payload.player.base_price?.toLocaleString()} coins`);
+      }
+
+      if (type === "bid_rejected") {
+        store.addMessage(`⚠️ Bid rejected: ${payload?.reason ?? "Unknown reason"}`);
       }
 
       if (type === "bid_placed") {
@@ -65,6 +80,10 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
 
       if (type === "auction_complete") {
         store.addMessage("🏁 Auction complete!");
+      }
+
+      if (type === "error") {
+        store.addMessage(`❌ ${payload.message}`);
       }
     },
   });

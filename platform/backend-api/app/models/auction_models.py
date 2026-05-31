@@ -51,7 +51,7 @@ class League(AuctionBase):
     invite_code = Column(String(12), unique=True, nullable=False)
     host_id = Column(String, nullable=False)
     status = Column(String, default="auction")
-    budget = Column(Integer, default=5000)
+    budget = Column(Integer, default=50000)
     squad_size = Column(Integer, default=15)
     min_gk = Column(Integer, default=2)
     min_def = Column(Integer, default=5)

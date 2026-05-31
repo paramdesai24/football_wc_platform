@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_postgres_db
@@ -25,7 +25,7 @@ def generate_invite_code() -> str:
 class CreateLeagueRequest(BaseModel):
     name: str
     host_id: str
-    budget: int = 5000
+    budget: int = 50000
     squad_size: int = 15
     min_gk: int = 2
     min_def: int = 5
@@ -100,14 +100,6 @@ async def create_league(req: CreateLeagueRequest, db: AsyncSession = Depends(get
         scoring_rules=scoring,
     )
     db.add(league)
-    db.add(
-        LeagueMember(
-            league_id=league.id,
-            user_id=req.host_id,
-            team_name=f"{req.host_id}'s Team",
-            budget_left=req.budget,
-        )
-    )
     await db.commit()
     return {"league_id": str(league.id), "invite_code": league.invite_code}
 
@@ -142,7 +134,19 @@ async def get_league(league_id: str, db: AsyncSession = Depends(get_postgres_db)
 
     members_result = await db.execute(select(LeagueMember).where(LeagueMember.league_id == league.id))
     members = members_result.scalars().all()
-    return {"league": _serialize(league), "members": [_serialize(member) for member in members], "member_count": len(members)}
+    squad_counts_result = await db.execute(
+        select(Squad.user_id, func.count(Squad.id))
+        .where(Squad.league_id == league.id)
+        .group_by(Squad.user_id)
+    )
+    squad_counts = {user_id: count for user_id, count in squad_counts_result.all()}
+    serialized_members = []
+    for member in members:
+        member_data = _serialize(member)
+        member_data["squad_count"] = int(squad_counts.get(member.user_id, 0))
+        serialized_members.append(member_data)
+
+    return {"league": _serialize(league), "members": serialized_members, "member_count": len(members)}
 
 
 @router.get("/{league_id}/squad/{user_id}")
@@ -165,4 +169,15 @@ async def get_leaderboard(league_id: str, db: AsyncSession = Depends(get_postgre
         .order_by(LeagueMember.total_points.desc())
     )
     members = result.scalars().all()
-    return {"leaderboard": [{"rank": index + 1, **_serialize(member)} for index, member in enumerate(members)]}
+    squad_counts_result = await db.execute(
+        select(Squad.user_id, func.count(Squad.id))
+        .where(Squad.league_id == uuid.UUID(league_id))
+        .group_by(Squad.user_id)
+    )
+    squad_counts = {user_id: count for user_id, count in squad_counts_result.all()}
+    return {
+        "leaderboard": [
+            {"rank": index + 1, **_serialize(member), "squad_size": int(squad_counts.get(member.user_id, 0))}
+            for index, member in enumerate(members)
+        ]
+    }
