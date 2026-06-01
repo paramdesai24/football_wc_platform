@@ -20,6 +20,19 @@ export interface RoomUser {
   username: string;
   budget_left: number;
   squad_size: number;
+  squad?: Array<{
+    id: string;
+    position: string;
+    purchase_price?: number;
+  }>;
+  squad_details?: Array<{
+    id: string;
+    name: string;
+    position: string;
+    flag_code: string;
+    club: string;
+    purchase_price: number;
+  }>;
 }
 
 interface UpcomingPlayer {
@@ -83,14 +96,28 @@ export const useAuctionStore = create<AuctionState>((set, get) => ({
   setLeague: (id, userId, username) => set({ leagueId: id, userId, username }),
 
   applyServerState: (payload) =>
-    set({
-      status: payload.status,
-      currentPlayer: payload.current_player,
-      currentHighBid: payload.current_high_bid ?? 0,
-      currentBidderId: payload.current_bidder_id ?? null,
-      currentNominator: payload.current_nominator ?? null,
-      users: payload.users ?? {},
-      myBudget: payload.users?.[get().userId ?? ""]?.budget_left ?? get().myBudget,
+    set(() => {
+      const existingUsers = get().users ?? {};
+      const users = Object.fromEntries(
+        Object.entries(payload.users ?? {}).map(([userId, user]: [string, any]) => [
+          userId,
+          {
+            ...user,
+            squad: user?.squad ?? existingUsers[userId]?.squad ?? [],
+            squad_details: user?.squad_details ?? existingUsers[userId]?.squad_details ?? [],
+          },
+        ]),
+      );
+
+      return {
+        status: payload.status,
+        currentPlayer: payload.current_player,
+        currentHighBid: payload.current_high_bid ?? 0,
+        currentBidderId: payload.current_bidder_id ?? null,
+        currentNominator: payload.current_nominator ?? null,
+        users,
+        myBudget: users?.[get().userId ?? ""]?.budget_left ?? get().myBudget,
+      };
     }),
 
   setCurrentPlayer: (player) => set({ currentPlayer: player }),

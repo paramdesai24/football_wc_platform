@@ -4,7 +4,7 @@ import { API_BASE } from "@/services/api";
 import { toast } from "@/store/toastStore";
 import { useIdentityStore } from "@/store/identityStore";
 
-function fieldLabel(): React.CSSProperties {
+function fieldLabel(_labelText?: string): React.CSSProperties {
   return {
     display: "block",
     marginBottom: 4,
@@ -48,10 +48,16 @@ function actionButton(primary = true): React.CSSProperties {
 
 export default function AuctionLobbyPage() {
   const navigate = useNavigate();
-  const identity = useIdentityStore();
-  const [createForm, setCreateForm] = useState({ name: "", host_id: identity.userId || "", budget: 50000, squad_size: 15 });
-  const [joinForm, setJoinForm] = useState({ invite_code: "", user_id: identity.userId || "", team_name: identity.teamName || identity.username || "" });
-  const [hostTeamName, setHostTeamName] = useState(identity.username || identity.teamName || "");
+  const userId = useIdentityStore((s) => s.userId);
+  const username = useIdentityStore((s) => s.username);
+  const teamName = useIdentityStore((s) => s.teamName);
+  const setIdentityUserId = useIdentityStore((s) => s.setUserId);
+  const setIdentityUsername = useIdentityStore((s) => s.setUsername);
+  const setIdentityTeamName = useIdentityStore((s) => s.setTeamName);
+
+  const [createForm, setCreateForm] = useState({ name: "", host_id: userId || "", budget: 50000, squad_size: 20 });
+  const [joinForm, setJoinForm] = useState({ invite_code: "", user_id: userId || "", team_name: teamName || username || "" });
+  const [hostTeamName, setHostTeamName] = useState(username || teamName || "");
   const [createLoading, setCreateLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -60,19 +66,19 @@ export default function AuctionLobbyPage() {
   const [createdLeagueId, setCreatedLeagueId] = useState("");
 
   useEffect(() => {
-    if (!createForm.host_id && identity.userId) {
-      setCreateForm((current) => ({ ...current, host_id: identity.userId }));
+    if (!createForm.host_id && userId) {
+      setCreateForm((current) => ({ ...current, host_id: userId }));
     }
-    if (!joinForm.user_id && identity.userId) {
-      setJoinForm((current) => ({ ...current, user_id: identity.userId }));
+    if (!joinForm.user_id && userId) {
+      setJoinForm((current) => ({ ...current, user_id: userId }));
     }
-    if (!joinForm.team_name && (identity.teamName || identity.username)) {
-      setJoinForm((current) => ({ ...current, team_name: identity.teamName || identity.username }));
+    if (!joinForm.team_name && (teamName || username)) {
+      setJoinForm((current) => ({ ...current, team_name: teamName || username }));
     }
-    if (!hostTeamName && (identity.username || identity.teamName)) {
-      setHostTeamName(identity.username || identity.teamName);
+    if (!hostTeamName && (username || teamName)) {
+      setHostTeamName(username || teamName);
     }
-  }, [createForm.host_id, hostTeamName, identity.teamName, identity.userId, identity.username, joinForm.team_name, joinForm.user_id]);
+  }, [createForm.host_id, hostTeamName, teamName, userId, username, joinForm.team_name, joinForm.user_id]);
 
   async function handleCreate() {
     setCreateLoading(true);
@@ -206,17 +212,17 @@ export default function AuctionLobbyPage() {
 
           <div>
             <label style={fieldLabel()}>Your username</label>
-            <input
-              className="input-field"
-              style={inputStyle()}
-              value={createForm.host_id}
-              onChange={(event) => {
-                const value = event.target.value;
-                setCreateForm((current) => ({ ...current, host_id: value }));
-                identity.setUserId(value);
-              }}
-              placeholder="username"
-            />
+                <input
+                  className="input-field"
+                  style={inputStyle()}
+                  value={createForm.host_id}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setCreateForm((current) => ({ ...current, host_id: value }));
+                    setIdentityUserId(value);
+                  }}
+                  placeholder="username"
+                />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -290,8 +296,8 @@ export default function AuctionLobbyPage() {
                       onChange={(e) => {
                         const value = e.target.value;
                         setHostTeamName(value);
-                        identity.setUsername(value);
-                        identity.setTeamName(value);
+                        setIdentityUsername(value);
+                        setIdentityTeamName(value);
                       }}
                     />
                     <button
@@ -347,7 +353,7 @@ export default function AuctionLobbyPage() {
               onChange={(event) => {
                 const value = event.target.value;
                 setJoinForm((current) => ({ ...current, user_id: value }));
-                identity.setUserId(value);
+                setIdentityUserId(value);
               }}
               placeholder="username"
             />
@@ -362,8 +368,8 @@ export default function AuctionLobbyPage() {
               onChange={(event) => {
                 const value = event.target.value;
                 setJoinForm((current) => ({ ...current, team_name: value }));
-                identity.setTeamName(value);
-                identity.setUsername(value);
+                setIdentityTeamName(value);
+                setIdentityUsername(value);
               }}
               placeholder="My Dream Team"
             />

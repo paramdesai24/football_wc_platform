@@ -26,11 +26,15 @@ class CreateLeagueRequest(BaseModel):
     name: str
     host_id: str
     budget: int = 50000
-    squad_size: int = 15
+    squad_size: int = 20
     min_gk: int = 2
     min_def: int = 5
     min_mid: int = 5
     min_fwd: int = 3
+    max_gk: int = 3
+    max_def: int = 6
+    max_mid: int = 6
+    max_fwd: int = 5
     scoring_rules: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 
@@ -97,6 +101,10 @@ async def create_league(req: CreateLeagueRequest, db: AsyncSession = Depends(get
         min_def=req.min_def,
         min_mid=req.min_mid,
         min_fwd=req.min_fwd,
+        max_gk=req.max_gk,
+        max_def=req.max_def,
+        max_mid=req.max_mid,
+        max_fwd=req.max_fwd,
         scoring_rules=scoring,
     )
     db.add(league)

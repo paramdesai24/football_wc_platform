@@ -44,7 +44,7 @@ class RoomUser:
     user_id: str
     username: str
     budget_left: int
-    squad: List[str] = field(default_factory=list)
+    squad: List[dict] = field(default_factory=list)
 
 
 @dataclass

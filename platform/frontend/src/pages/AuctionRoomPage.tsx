@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { apiGet, API_BASE } from "@/services/api";
+import { API_BASE } from "@/services/api";
 import { useAuctionSocket } from "@/hooks/useAuctionSocket";
 import { useAuctionStore } from "@/store/auctionStore";
 import { useIdentityStore } from "@/store/identityStore";
@@ -17,6 +17,10 @@ type LeagueRules = {
   min_def?: number;
   min_mid?: number;
   min_fwd?: number;
+  max_gk?: number;
+  max_def?: number;
+  max_mid?: number;
+  max_fwd?: number;
 };
 
 type SquadEntry = {
@@ -24,23 +28,25 @@ type SquadEntry = {
   position: string;
 };
 
+type SquadDetail = {
+  id: string;
+  name: string;
+  position: string;
+  flag_code: string;
+  club: string;
+  purchase_price: number;
+};
+
 const POSITION_ORDER = ["GK", "DEF", "MID", "FWD"] as const;
+const EMPTY_SQUAD: SquadDetail[] = [];
 
 function getPositionCaps(league: LeagueRules | null) {
-  const squadSize = league?.squad_size ?? 15;
-  const minByPos = {
-    GK: league?.min_gk ?? 2,
-    DEF: league?.min_def ?? 5,
-    MID: league?.min_mid ?? 5,
-    FWD: league?.min_fwd ?? 3,
-  };
-  const totalMin = minByPos.GK + minByPos.DEF + minByPos.MID + minByPos.FWD;
-
-  return POSITION_ORDER.reduce((acc, pos) => {
-    const otherMins = totalMin - minByPos[pos];
-    acc[pos] = Math.max(0, squadSize - otherMins);
-    return acc;
-  }, {} as Record<(typeof POSITION_ORDER)[number], number>);
+  return {
+    GK: league?.max_gk ?? 3,
+    DEF: league?.max_def ?? 6,
+    MID: league?.max_mid ?? 6,
+    FWD: league?.max_fwd ?? 5,
+  } as Record<(typeof POSITION_ORDER)[number], number>;
 }
 
 function getPositionCounts(squad: SquadEntry[] | undefined) {
@@ -66,7 +72,16 @@ export default function AuctionRoomPage() {
   const setStoredUsername = useIdentityStore((state) => state.setUsername);
   const paramUserId = searchParams.get("userId") ?? "";
   const paramUsername = searchParams.get("username") ?? "";
-  const store = useAuctionStore();
+  const storeStatus = useAuctionStore((s) => s.status);
+  const storeTimerSeconds = useAuctionStore((s) => s.timerSeconds);
+  const storeCurrentPlayer = useAuctionStore((s) => s.currentPlayer);
+  const storeCurrentHighBid = useAuctionStore((s) => s.currentHighBid);
+  const storeCurrentBidderId = useAuctionStore((s) => s.currentBidderId);
+  const storeMyBudget = useAuctionStore((s) => s.myBudget);
+  const storeUserId = useAuctionStore((s) => s.userId);
+  const storeMessages = useAuctionStore((s) => s.messages);
+  const storeSetLeague = useAuctionStore((s) => s.setLeague);
+  const storeReset = useAuctionStore((s) => s.reset);
   const previousLeagueIdRef = useRef<string | null>(null);
   const [localUserId, setLocalUserId] = useState(paramUserId || storedUserId || "");
   const [localUsername, setLocalUsername] = useState(paramUsername || storedUsername || "");
@@ -74,33 +89,41 @@ export default function AuctionRoomPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [leagueRules, setLeagueRules] = useState<LeagueRules | null>(null);
   const [isHost, setIsHost] = useState(false);
+  const [showMySquad, setShowMySquad] = useState(false);
 
   useEffect(() => {
+    // Sync URL params -> persisted identity once on param change or when persisted values become available.
     if (paramUserId) {
       setStoredUserId(paramUserId);
       setLocalUserId(paramUserId);
-    } else if (!localUserId && storedUserId) {
+      return;
+    }
+
+    if (!localUserId && storedUserId) {
       setLocalUserId(storedUserId);
     }
 
     if (paramUsername) {
       setStoredUsername(paramUsername);
       setLocalUsername(paramUsername);
-    } else if (!localUsername && storedUsername) {
+      return;
+    }
+
+    if (!localUsername && storedUsername) {
       setLocalUsername(storedUsername);
     }
-  }, [localUserId, localUsername, paramUserId, paramUsername, setStoredUserId, setStoredUsername, storedUserId, storedUsername]);
+  }, [paramUserId, paramUsername, storedUserId, storedUsername, setStoredUserId, setStoredUsername]);
 
   useEffect(() => {
     if (previousLeagueIdRef.current && previousLeagueIdRef.current !== leagueId) {
-      store.reset();
+      storeReset();
     }
     previousLeagueIdRef.current = leagueId || null;
   }, [leagueId]);
 
   useEffect(() => {
     if (leagueId && localUserId && localUsername) {
-      store.setLeague(leagueId, localUserId, localUsername);
+      storeSetLeague(leagueId, localUserId, localUsername);
       localStorage.setItem("auction:userId", localUserId);
       localStorage.setItem("auction:username", localUsername);
     }
@@ -125,13 +148,18 @@ export default function AuctionRoomPage() {
     return () => { mounted = false; };
   }, [leagueId, localUserId]);
 
-  const { placeBid, startAuction, skipPlayer, isConnected } = useAuctionSocket(leagueId, localUserId, localUsername);
+  const { placeBid, startAuction, skipPlayer, confirmSale, isConnected } = useAuctionSocket(leagueId, localUserId, localUsername);
   const maxTimerSeconds = useAuctionStore((s) => s.maxTimerSeconds);
   const upcomingPlayers = useAuctionStore((s) => s.upcomingPlayers);
   const users = useAuctionStore((s) => s.users);
   const positionCaps = getPositionCaps(leagueRules);
-  const auctionStatus = useAuctionStore((s) => s.status);
+  const auctionStatus = storeStatus;
   const connectionStatus = useAuctionStore((s) => s.connectionStatus);
+  const currentHighBid = storeCurrentHighBid;
+  const isAuctionActive = auctionStatus === "bidding" || auctionStatus === "active";
+  const hasBids = currentHighBid > 0;
+  const mySquadRaw = useAuctionStore((s) => s.users[localUserId ?? ""]?.squad_details);
+  const mySquadPlayers: SquadDetail[] = mySquadRaw ?? EMPTY_SQUAD;
 
   const joined = Boolean(leagueId && localUserId && localUsername);
 
@@ -253,15 +281,42 @@ export default function AuctionRoomPage() {
               const squad = Array.isArray(typedUser.squad) ? (typedUser.squad as SquadEntry[]) : [];
               const counts = getPositionCounts(squad);
               const width = Math.max(8, Math.round(((typedUser.budget_left ?? 0) / Math.max(...Object.values(users).map((entry: any) => entry.budget_left ?? 0), 1)) * 100));
+              const isOwnCard = userIdKey === localUserId;
 
               return (
-                <div key={userIdKey} style={{ padding: 12, borderRadius: 16, background: userIdKey === store.userId ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)", border: userIdKey === store.userId ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)" }}>
+                <div
+                  key={userIdKey}
+                  onClick={() => {
+                    if (isOwnCard) setShowMySquad(true);
+                  }}
+                  style={{
+                    padding: 12,
+                    borderRadius: 16,
+                    background: isOwnCard ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)",
+                    border: isOwnCard ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                    cursor: isOwnCard ? "pointer" : "default",
+                    transition: "border-color 0.15s",
+                  }}
+                  onMouseEnter={(event) => {
+                    if (isOwnCard) {
+                      (event.currentTarget as HTMLDivElement).style.borderColor = "rgba(212,175,55,0.35)";
+                    }
+                  }}
+                  onMouseLeave={(event) => {
+                    if (isOwnCard) {
+                      (event.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.06)";
+                    }
+                  }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
-                    <div style={{ color: "#fff", fontWeight: 700 }}>{typedUser.username}{userIdKey === store.userId ? " (you)" : ""}</div>
+                    <div style={{ color: "#fff", fontWeight: 700 }}>{typedUser.username}{isOwnCard ? " (you)" : ""}</div>
                     <div style={{ color: "var(--color-gold)", fontFamily: "var(--font-display)", fontWeight: 800 }}>{typedUser.budget_left} coins</div>
                   </div>
+                  {isOwnCard && (
+                    <div style={{ color: "rgba(255,255,255,0.52)", fontSize: 11, marginBottom: 8 }}>Click to view squad</div>
+                  )}
                   <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden", marginBottom: 8 }}>
-                    <div style={{ width: `${width}%`, height: "100%", background: userIdKey === store.userId ? "linear-gradient(90deg, #d4af37, #f7d774)" : "rgba(255,255,255,0.62)" }} />
+                    <div style={{ width: `${width}%`, height: "100%", background: isOwnCard ? "linear-gradient(90deg, #d4af37, #f7d774)" : "rgba(255,255,255,0.62)" }} />
                   </div>
                   <div style={{ color: "var(--color-text-muted)", fontSize: 12, marginBottom: 8 }}>Squad size: {typedUser.squad_size ?? squad.length}</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
@@ -279,9 +334,9 @@ export default function AuctionRoomPage() {
         </section>
 
         <div style={{ display: "grid", gap: 16 }}>
-          {store.status !== "waiting" ? <AuctionTimer seconds={store.timerSeconds} maxSeconds={maxTimerSeconds} isActive /> : null}
-          {store.currentPlayer ? (
-            <PlayerCard player={store.currentPlayer} currentBid={store.currentHighBid} isOnBlock />
+          {storeStatus !== "waiting" ? <AuctionTimer seconds={storeTimerSeconds} maxSeconds={maxTimerSeconds} isActive /> : null}
+          {storeCurrentPlayer ? (
+            <PlayerCard player={storeCurrentPlayer} currentBid={storeCurrentHighBid} isOnBlock />
           ) : (
             <div className="wc-card" style={{ padding: 24, minHeight: 260, display: "grid", placeItems: "center", textAlign: "center", color: "var(--color-text-muted)" }}>
               <div style={{ display: "grid", gap: 10 }}>
@@ -292,37 +347,66 @@ export default function AuctionRoomPage() {
           )}
 
           <BidControls
-            currentBid={store.currentHighBid}
-            myBudget={store.myBudget}
-            currentBidderId={store.currentBidderId}
-            myUserId={store.userId}
+            currentBid={storeCurrentHighBid}
+            myBudget={storeMyBudget}
+            currentBidderId={storeCurrentBidderId}
+            myUserId={storeUserId}
             onBid={placeBid}
           />
-          {/* Host skip control: only when there are no bids on the current player */}
-          {isHost && store.currentPlayer && (store.currentHighBid ?? 0) <= 0 && (
-            <div style={{ marginTop: 8 }}>
+          {isHost && isAuctionActive && (
+            hasBids ? (
               <button
                 type="button"
-                onClick={() => skipPlayer()}
+                onClick={confirmSale}
                 disabled={!joined}
+                onMouseEnter={(event) => {
+                  (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.25)";
+                }}
+                onMouseLeave={(event) => {
+                  (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.15)";
+                }}
                 style={{
                   minHeight: 40,
                   padding: '0 14px',
                   borderRadius: 10,
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  background: 'transparent',
+                  border: '1px solid rgba(34,197,94,0.35)',
+                  background: 'rgba(34,197,94,0.15)',
                   color: '#fff',
                   cursor: joined ? 'pointer' : 'not-allowed',
                 }}
               >
-                Skip Player
+                ✅ Confirm Sale — {currentHighBid.toLocaleString()} coins
               </button>
+            ) : (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => skipPlayer()}
+                  disabled={!joined}
+                  style={{
+                    minHeight: 40,
+                    padding: '0 14px',
+                    borderRadius: 10,
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'transparent',
+                    color: '#fff',
+                    cursor: joined ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  Skip →
+                </button>
+              </div>
+            )
+          )}
+          {!isHost && isAuctionActive && hasBids && (
+            <div style={{ marginTop: 8, color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
+              Host can confirm sale at any time
             </div>
           )}
         </div>
 
         <div style={{ display: "grid", gap: 16 }}>
-          <ActivityFeed messages={store.messages} />
+          <ActivityFeed messages={storeMessages} />
 
           <div className="wc-card" style={{ padding: 18, display: "grid", gap: 12 }}>
             <div style={{ color: "var(--color-text-secondary)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase" }}>UP NEXT</div>
@@ -342,6 +426,88 @@ export default function AuctionRoomPage() {
             </div>
           </div>
         </div>
+
+        {showMySquad && (
+          <>
+            <div
+              onClick={() => setShowMySquad(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(4px)",
+                zIndex: 990,
+              }}
+            />
+            <div
+              style={{
+                position: "fixed",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "min(720px, calc(100vw - 32px))",
+                maxHeight: "min(80vh, 760px)",
+                overflow: "auto",
+                zIndex: 991,
+                borderRadius: 20,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(12,15,22,0.98)",
+                boxShadow: "0 30px 90px rgba(0,0,0,0.45)",
+                padding: 20,
+                display: "grid",
+                gap: 16,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <div>
+                  <div style={{ color: "var(--color-gold)", fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700 }}>My Squad</div>
+                  <div style={{ color: "#fff", fontSize: 20, fontWeight: 800, marginTop: 4 }}>{localUsername || "My squad"} · {mySquadPlayers.length} players</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMySquad(false)}
+                  style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 20, cursor: "pointer", padding: 4 }}
+                  aria-label="Close squad panel"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gap: 14 }}>
+                {POSITION_ORDER.map((position) => {
+                  const positionPlayers = mySquadPlayers.filter((player) => player.position === position);
+                  if (positionPlayers.length === 0) return null;
+
+                  return (
+                    <div key={position} style={{ display: "grid", gap: 8 }}>
+                      <div style={{ color: "var(--color-text-muted)", fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}>{position} · {positionPlayers.length}</div>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {positionPlayers.map((player) => (
+                          <div key={player.id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center", padding: 12, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <img
+                              src={`https://flagcdn.com/w40/${player.flag_code || 'un'}.png`}
+                              alt=""
+                              style={{ width: 24, height: 18, borderRadius: 2, objectFit: "cover" }}
+                            />
+                            <div style={{ display: "grid", gap: 2 }}>
+                              <div style={{ color: "#fff", fontWeight: 700 }}>{player.name}</div>
+                              <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>{player.club}</div>
+                            </div>
+                            <div style={{ color: "var(--color-gold)", fontWeight: 800 }}>{(player.purchase_price ?? 0).toLocaleString()} coins</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {mySquadPlayers.length === 0 && (
+                  <div style={{ color: "var(--color-text-muted)", textAlign: "center", padding: "24px 0" }}>No players yet — win some bids!</div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
       </div>
     </>
