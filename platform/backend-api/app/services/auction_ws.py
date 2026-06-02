@@ -56,15 +56,14 @@ def get_player_info(room: AuctionRoom, player_id: str, purchase_price: int = 0) 
 
 
 async def broadcast(room: AuctionRoom, message: dict) -> None:
-    print(f"Broadcasting {message.get('type')} to {len(room.connections)} connections")
-    dead = []
-    for user_id, websocket in room.connections.items():
+    dead: list[str] = []
+    for uid, ws in list(room.connections.items()):
         try:
-            await websocket.send_json(message)
+            await ws.send_json(message)
         except Exception:
-            dead.append(user_id)
-    for user_id in dead:
-        room.connections.pop(user_id, None)
+            dead.append(uid)
+    for uid in dead:
+        room.connections.pop(uid, None)
 
 
 async def _serialize_room_state(room: AuctionRoom, db: AsyncSession) -> dict:
@@ -170,9 +169,10 @@ def cancel_timer(room: AuctionRoom, current_task: asyncio.Task | None = None) ->
     room.timer_task = None
 
 
-async def start_timer(room: AuctionRoom, seconds: int, db: AsyncSession) -> None:
+async def start_timer(room: AuctionRoom, seconds: int) -> None:
     try:
         for remaining in range(seconds, -1, -1):
+            room.timer_seconds = remaining
             await broadcast(room, {
                 "type": "timer_tick",
                 "payload": {"seconds_left": remaining}
@@ -182,22 +182,22 @@ async def start_timer(room: AuctionRoom, seconds: int, db: AsyncSession) -> None
             await asyncio.sleep(1)
 
         if room.current_player_id and room.status == "bidding":
-            await handle_player_sold(room, db)
+            await handle_player_sold(room)
     except asyncio.CancelledError:
         pass
 
 
-def launch_timer(room: AuctionRoom, seconds: int, db: AsyncSession) -> None:
+def launch_timer(room: AuctionRoom, seconds: int) -> None:
     if room.timer_task and not room.timer_task.done():
         room.timer_task.cancel()
-    room.timer_task = asyncio.create_task(start_timer(room, seconds, db))
+    room.timer_task = asyncio.create_task(start_timer(room, seconds))
 
 
-async def handle_timer_expired(room: AuctionRoom, db: AsyncSession) -> None:
+async def handle_timer_expired(room: AuctionRoom) -> None:
     if room.current_player_id is None:
         return
     if room.status == "bidding":
-        await handle_player_sold(room, db)
+        await handle_player_sold(room)
 
 
 async def handle_nomination(room: AuctionRoom, player_id: str, nominator_id: str, db: AsyncSession) -> None:
@@ -236,7 +236,7 @@ async def handle_nomination(room: AuctionRoom, player_id: str, nominator_id: str
 
     if room.timer_task and not room.timer_task.done():
         room.timer_task.cancel()
-    room.timer_task = asyncio.create_task(start_timer(room, 60, db))
+    room.timer_task = asyncio.create_task(start_timer(room, 60))
 
     # Build upcoming preview — next 3 unsold players after current
     upcoming = []
@@ -269,6 +269,22 @@ async def handle_nomination(room: AuctionRoom, player_id: str, nominator_id: str
     )
 
 
+async def _save_bid_background(league_id: uuid.UUID, player_id: str, user_id: str, amount: int) -> None:
+    try:
+        from app.core.database import PostgresSessionLocal
+        async with PostgresSessionLocal() as session:
+            bid = Bid(
+                league_id=league_id,
+                player_id=player_id,
+                user_id=user_id,
+                amount=amount,
+            )
+            session.add(bid)
+            await session.commit()
+    except Exception as e:
+        print(f"[ERROR] Failed to save bid in background: {e}")
+
+
 async def handle_bid(room: AuctionRoom, user_id: str, amount: int, db: AsyncSession) -> None:
     if room.status not in ("bidding", "active"):
         return
@@ -296,71 +312,70 @@ async def handle_bid(room: AuctionRoom, user_id: str, amount: int, db: AsyncSess
     if amount - room.current_high_bid < 10:
         return
 
-    league_uuid = _as_uuid(room.league_id)
-    if league_uuid:
-        league_result = await db.execute(
-            select(League).where(League.id == league_uuid)
-        )
-        league = league_result.scalar_one_or_none()
-        if league:
-            if len(user.squad) >= league.squad_size:
-                connection = room.connections.get(user_id)
-                if connection:
-                    await connection.send_json({
-                        "type": "bid_rejected",
-                        "payload": {"reason": f"Your squad is full ({league.squad_size} players max)"},
-                    })
-                return
+    # Check league constraints using cached settings
+    settings = getattr(room, "league_settings", None)
+    if settings:
+        if len(user.squad) >= settings["squad_size"]:
+            connection = room.connections.get(user_id)
+            if connection:
+                await connection.send_json({
+                    "type": "bid_rejected",
+                    "payload": {"reason": f"Your squad is full ({settings['squad_size']} players max)"},
+                })
+            return
 
-            current_player_pos = room.current_player.get("position", "MID") if room.current_player else "MID"
-            max_by_pos = {
-                "GK": league.max_gk if league.max_gk is not None else 3,
-                "DEF": league.max_def if league.max_def is not None else 6,
-                "MID": league.max_mid if league.max_mid is not None else 6,
-                "FWD": league.max_fwd if league.max_fwd is not None else 5,
-            }
-            max_for_this_pos = max_by_pos.get(current_player_pos, league.squad_size)
+        current_player_pos = room.current_player.get("position", "MID") if room.current_player else "MID"
+        max_for_this_pos = settings.get(f"max_{current_player_pos.lower()}", settings["squad_size"])
 
-            owned_ids = [_squad_player_id(entry) for entry in user.squad if _squad_player_id(entry)]
-            if owned_ids:
-                pos_result = await db.execute(
-                    select(AuctionPlayer)
-                    .where(AuctionPlayer.id.in_(owned_ids))
-                    .where(AuctionPlayer.position == current_player_pos)
-                )
-                owned_this_pos = len(pos_result.scalars().all())
-            else:
-                owned_this_pos = 0
+        # Count owned players of this position using cached player positions
+        owned_this_pos = 0
+        player_positions = getattr(room, "player_positions", {})
+        for entry in user.squad:
+            pid = _squad_player_id(entry)
+            if pid and player_positions.get(pid) == current_player_pos:
+                owned_this_pos += 1
 
-            if owned_this_pos >= max_for_this_pos:
-                connection = room.connections.get(user_id)
-                if connection:
-                    await connection.send_json({
-                        "type": "bid_rejected",
-                        "payload": {
-                            "reason": f"You already have the maximum {max_for_this_pos} {current_player_pos} players allowed",
-                        },
-                    })
-                return
+        if owned_this_pos >= max_for_this_pos:
+            connection = room.connections.get(user_id)
+            if connection:
+                await connection.send_json({
+                    "type": "bid_rejected",
+                    "payload": {
+                        "reason": f"You already have the maximum {max_for_this_pos} {current_player_pos} players allowed",
+                    },
+                })
+            return
 
     room.current_high_bid = amount
     room.current_bidder_id = user_id
     room.has_received_bid = True
 
+    # Send immediate acknowledgment to the bidder so their UI updates instantly
+    bidder_ws = room.connections.get(user_id)
+    if bidder_ws:
+        try:
+            await bidder_ws.send_json({
+                "type": "bid_ack",
+                "payload": {"amount": amount, "status": "accepted"},
+            })
+        except Exception:
+            pass
+
+    # Save bid to database in the background to avoid blocking critical websocket path
     league_uuid = _as_uuid(room.league_id)
     if league_uuid:
-        bid = Bid(
-            league_id=league_uuid,
-            player_id=room.current_player_id,
-            user_id=user_id,
-            amount=amount,
+        asyncio.create_task(
+            _save_bid_background(
+                league_uuid,
+                room.current_player_id,
+                user_id,
+                amount,
+            )
         )
-        db.add(bid)
-        await db.commit()
 
     if room.timer_task and not room.timer_task.done():
         room.timer_task.cancel()
-    room.timer_task = asyncio.create_task(start_timer(room, 30, db))
+    room.timer_task = asyncio.create_task(start_timer(room, 30))
 
     await broadcast(
         room,
@@ -374,7 +389,10 @@ async def handle_bid(room: AuctionRoom, user_id: str, amount: int, db: AsyncSess
             },
         },
     )
-async def handle_player_sold(room: AuctionRoom, db: AsyncSession) -> None:
+
+async def handle_player_sold(room: AuctionRoom) -> None:
+    """Called when a timer expires. Uses its own DB session so it is fully
+    decoupled from any WebSocket connection's lifetime."""
     if not room.current_player_id:
         return
     if room.status != "bidding":
@@ -387,87 +405,64 @@ async def handle_player_sold(room: AuctionRoom, db: AsyncSession) -> None:
     player = room.current_player
     winner_name = "No buyer"
 
-    try:
-        if winner_id and winner_id in room.users and price and price > 0:
-            room.users[winner_id].budget_left -= price
-            room.users[winner_id].squad.append({"id": player_id, "purchase_price": price})
-
-            winner_name = room.users[winner_id].username
-
-            db.add(Squad(
-                league_id=uuid.UUID(room.league_id),
-                user_id=winner_id,
-                player_id=player_id,
-                purchase_price=price,
-            ))
-            await db.execute(
-                sql_update(LeagueMember)
-                .where(LeagueMember.league_id == uuid.UUID(room.league_id))
-                .where(LeagueMember.user_id == winner_id)
-                .values(
-                    budget_spent=LeagueMember.budget_spent + price,
-                    budget_left=LeagueMember.budget_left - price,
-                )
-            )
-            await db.commit()
-            print(f"[SOLD] {player_id} to {winner_id} for {price}")
-        else:
-            winner_name = "No buyer"
-            print(f"[WARN] No buyer for {player_id}")
-    except Exception as e:
-        winner_name = "No buyer"
-        print(f"[ERROR] DB error: {e}")
-        await db.rollback()
-
-    room.sold_players.append(player_id)
-
-    await broadcast(room, {
-        "type": "player_sold",
-        "payload": {
-            "player": player,
-            "winner": winner_name,
-            "price": price,
-        },
-    })
-
-    room.current_player_id = None
-    room.current_player = None
-    room.current_high_bid = 0
-    room.current_bidder_id = None
-    room.has_received_bid = False
-
-    await broadcast(room, {"type": "room_state", "payload": await _serialize_room_state(room, db)})
-
-    if await all_squads_complete(room, db):
-        room.status = "complete"
-        await broadcast(room, {"type": "auction_complete", "payload": room.to_state()})
+    from app.core.database import PostgresSessionLocal
+    async with PostgresSessionLocal() as db:
         try:
-            await db.execute(
-                sql_update(League)
-                .where(League.id == uuid.UUID(room.league_id))
-                .values(status="active")
-            )
-            await db.commit()
-            print(f"[OK] League {room.league_id} -> active")
+            if winner_id and winner_id in room.users and price and price > 0:
+                room.users[winner_id].budget_left -= price
+                room.users[winner_id].squad.append({"id": player_id, "purchase_price": price})
+
+                winner_name = room.users[winner_id].username
+
+                db.add(Squad(
+                    league_id=uuid.UUID(room.league_id),
+                    user_id=winner_id,
+                    player_id=player_id,
+                    purchase_price=price,
+                ))
+                await db.execute(
+                    sql_update(LeagueMember)
+                    .where(LeagueMember.league_id == uuid.UUID(room.league_id))
+                    .where(LeagueMember.user_id == winner_id)
+                    .values(
+                        budget_spent=LeagueMember.budget_spent + price,
+                        budget_left=LeagueMember.budget_left - price,
+                    )
+                )
+                await db.commit()
+                print(f"[SOLD] {player_id} to {winner_id} for {price}")
+            else:
+                winner_name = "No buyer"
+                print(f"[WARN] No buyer for {player_id}")
         except Exception as e:
-            print(f"[ERROR] Failed to activate league: {e}")
-        return
+            winner_name = "No buyer"
+            print(f"[ERROR] DB error in handle_player_sold: {e}")
+            try:
+                await db.rollback()
+            except Exception:
+                pass
 
-    await asyncio.sleep(3)
-    room.status = "active"
+        room.sold_players.append(player_id)
 
-    advanced = False
-    while room.queue_index + 1 < len(room.nomination_queue_data):
-        room.queue_index += 1
-        next_player = room.nomination_queue_data[room.queue_index]
-        if next_player["id"] not in room.sold_players:
-            advanced = True
-            await handle_nomination(room, next_player["id"], "system", db)
-            break
+        await broadcast(room, {
+            "type": "player_sold",
+            "payload": {
+                "player": player,
+                "winner": winner_name,
+                "price": price,
+            },
+        })
 
-    if not advanced and room.queue_index + 1 >= len(room.nomination_queue_data):
-        room.status = "complete"
+        room.current_player_id = None
+        room.current_player = None
+        room.current_high_bid = 0
+        room.current_bidder_id = None
+        room.has_received_bid = False
+
+        await broadcast(room, {"type": "room_state", "payload": await _serialize_room_state(room, db)})
+
         if await all_squads_complete(room, db):
+            room.status = "complete"
             await broadcast(room, {"type": "auction_complete", "payload": room.to_state()})
             try:
                 await db.execute(
@@ -479,14 +474,42 @@ async def handle_player_sold(room: AuctionRoom, db: AsyncSession) -> None:
                 print(f"[OK] League {room.league_id} -> active")
             except Exception as e:
                 print(f"[ERROR] Failed to activate league: {e}")
-        else:
-            await broadcast(room, {
-                "type": "auction_complete",
-                "payload": {
-                    **room.to_state(),
-                    "warning": "Player pool exhausted before all squads were filled. Some managers may have incomplete squads.",
-                },
-            })
+            return
+
+        await asyncio.sleep(3)
+        room.status = "active"
+
+        advanced = False
+        while room.queue_index + 1 < len(room.nomination_queue_data):
+            room.queue_index += 1
+            next_player = room.nomination_queue_data[room.queue_index]
+            if next_player["id"] not in room.sold_players:
+                advanced = True
+                await handle_nomination(room, next_player["id"], "system", db)
+                break
+
+        if not advanced and room.queue_index + 1 >= len(room.nomination_queue_data):
+            room.status = "complete"
+            if await all_squads_complete(room, db):
+                await broadcast(room, {"type": "auction_complete", "payload": room.to_state()})
+                try:
+                    await db.execute(
+                        sql_update(League)
+                        .where(League.id == uuid.UUID(room.league_id))
+                        .values(status="active")
+                    )
+                    await db.commit()
+                    print(f"[OK] League {room.league_id} -> active")
+                except Exception as e:
+                    print(f"[ERROR] Failed to activate league: {e}")
+            else:
+                await broadcast(room, {
+                    "type": "auction_complete",
+                    "payload": {
+                        **room.to_state(),
+                        "warning": "Player pool exhausted before all squads were filled.",
+                    },
+                })
 
 
 async def handle_connection(
@@ -498,6 +521,30 @@ async def handle_connection(
 ):
     room = get_or_create_room(league_id)
     room.connections[user_id] = websocket
+
+    # Initialize cache values for fast in-memory validation
+    if not hasattr(room, "player_positions") or not room.player_positions:
+        result = await db.execute(select(AuctionPlayer.id, AuctionPlayer.position))
+        room.player_positions = {row[0]: row[1] for row in result.all()}
+
+    if not hasattr(room, "league_settings") or room.league_settings is None:
+        league_uuid = _as_uuid(room.league_id)
+        if league_uuid:
+            league_result = await db.execute(
+                select(League).where(League.id == league_uuid)
+            )
+            league = league_result.scalar_one_or_none()
+            if league:
+                room.league_settings = {
+                    "squad_size": league.squad_size,
+                    "max_gk": league.max_gk if league.max_gk is not None else 3,
+                    "max_def": league.max_def if league.max_def is not None else 6,
+                    "max_mid": league.max_mid if league.max_mid is not None else 6,
+                    "max_fwd": league.max_fwd if league.max_fwd is not None else 5,
+                }
+                room.host_id = league.host_id
+            else:
+                room.league_settings = None
 
     if user_id not in room.users:
         # Load budget from league_members
@@ -615,17 +662,22 @@ async def handle_connection(
 
                 await asyncio.sleep(2)
                 if room.nomination_queue_data:
-                    first = room.nomination_queue_data[0]
-                    await handle_nomination(room, first["id"], "system", db)
+                    found = False
+                    for idx, p in enumerate(room.nomination_queue_data):
+                        if p["id"] not in room.sold_players:
+                            room.queue_index = idx
+                            found = True
+                            await handle_nomination(room, p["id"], "system", db)
+                            break
+                    if not found:
+                        room.status = "complete"
+                        await broadcast(room, {"type": "auction_complete", "payload": await _serialize_room_state(room, db)})
 
             elif msg_type == "place_bid":
                 await handle_bid(room, user_id, int(payload["amount"]), db)
             elif msg_type == "confirm_sale":
-                league_result = await db.execute(
-                    select(League).where(League.id == uuid.UUID(room.league_id))
-                )
-                league = league_result.scalar_one_or_none()
-                if not league or league.host_id != user_id:
+                cached_host = getattr(room, "host_id", None)
+                if not cached_host or cached_host != user_id:
                     connection = room.connections.get(user_id)
                     if connection:
                         await connection.send_json({
@@ -650,18 +702,15 @@ async def handle_connection(
                     room.timer_task.cancel()
                     room.timer_task = None
 
-                await handle_player_sold(room, db)
+                await handle_player_sold(room)
             elif msg_type == "skip_player":
                 # Only allow skipping when auction is active and current player has no bids
                 if room.status != "bidding":
                     continue
 
-                # Verify this user is the league host
-                league_result = await db.execute(
-                    select(League).where(League.id == uuid.UUID(room.league_id))
-                )
-                league = league_result.scalar_one_or_none()
-                if not league or league.host_id != user_id:
+                # Verify this user is the league host (cached)
+                cached_host = getattr(room, "host_id", None)
+                if not cached_host or cached_host != user_id:
                     connection = room.connections.get(user_id)
                     if connection:
                         await connection.send_json({
@@ -714,6 +763,94 @@ async def handle_connection(
                         room.status = "complete"
                         await broadcast(room, {"type": "auction_complete", "payload": await _serialize_room_state(room, db)})
 
+            elif msg_type == "stop_auction":
+                # Only the host can stop the auction
+                cached_host = getattr(room, "host_id", None)
+                if not cached_host or cached_host != user_id:
+                    connection = room.connections.get(user_id)
+                    if connection:
+                        await connection.send_json({
+                            "type": "error",
+                            "payload": {"message": "Only the host can stop the auction"}
+                        })
+                    continue
+
+                # Cancel any running timer
+                cancel_timer(room)
+
+                room.status = "complete"
+                room.current_player_id = None
+                room.current_player = None
+                room.current_high_bid = 0
+                room.current_bidder_id = None
+                room.has_received_bid = False
+
+                # Persist league status
+                try:
+                    await db.execute(
+                        sql_update(League)
+                        .where(League.id == uuid.UUID(room.league_id))
+                        .values(status="active")
+                    )
+                    await db.commit()
+                except Exception as e:
+                    print(f"[ERROR] Failed to set league active on stop: {e}")
+
+                await broadcast(room, {
+                    "type": "auction_complete",
+                    "payload": await _serialize_room_state(room, db),
+                })
+                print(f"[OK] Auction stopped by host {user_id}")
+
+            elif msg_type == "pause_auction":
+                # Only the host can pause the auction
+                cached_host = getattr(room, "host_id", None)
+                if not cached_host or cached_host != user_id:
+                    continue
+                if room.status != "bidding":
+                    continue
+
+                cancel_timer(room)
+                room.status = "paused"
+                await broadcast(room, {
+                    "type": "auction_paused",
+                    "payload": {
+                        "seconds_left": getattr(room, "timer_seconds", 30),
+                        "message": "Auction paused by host"
+                    }
+                })
+                await broadcast(room, {
+                    "type": "room_state",
+                    "payload": await _serialize_room_state(room, db)
+                })
+                print(f"[OK] Auction paused by host {user_id}")
+
+            elif msg_type == "resume_auction":
+                # Only the host can resume the auction
+                cached_host = getattr(room, "host_id", None)
+                if not cached_host or cached_host != user_id:
+                    continue
+                if room.status != "paused":
+                    continue
+
+                room.status = "bidding"
+                secs = getattr(room, "timer_seconds", 30)
+                if secs <= 0:
+                    secs = 30  # fallback
+                launch_timer(room, secs)
+                await broadcast(room, {
+                    "type": "auction_resumed",
+                    "payload": {
+                        "seconds_left": secs,
+                        "message": "Auction resumed by host"
+                    }
+                })
+                await broadcast(room, {
+                    "type": "room_state",
+                    "payload": await _serialize_room_state(room, db)
+                })
+                print(f"[OK] Auction resumed by host {user_id}")
+
     except WebSocketDisconnect:
         room.connections.pop(user_id, None)
-        await broadcast(room, {"type": "user_left", "payload": {"user_id": user_id}})
+        await broadcast(room, {"type": "user_left", "payload": {"user_id": user_id, "username": username}})

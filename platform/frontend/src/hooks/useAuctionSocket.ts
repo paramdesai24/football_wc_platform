@@ -1,10 +1,12 @@
 import { useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { useAuctionStore } from "@/store/auctionStore";
 import { WS_BASE } from "@/services/api";
 import { toast } from "@/store/toastStore";
 
 export function useAuctionSocket(leagueId: string, userId: string, username: string) {
+  const navigate = useNavigate();
   const resolvedUseWebSocket = typeof useWebSocket === "function"
     ? useWebSocket
     : (useWebSocket as unknown as { default?: typeof useWebSocket }).default ?? useWebSocket;
@@ -67,6 +69,10 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
         ]),
       );
       applyServerState({ ...payload, users });
+      if (payload.current_player) {
+        const hasBid = (payload.current_high_bid ?? 0) > 0;
+        setMaxTimer(hasBid ? 30 : 60);
+      }
     }
 
     if (type === "player_nominated") {
@@ -82,6 +88,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     if (type === "bid_rejected") {
       addMessage(`⚠️ Bid rejected: ${payload?.reason ?? "Unknown reason"}`);
       toast.warning(payload?.reason ?? "Unknown reason");
+      useAuctionStore.getState().setBidPending(false);
     }
 
     if (type === "bid_placed") {
@@ -89,6 +96,12 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
       setHighBid(payload.amount, payload.user_id);
       setTimer(payload.timer_reset_to);
       addMessage(`💰 ${payload.username} bid ${payload.amount.toLocaleString()} coins`);
+      useAuctionStore.getState().setBidPending(false);
+    }
+
+    if (type === "bid_ack") {
+      // Immediate acknowledgment from server — bid accepted, broadcast coming next
+      useAuctionStore.getState().setBidPending(false);
     }
 
     if (type === "player_sold") {
@@ -106,8 +119,27 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
       addMessage(`👋 ${payload.username} joined`);
     }
 
+    if (type === "user_left") {
+      addMessage(`👋 ${payload.username ?? payload.user_id} left`);
+    }
+
     if (type === "auction_complete") {
+      setStatus("complete");
       addMessage("🏁 Auction complete!");
+    }
+
+    if (type === "auction_paused") {
+      setStatus("paused");
+      setTimer(payload.seconds_left);
+      addMessage(`⏸️ ${payload.message}`);
+      toast.warning("Auction paused by host");
+    }
+
+    if (type === "auction_resumed") {
+      setStatus("bidding");
+      setTimer(payload.seconds_left);
+      addMessage(`▶️ ${payload.message}`);
+      toast.success("Auction resumed!");
     }
 
     if (type === "error") {
@@ -126,7 +158,10 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     onMessage: handleMessage,
   });
 
-  const placeBid = (amount: number) => sendJsonMessage({ type: "place_bid", payload: { amount } });
+  const placeBid = (amount: number) => {
+    useAuctionStore.getState().setBidPending(true);
+    sendJsonMessage({ type: "place_bid", payload: { amount } });
+  };
   const startAuction = () => {
     addMessage("🎬 Auction start requested");
     sendJsonMessage({ type: "start_auction", payload: {} });
@@ -139,7 +174,22 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     addMessage("⏭️ Skip requested");
     sendJsonMessage({ type: "skip_player", payload: {} });
   };
+  const stopAuction = () => {
+    addMessage("🛑 Stop auction requested");
+    sendJsonMessage({ type: "stop_auction", payload: {} });
+  };
+  const pauseAuction = () => {
+    addMessage("⏸️ Pause auction requested");
+    sendJsonMessage({ type: "pause_auction", payload: {} });
+  };
+  const resumeAuction = () => {
+    addMessage("▶️ Resume auction requested");
+    sendJsonMessage({ type: "resume_auction", payload: {} });
+  };
+  const leaveAuction = () => {
+    navigate('/auction');
+  };
   const isConnected = readyState === OPEN_STATE || readyState === 1;
 
-  return { placeBid, startAuction, skipPlayer, confirmSale, isConnected };
+  return { placeBid, startAuction, stopAuction, skipPlayer, confirmSale, leaveAuction, isConnected, pauseAuction, resumeAuction };
 }

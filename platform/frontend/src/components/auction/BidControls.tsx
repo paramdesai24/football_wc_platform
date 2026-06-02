@@ -12,6 +12,7 @@ interface BidControlsProps {
 export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, onBid }: BidControlsProps) {
   const [bidAmount, setBidAmount] = useState(String(Math.max(currentBid + 50, 50)));
   const currentPlayer = useAuctionStore((state) => state.currentPlayer);
+  const bidPending = useAuctionStore((state) => state.bidPending);
   const basePrice = Number(currentPlayer?.base_price ?? 0);
 
   useEffect(() => {
@@ -22,10 +23,33 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
     setBidAmount(String(Math.max(currentBid + 50, 50)));
   }, [currentBid, basePrice]);
 
+  // Clear pending state when the bid is reflected in the store (bid_placed arrived)
+  useEffect(() => {
+    if (bidPending && currentBid > 0) {
+      useAuctionStore.getState().setBidPending(false);
+    }
+  }, [currentBid, bidPending]);
+
+  const status = useAuctionStore((state) => state.status);
+  const isPaused = status === "paused";
+
   const parsedBid = Number(bidAmount);
   const bidDisabled = Number.isNaN(parsedBid) || parsedBid <= currentBid || parsedBid > myBudget;
   const isCurrentHighBidder = Boolean(currentBidderId && myUserId && currentBidderId === myUserId && currentBid > 0);
-  const buttonDisabled = bidDisabled || isCurrentHighBidder;
+  const buttonDisabled = bidDisabled || isCurrentHighBidder || bidPending || isPaused;
+
+  const handleBid = () => {
+    if (buttonDisabled) return;
+    onBid(parsedBid);
+  };
+
+  const buttonLabel = bidPending
+    ? "Placing…"
+    : isPaused
+      ? "Paused"
+      : isCurrentHighBidder
+        ? "Highest bidder"
+        : "BID";
 
   return (
     <div className="wc-card" style={{ padding: 18, display: "grid", gap: 14 }}>
@@ -37,7 +61,14 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
             min={currentBid + 1}
             max={myBudget}
             value={bidAmount}
+            disabled={isPaused}
             onChange={(event) => setBidAmount(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                handleBid();
+              }
+            }}
             style={{
               flex: 1,
               minWidth: 180,
@@ -53,7 +84,7 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
           />
           <button
             type="button"
-            onClick={() => onBid(parsedBid)}
+            onClick={handleBid}
             disabled={buttonDisabled}
             style={{
               height: 46,
@@ -62,13 +93,19 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
               border: "none",
               opacity: isCurrentHighBidder ? 0.4 : 1,
               cursor: buttonDisabled ? "not-allowed" : "pointer",
-              background: buttonDisabled ? "rgba(255,255,255,0.12)" : "linear-gradient(135deg, #d4af37, #f7d774)",
-              color: buttonDisabled ? "rgba(255,255,255,0.55)" : "#08101f",
+              background: bidPending
+                ? "linear-gradient(135deg, #b8941e, #d4af37)"
+                : buttonDisabled
+                  ? "rgba(255,255,255,0.12)"
+                  : "linear-gradient(135deg, #d4af37, #f7d774)",
+              color: buttonDisabled && !bidPending ? "rgba(255,255,255,0.55)" : "#08101f",
               fontWeight: 800,
               letterSpacing: "0.08em",
+              transition: "all 0.15s ease",
+              animation: bidPending ? "bidPulse 0.8s ease-in-out infinite" : "none",
             }}
           >
-            {isCurrentHighBidder ? "Highest bidder" : "BID"}
+            {buttonLabel}
           </button>
         </div>
         <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>
@@ -77,6 +114,13 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
             : `Current bid: ${currentBid.toLocaleString()} coins · Minimum next: ${(currentBid + 10).toLocaleString()} coins · Your budget: ${myBudget.toLocaleString()} coins`}
         </div>
       </div>
+
+      <style>{`
+        @keyframes bidPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.85; transform: scale(0.98); }
+        }
+      `}</style>
     </div>
   );
 }

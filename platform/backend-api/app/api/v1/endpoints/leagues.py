@@ -43,6 +43,10 @@ class JoinLeagueRequest(BaseModel):
     team_name: str
 
 
+class RejoinLeagueRequest(BaseModel):
+    user_id: str
+
+
 DEFAULT_SCORING = {
     "goal_scored_fwd": 5,
     "goal_scored_mid": 5,
@@ -131,6 +135,31 @@ async def join_league(invite_code: str, req: JoinLeagueRequest, db: AsyncSession
     )
     await db.commit()
     return {"joined": True, "league_id": str(league.id), "budget": league.budget}
+
+
+@router.post("/{invite_code}/rejoin")
+async def rejoin_league(invite_code: str, req: RejoinLeagueRequest, db: AsyncSession = Depends(get_postgres_db)):
+    result = await db.execute(select(League).where(func.upper(League.invite_code) == invite_code.upper()))
+    league = result.scalar_one_or_none()
+    if not league:
+        raise HTTPException(status_code=404, detail="League not found")
+
+    member_result = await db.execute(
+        select(LeagueMember)
+        .where(LeagueMember.league_id == league.id)
+        .where(LeagueMember.user_id == req.user_id)
+    )
+    member = member_result.scalar_one_or_none()
+    if not member:
+        raise HTTPException(status_code=404, detail="You are not a registered member of this league. Please join first.")
+
+    return {
+        "joined": True,
+        "league_id": str(league.id),
+        "team_name": member.team_name,
+        "budget": league.budget,
+    }
+
 
 
 @router.get("/{league_id}")

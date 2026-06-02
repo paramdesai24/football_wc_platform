@@ -57,6 +57,7 @@ interface AuctionState {
   myBudget: number;
   timerSeconds: number;
   maxTimerSeconds: number;
+  bidPending: boolean;
   messages: string[];
 
   setLeague: (id: string, userId: string, username: string) => void;
@@ -68,6 +69,7 @@ interface AuctionState {
   setMaxTimer: (max: number) => void;
   setStatus: (status: string) => void;
   setConnectionStatus: (status: 'connected' | 'disconnected' | 'reconnecting') => void;
+  setBidPending: (pending: boolean) => void;
   addMessage: (msg: string) => void;
   reset: () => void;
 }
@@ -87,6 +89,7 @@ const initialState = {
   myBudget: 50000,
   timerSeconds: 30,
   maxTimerSeconds: 60,
+  bidPending: false,
   messages: [],
 };
 
@@ -127,6 +130,7 @@ export const useAuctionStore = create<AuctionState>((set, get) => ({
   setMaxTimer: (max) => set({ maxTimerSeconds: max }),
   setStatus: (status) => set({ status }),
   setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
+  setBidPending: (bidPending) => set({ bidPending }),
   addMessage: (msg) => set((state) => ({ messages: [msg, ...state.messages].slice(0, 50) })),
   reset: () => set(initialState),
 }));

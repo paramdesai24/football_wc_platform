@@ -72,6 +72,7 @@ export default function AuctionRoomPage() {
   const setStoredUsername = useIdentityStore((state) => state.setUsername);
   const paramUserId = searchParams.get("userId") ?? "";
   const paramUsername = searchParams.get("username") ?? "";
+  const paramTeamName = searchParams.get("teamName") ?? "";
   const storeStatus = useAuctionStore((s) => s.status);
   const storeTimerSeconds = useAuctionStore((s) => s.timerSeconds);
   const storeCurrentPlayer = useAuctionStore((s) => s.currentPlayer);
@@ -85,6 +86,8 @@ export default function AuctionRoomPage() {
   const previousLeagueIdRef = useRef<string | null>(null);
   const [localUserId, setLocalUserId] = useState(paramUserId || storedUserId || "");
   const [localUsername, setLocalUsername] = useState(paramUsername || storedUsername || "");
+  const storedTeamName = useIdentityStore((state) => state.teamName);
+  const localTeamName = paramTeamName || storedTeamName || "";
   const [leagueName, setLeagueName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [leagueRules, setLeagueRules] = useState<LeagueRules | null>(null);
@@ -148,7 +151,7 @@ export default function AuctionRoomPage() {
     return () => { mounted = false; };
   }, [leagueId, localUserId]);
 
-  const { placeBid, startAuction, skipPlayer, confirmSale, isConnected } = useAuctionSocket(leagueId, localUserId, localUsername);
+  const { placeBid, startAuction, stopAuction, skipPlayer, confirmSale, leaveAuction, isConnected, pauseAuction, resumeAuction } = useAuctionSocket(leagueId, localUserId, localUsername);
   const maxTimerSeconds = useAuctionStore((s) => s.maxTimerSeconds);
   const upcomingPlayers = useAuctionStore((s) => s.upcomingPlayers);
   const users = useAuctionStore((s) => s.users);
@@ -220,35 +223,85 @@ export default function AuctionRoomPage() {
 
         <div className="layout-3col">
           <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>User ID</span>
+            <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>Username</span>
             <input
               value={localUserId}
               onChange={(event) => {
                 const value = event.target.value;
                 setLocalUserId(value);
                 setStoredUserId(value);
-              }}
-              placeholder="manager-1"
-              style={inputStyle}
-            />
-          </label>
-          <label style={{ display: "grid", gap: 6 }}>
-            <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>Username</span>
-            <input
-              value={localUsername}
-              onChange={(event) => {
-                const value = event.target.value;
                 setLocalUsername(value);
                 setStoredUsername(value);
               }}
-              placeholder="Your name"
+              placeholder="your-username"
               style={inputStyle}
+              autoComplete="off"
             />
           </label>
-          <div style={{ display: "flex", alignItems: "end", gap: 10 }}>
-            {isHost && (
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>Team name</span>
+            <div
+              style={{
+                ...inputStyle,
+                display: "flex",
+                alignItems: "center",
+                color: "rgba(255,255,255,0.65)",
+                userSelect: "none" as const,
+              }}
+            >
+              {localUserId
+                ? isHost
+                  ? `${localUserId}'s XI`
+                  : localTeamName || `${localUserId}'s XI`
+                : <span style={{ color: "rgba(255,255,255,0.25)" }}>Enter username first</span>}
+            </div>
+          </label>
+          <div style={{ display: "flex", alignItems: "end", gap: 10, flexWrap: "wrap" }}>
+            {isHost && auctionStatus === 'waiting' && (
               <button type="button" onClick={startAuction} disabled={!joined} style={primaryButtonStyle(joined)}>
                 START AUCTION
+              </button>
+            )}
+            {isHost && (auctionStatus === 'bidding' || auctionStatus === 'active') && (
+              <button
+                type="button"
+                onClick={pauseAuction}
+                style={{
+                  ...primaryButtonStyle(true),
+                  background: 'rgba(245,158,11,0.15)',
+                  border: '1px solid rgba(245,158,11,0.4)',
+                  color: '#fbbf24',
+                }}
+              >
+                PAUSE AUCTION
+              </button>
+            )}
+            {isHost && auctionStatus === 'paused' && (
+              <button
+                type="button"
+                onClick={resumeAuction}
+                style={{
+                  ...primaryButtonStyle(true),
+                  background: 'rgba(34,197,94,0.15)',
+                  border: '1px solid rgba(34,197,94,0.4)',
+                  color: '#4ade80',
+                }}
+              >
+                RESUME AUCTION
+              </button>
+            )}
+            {isHost && (auctionStatus === 'bidding' || auctionStatus === 'active' || auctionStatus === 'processing' || auctionStatus === 'paused') && (
+              <button
+                type="button"
+                onClick={stopAuction}
+                style={{
+                  ...primaryButtonStyle(true),
+                  background: 'rgba(239,68,68,0.15)',
+                  border: '1px solid rgba(239,68,68,0.4)',
+                  color: '#f87171',
+                }}
+              >
+                STOP AUCTION
               </button>
             )}
             {!isHost && auctionStatus === 'waiting' && (
@@ -264,6 +317,39 @@ export default function AuctionRoomPage() {
                 ⏳ Waiting for the host to start the auction...
               </div>
             )}
+            {auctionStatus === 'paused' && (
+              <div style={{
+                fontSize: 13,
+                color: '#fbbf24',
+                fontFamily: 'var(--font-ui)',
+                padding: '10px 16px',
+                background: 'rgba(245,158,11,0.08)',
+                borderRadius: 8,
+                border: '1px solid rgba(245,158,11,0.2)',
+              }}>
+                ⏸️ Auction paused by the host. Bidding is frozen...
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={leaveAuction}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.04)',
+                color: 'rgba(255,255,255,0.6)',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 13,
+                fontFamily: 'var(--font-ui)',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+            >
+              LEAVE
+            </button>
           </div>
         </div>
       </section>
@@ -334,7 +420,14 @@ export default function AuctionRoomPage() {
         </section>
 
         <div style={{ display: "grid", gap: 16 }}>
-          {storeStatus !== "waiting" ? <AuctionTimer seconds={storeTimerSeconds} maxSeconds={maxTimerSeconds} isActive /> : null}
+          {storeStatus !== "waiting" ? (
+            <AuctionTimer
+              seconds={storeTimerSeconds}
+              maxSeconds={maxTimerSeconds}
+              isActive
+              isPaused={storeStatus === "paused"}
+            />
+          ) : null}
           {storeCurrentPlayer ? (
             <PlayerCard player={storeCurrentPlayer} currentBid={storeCurrentHighBid} isOnBlock />
           ) : (

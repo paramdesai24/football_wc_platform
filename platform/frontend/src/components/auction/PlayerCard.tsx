@@ -35,7 +35,7 @@ export function PlayerCard({ player, currentBid, isOnBlock }: PlayerCardProps) {
         {isOnBlock && <span style={{ color: "var(--color-accent)", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>On the block</span>}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "110px 1fr", gap: 16, alignItems: "center" }}>
+      <div className="player-card-inner">
         <div style={{ position: "relative", width: 110, height: 110, borderRadius: 20, overflow: "hidden", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
           <img
             src={player.image_url}
@@ -48,16 +48,16 @@ export function PlayerCard({ player, currentBid, isOnBlock }: PlayerCardProps) {
           />
         </div>
 
-        <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <FlagImg code={player.flag_code} size={24} />
-            <div>
-              <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "-0.03em" }}>{player.name}</h2>
-              <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>{player.club}</div>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "-0.03em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={player.name}>{player.name}</h2>
+              <div style={{ color: "var(--color-text-secondary)", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={player.club}>{player.club}</div>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+          <div className="player-card-metrics">
             <Metric label="Market value" value={formatMarketValue(player.market_value)} />
             <Metric label="Current bid" value={currentBidLabel} highlight />
             <Metric label="Goals" value={player.goals_2526} />
@@ -66,7 +66,7 @@ export function PlayerCard({ player, currentBid, isOnBlock }: PlayerCardProps) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+      <div className="player-card-ministats">
         <MiniStat label="Minutes" value={formatMinutes(player.minutes_2526)} />
         <MiniStat label="Form" value={player.form_score.toFixed(1)} />
         <MiniStat label="Base price" value={`${money.format(player.base_price)} coins`} />
@@ -77,18 +77,75 @@ export function PlayerCard({ player, currentBid, isOnBlock }: PlayerCardProps) {
 
 function Metric({ label, value, highlight }: { label: string; value: string | number; highlight?: boolean }) {
   return (
-    <div style={{ padding: 12, borderRadius: 16, background: highlight ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)", border: highlight ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)" }}>
-      <div style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>{value}</div>
+    <div style={{
+      padding: "10px 12px",
+      borderRadius: 16,
+      background: highlight ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)",
+      border: highlight ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)",
+      minWidth: 0,
+      overflow: "hidden"
+    }}>
+      <div style={{
+        color: "var(--color-text-muted)",
+        fontSize: 10,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        marginBottom: 4,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }} title={label}>
+        {label}
+      </div>
+      <div style={{
+        color: "#fff",
+        fontFamily: "var(--font-display)",
+        fontSize: "clamp(1.15rem, 2vw, 1.45rem)",
+        fontWeight: 700,
+        lineHeight: 1.1,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }} title={String(value)}>
+        {value}
+      </div>
     </div>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: 12, borderRadius: 16, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-      <div style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ color: "#fff", fontFamily: "var(--font-ui)", fontSize: 14, fontWeight: 700 }}>{value}</div>
+    <div style={{
+      padding: "10px 12px",
+      borderRadius: 16,
+      background: "rgba(255,255,255,0.04)",
+      border: "1px solid rgba(255,255,255,0.06)",
+      minWidth: 0,
+      overflow: "hidden"
+    }}>
+      <div style={{
+        color: "var(--color-text-muted)",
+        fontSize: 10,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        marginBottom: 4,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }} title={label}>
+        {label}
+      </div>
+      <div style={{
+        color: "#fff",
+        fontFamily: "var(--font-ui)",
+        fontSize: 13,
+        fontWeight: 700,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }} title={value}>
+        {value}
+      </div>
     </div>
   );
 }

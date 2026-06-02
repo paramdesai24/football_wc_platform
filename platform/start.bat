@@ -3,7 +3,7 @@ REM WC26 Intelligence Platform Startup Script
 
 echo ========================================
 echo WC26 Intelligence Platform
-echo Streamlit + FastAPI Backend
+echo React + FastAPI Backend
 echo ========================================
 echo.
 
@@ -17,31 +17,16 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if venv exists, create if not
-if not exist .venv (
-    echo Creating virtual environment...
-    python -m venv .venv
-)
-
-REM Activate venv
-call .venv\Scripts\activate.bat
-
-REM Install dependencies if needed
-echo.
-echo Installing dependencies...
-pip install -q -r requirements-streamlit.txt
-
 REM Start FastAPI backend in background
-echo.
 echo Starting FastAPI backend on port 8000...
-start "WC26 Backend" cmd /k "cd backend-api && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+start "WC26 Backend" cmd /k "cd backend-api && call .venv\Scripts\activate.bat && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 REM Wait for backend to start
 timeout /t 3 /nobreak
 
-REM Start Streamlit frontend
+REM Start Vite React frontend
 echo.
-echo Starting Streamlit frontend on port 8501...
-streamlit run app.py
+echo Starting React frontend on port 3000...
+start "WC26 Frontend" cmd /k "cd frontend && npm run dev"
 
 pause
