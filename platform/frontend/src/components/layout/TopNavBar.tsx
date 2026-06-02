@@ -147,14 +147,23 @@ export function TopNavBar() {
               key={item.path}
               to={item.path}
               end={item.path === "/"}
-              className={({ isActive }) => `nav-link${item.path === "/play-as-team" ? " nav-link-cta" : ""}${item.path === "/about" ? " nav-link-cta nav-link-about" : ""}${isActive ? " active" : ""}`}
+              className={({ isActive }) => `nav-link${item.path === "/about" ? " nav-link-cta nav-link-about" : ""}${isActive ? " active" : ""}`}
             >
               {item.label}
             </NavLink>
           ))}
+          {!user && (
+            <NavLink
+              to="/auth"
+              className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+              style={{ cursor: 'pointer' }}
+            >
+              Sign in
+            </NavLink>
+          )}
         </nav>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          {user ? (
+        {user && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div ref={userMenuRef} style={{ position: 'relative' }}>
               <button
                 type="button"
@@ -191,10 +200,8 @@ export function TopNavBar() {
                 </div>
               )}
             </div>
-          ) : (
-            <NavLink to="/auth" style={{ cursor: 'pointer' }}>Sign in</NavLink>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
     </header>
