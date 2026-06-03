@@ -9,6 +9,7 @@ import { AuctionTimer } from "@/components/auction/AuctionTimer";
 import { ActivityFeed } from "@/components/auction/ActivityFeed";
 import { BidControls } from "@/components/auction/BidControls";
 import { PlayerCard } from "@/components/auction/PlayerCard";
+import { useAuctionKeyboard } from "@/hooks/useAuctionKeyboard";
 
 type LeagueRules = {
   name?: string;
@@ -93,6 +94,11 @@ export default function AuctionRoomPage() {
   const [leagueRules, setLeagueRules] = useState<LeagueRules | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [showMySquad, setShowMySquad] = useState(false);
+  const [cardState, setCardState] = useState<'idle' | 'sold' | 'entering'>('idle');
+  const [soldInfo, setSoldInfo] = useState<{ winner: string; isUnsold: boolean } | null>(null);
+  const prevPlayerRef = useRef<typeof storeCurrentPlayer>(null);
+  const [nominatedName, setNominatedName] = useState<string | null>(null);
+  const [centerKey, setCenterKey] = useState(0);
 
   useEffect(() => {
     // Sync URL params -> persisted identity once on param change or when persisted values become available.
@@ -151,7 +157,7 @@ export default function AuctionRoomPage() {
     return () => { mounted = false; };
   }, [leagueId, localUserId]);
 
-  const { placeBid, startAuction, stopAuction, skipPlayer, confirmSale, leaveAuction, isConnected, pauseAuction, resumeAuction } = useAuctionSocket(leagueId, localUserId, localUsername);
+  const { placeBid, startAuction, stopAuction, skipPlayer, confirmSale, leaveAuction, pauseAuction, resumeAuction } = useAuctionSocket(leagueId, localUserId, localUsername);
   const maxTimerSeconds = useAuctionStore((s) => s.maxTimerSeconds);
   const upcomingPlayers = useAuctionStore((s) => s.upcomingPlayers);
   const users = useAuctionStore((s) => s.users);
@@ -165,6 +171,55 @@ export default function AuctionRoomPage() {
   const mySquadPlayers: SquadDetail[] = mySquadRaw ?? EMPTY_SQUAD;
 
   const joined = Boolean(leagueId && localUserId && localUsername);
+  const isCurrentHighBidder = Boolean(storeCurrentBidderId && storeUserId && storeCurrentBidderId === storeUserId && storeCurrentHighBid > 0);
+
+  useAuctionKeyboard({
+    onBid: placeBid,
+    onConfirmSale: confirmSale,
+    currentBid: storeCurrentHighBid,
+    myBudget: storeMyBudget,
+    isCurrentHighBidder,
+    auctionActive: isAuctionActive,
+  });
+
+  // Detect player transitions for entrance/sold animations (NO data logic changes)
+  useEffect(() => {
+    if (!storeCurrentPlayer && prevPlayerRef.current) {
+      // Player just cleared — sold
+      setCardState('sold');
+      setTimeout(() => { setSoldInfo(null); setCardState('idle'); }, 1400);
+    }
+    if (storeCurrentPlayer && !prevPlayerRef.current) {
+      // New player appeared — entrance
+      setCardState('entering');
+      setTimeout(() => setCardState('idle'), 450);
+    }
+    prevPlayerRef.current = storeCurrentPlayer;
+  }, [storeCurrentPlayer]);
+
+  useEffect(() => {
+    if (storeCurrentPlayer?.name) {
+      setNominatedName(storeCurrentPlayer.name);
+      const timer = setTimeout(() => setNominatedName(null), 500);
+      setCenterKey(k => k + 1);
+      return () => clearTimeout(timer);
+    }
+  }, [storeCurrentPlayer?.name]);
+
+  // Parse sold/unsold message from activity feed
+  useEffect(() => {
+    const lastMsg = storeMessages[0] ?? '';
+    if (typeof lastMsg === 'string' && lastMsg.includes('→') && lastMsg.includes('coins')) {
+      const isUnsold = lastMsg.includes('No buyer') || lastMsg.includes('went unsold');
+      if (isUnsold) {
+        setSoldInfo({ winner: '', isUnsold: true });
+      } else {
+        const match = lastMsg.match(/→\s*(.+?)\s+for/);
+        setSoldInfo({ winner: match?.[1]?.trim() ?? 'Winner', isUnsold: false });
+      }
+    }
+  }, [storeMessages]);
+
 
   return (
     <>
@@ -201,7 +256,12 @@ export default function AuctionRoomPage() {
             </div>
           </div>
           <div style={{ display: 'grid', gap: 6, alignItems: 'center', justifyItems: 'end' }}>
-            <div style={{ color: isConnected ? "#86efac" : "var(--color-text-muted)", fontWeight: 700 }}>{isConnected ? "Connected" : "Disconnected"}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className={`status-dot ${connectionStatus}`} />
+              <span style={{ color: connectionStatus === 'connected' ? '#86efac' : connectionStatus === 'reconnecting' ? '#fbbf24' : 'var(--color-text-muted)', fontWeight: 700, fontSize: 13 }}>
+                {connectionStatus === 'connected' ? 'Connected' : connectionStatus === 'reconnecting' ? 'Reconnecting...' : 'Disconnected'}
+              </span>
+            </div>
             {inviteCode && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 700 }}>Invite</div>
@@ -232,6 +292,11 @@ export default function AuctionRoomPage() {
                 setStoredUserId(value);
                 setLocalUsername(value);
                 setStoredUsername(value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                }
               }}
               placeholder="your-username"
               style={inputStyle}
@@ -357,7 +422,7 @@ export default function AuctionRoomPage() {
       <div className="auction-room-grid">
         <section className="wc-card" style={{ padding: 18, display: "grid", gap: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase" }}>Budgets</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Budgets</div>
             <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>{Object.keys(users).length} managers</div>
           </div>
 
@@ -396,7 +461,7 @@ export default function AuctionRoomPage() {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
                     <div style={{ color: "#fff", fontWeight: 700 }}>{typedUser.username}{isOwnCard ? " (you)" : ""}</div>
-                    <div style={{ color: "var(--color-gold)", fontFamily: "var(--font-display)", fontWeight: 800 }}>{typedUser.budget_left} coins</div>
+                    <div style={{ color: "var(--color-accent)", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, letterSpacing: "0.01em" }}>{typedUser.budget_left} coins</div>
                   </div>
                   {isOwnCard && (
                     <div style={{ color: "rgba(255,255,255,0.52)", fontSize: 11, marginBottom: 8 }}>Click to view squad</div>
@@ -408,8 +473,8 @@ export default function AuctionRoomPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
                     {POSITION_ORDER.map((pos) => (
                       <div key={pos} style={{ padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-                        <div style={{ color: "var(--color-text-muted)", fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>{pos}</div>
-                        <div style={{ color: "#fff", fontWeight: 800, marginTop: 4 }}>{counts[pos as keyof typeof counts] ?? 0}/{positionCaps[pos]}</div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", lineHeight: 1 }}>{pos}</div>
+                        <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, letterSpacing: "0.01em", marginTop: 4 }}>{counts[pos as keyof typeof counts] ?? 0}/{positionCaps[pos]}</div>
                       </div>
                     ))}
                   </div>
@@ -419,7 +484,7 @@ export default function AuctionRoomPage() {
           </div>
         </section>
 
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {storeStatus !== "waiting" ? (
             <AuctionTimer
               seconds={storeTimerSeconds}
@@ -428,91 +493,133 @@ export default function AuctionRoomPage() {
               isPaused={storeStatus === "paused"}
             />
           ) : null}
-          {storeCurrentPlayer ? (
-            <PlayerCard player={storeCurrentPlayer} currentBid={storeCurrentHighBid} isOnBlock />
-          ) : (
-            <div className="wc-card" style={{ padding: 24, minHeight: 260, display: "grid", placeItems: "center", textAlign: "center", color: "var(--color-text-muted)" }}>
-              <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ color: "#fff", fontSize: 22, fontWeight: 800 }}>Waiting for the next nomination</div>
-                <div>Once a player is nominated, the live bidding board will appear here.</div>
-              </div>
-            </div>
-          )}
-
-          <BidControls
-            currentBid={storeCurrentHighBid}
-            myBudget={storeMyBudget}
-            currentBidderId={storeCurrentBidderId}
-            myUserId={storeUserId}
-            onBid={placeBid}
-          />
-          {isHost && isAuctionActive && (
-            hasBids ? (
-              <button
-                type="button"
-                onClick={confirmSale}
-                disabled={!joined}
-                onMouseEnter={(event) => {
-                  (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.25)";
-                }}
-                onMouseLeave={(event) => {
-                  (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.15)";
-                }}
-                style={{
-                  minHeight: 40,
-                  padding: '0 14px',
-                  borderRadius: 10,
-                  border: '1px solid rgba(34,197,94,0.35)',
-                  background: 'rgba(34,197,94,0.15)',
-                  color: '#fff',
-                  cursor: joined ? 'pointer' : 'not-allowed',
-                }}
+          <div>
+            {storeCurrentPlayer ? (
+              <div
+                key={`${storeCurrentPlayer.id}-${centerKey}`}
+                className="wc-card"
+                style={{ padding: 0 }}
               >
-                ✅ Confirm Sale — {currentHighBid.toLocaleString()} coins
-              </button>
+                <PlayerCard player={storeCurrentPlayer} currentBid={storeCurrentHighBid} isOnBlock />
+              </div>
+            ) : (cardState === 'sold' && soldInfo) ? (
+              soldInfo.isUnsold ? (
+                <div
+                  className="wc-card"
+                  style={{ padding: 32, minHeight: 260, display: 'grid', placeItems: 'center', textAlign: 'center', borderColor: 'rgba(239,68,68,0.3)' }}
+                >
+                  <div style={{ display: 'grid', gap: 14 }}>
+                    <div style={{ fontSize: 52, lineHeight: 1 }}>&#10005;</div>
+                    <div style={{ color: '#ef4444', fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em' }}>UNSOLD</div>
+                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16, fontWeight: 500 }}>No buyer — player returns to the pool</div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="wc-card player-card-sold"
+                  style={{ padding: 32, minHeight: 260, display: 'grid', placeItems: 'center', textAlign: 'center' }}
+                >
+                  <div style={{ display: 'grid', gap: 14 }}>
+                    <div style={{ fontSize: 52, lineHeight: 1 }}>✅</div>
+                    <div style={{ color: '#22c55e', fontFamily: 'var(--font-display)', fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em' }}>SOLD</div>
+                    <div style={{ color: '#fff', fontSize: 20, fontWeight: 700 }}>{soldInfo.winner}</div>
+                  </div>
+                </div>
+              )
             ) : (
-              <div style={{ marginTop: 8 }}>
+              <div className="wc-card" style={{ padding: 24, minHeight: 260, display: "grid", placeItems: "center", textAlign: "center", color: "var(--color-text-muted)" }}>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ color: "#fff", fontSize: 22, fontWeight: 800 }}>Waiting for the next nomination</div>
+                  <div>Once a player is nominated, the live bidding board will appear here.</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <BidControls
+              currentBid={storeCurrentHighBid}
+              myBudget={storeMyBudget}
+              currentBidderId={storeCurrentBidderId}
+              myUserId={storeUserId}
+              onBid={placeBid}
+            />
+            {isHost && isAuctionActive && (
+              hasBids ? (
                 <button
                   type="button"
-                  onClick={() => skipPlayer()}
+                  onClick={confirmSale}
                   disabled={!joined}
+                  onMouseEnter={(event) => {
+                    (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.25)";
+                  }}
+                  onMouseLeave={(event) => {
+                    (event.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.15)";
+                  }}
                   style={{
-                    minHeight: 40,
+                    minHeight: 44,
+                    width: "100%",
+                    marginTop: 10,
                     padding: '0 14px',
-                    borderRadius: 10,
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    background: 'transparent',
+                    borderRadius: 14,
+                    border: '1px solid rgba(34,197,94,0.35)',
+                    background: 'rgba(34,197,94,0.15)',
                     color: '#fff',
+                    fontWeight: 700,
                     cursor: joined ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  Skip →
+                  Confirm Sale — {currentHighBid.toLocaleString()} coins
                 </button>
+              ) : (
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => skipPlayer()}
+                    disabled={!joined}
+                    style={{
+                      minHeight: 44,
+                      width: "100%",
+                      padding: '0 14px',
+                      borderRadius: 14,
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: joined ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    Skip Player →
+                  </button>
+                </div>
+              )
+            )}
+            {!isHost && isAuctionActive && hasBids && (
+              <div style={{ marginTop: 10, color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center" }}>
+                Host can confirm sale at any time
               </div>
-            )
-          )}
-          {!isHost && isAuctionActive && hasBids && (
-            <div style={{ marginTop: 8, color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
-              Host can confirm sale at any time
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <ActivityFeed messages={storeMessages} />
 
           <div className="wc-card" style={{ padding: 18, display: "grid", gap: 12 }}>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase" }}>UP NEXT</div>
+            <div style={{ color: "var(--color-text-muted)", fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>UP NEXT</div>
             <div style={{ display: "grid", gap: 10 }}>
               {upcomingPlayers.length === 0 ? (
                 <div style={{ color: "var(--color-text-muted)", fontSize: 13 }}>Waiting for auction to start...</div>
               ) : (
                 upcomingPlayers.map((p, i) => (
-                  <div key={`${p.name}-${i}`} style={{ padding: 12, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "auto 1fr auto auto", gap: 10, alignItems: "center" }}>
-                    <div style={{ color: "var(--color-text-muted)", fontSize: 12, fontWeight: 700 }}>{i + 1}.</div>
+                  <div
+                    key={`${p.name}-${i}`}
+                    style={{ padding: 12, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "auto 1fr auto auto", gap: 10, alignItems: "center" }}
+                  >
+                    <div style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600 }}>{i + 1}.</div>
                     <div style={{ color: "#fff", fontWeight: 700 }}>{p.name}</div>
-                    <div style={{ color: "var(--color-text-muted)", fontSize: 12 }}>{p.position}</div>
-                    <div style={{ color: "var(--color-gold)", fontWeight: 800, fontSize: 12 }}>{p.tier.toUpperCase().slice(0, 3)}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)" }}>{p.position}</div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 800, color: "#d4af37" }}>{p.tier.toUpperCase().slice(0, 3)}</div>
                   </div>
                 ))
               )}

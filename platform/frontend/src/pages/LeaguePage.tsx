@@ -66,8 +66,8 @@ function buttonLink(primary: boolean): React.CSSProperties {
 function Stat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-text-secondary)" }}>{label}</div>
-      <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "#fff" }}>{value}{suffix ? <span style={{ color: "var(--color-text-secondary)", fontWeight: 400, marginLeft: 6 }}>{suffix}</span> : null}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>{label}</div>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, letterSpacing: "0.01em", color: "#fff" }}>{value}{suffix ? <span style={{ color: "var(--color-text-secondary)", fontWeight: 400, marginLeft: 6 }}>{suffix}</span> : null}</div>
     </div>
   );
 }
@@ -111,7 +111,7 @@ export default function LeaguePage() {
   return (
     <div className="page-container" style={{ display: "grid", gap: 18 }}>
       <section className="wc-card section-card" style={{ padding: 24, display: "grid", gap: 12 }}>
-        <div className="eyebrow">League overview</div>
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", lineHeight: 1 }}>League overview</div>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ display: "grid", gap: 6 }}>
             <h1 className="page-title" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", marginBottom: 0 }}>{league?.name || `League ${id}`}</h1>
@@ -122,10 +122,15 @@ export default function LeaguePage() {
           <span style={statusBadge(league?.status)}>{league?.status || "loading"}</span>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}><strong style={{ color: "#fff" }}>{memberCount}</strong> members</div>
-          <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}><strong style={{ color: "#fff" }}>Budget</strong> {league?.budget ?? 0}</div>
-          {league?.invite_code && <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}><strong style={{ color: "#fff" }}>Invite</strong> {league.invite_code}</div>}
+          <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}><strong style={{ color: "#fff" }}>Budget</strong> <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, letterSpacing: "0.01em", color: "#d4af37" }}>{league?.budget ?? 0}</span></div>
+          {league?.invite_code && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.72)", fontSize: 13 }}>
+              <strong style={{ color: "#fff" }}>Invite</strong>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1, color: "#d4af37" }}>{league.invite_code}</span>
+            </div>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -154,7 +159,7 @@ export default function LeaguePage() {
               <article key={member.user_id} className="wc-card" style={{ padding: 20, display: "grid", gap: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
                   <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)" }}>Team</div>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", lineHeight: 1 }}>Team</div>
                     <div style={{ fontFamily: "var(--font-ui)", fontSize: 20, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis" }}>{member.team_name || "Unnamed Team"}</div>
                   </div>
                   <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{member.user_id}</div>
@@ -163,7 +168,7 @@ export default function LeaguePage() {
                 <div style={{ display: "grid", gap: 6 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "var(--color-text-secondary)", fontSize: 12 }}>
                     <span>Budget left</span>
-                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, color: "#fff" }}>{budgetLeft}</span>
+                    <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, letterSpacing: "0.01em" }}>{budgetLeft}</span>
                   </div>
                   <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
                     <div style={{ width: formatPercent(percent), height: "100%", background: barColor, borderRadius: 2 }} />

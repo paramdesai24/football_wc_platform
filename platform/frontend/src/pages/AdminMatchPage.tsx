@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { API_BASE } from "@/services/api";
 import { toast } from "@/store/toastStore";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -52,32 +52,12 @@ export default function AdminMatchPage() {
     gap: 14,
   };
 
-  const eyebrow: React.CSSProperties = {
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '0.14em',
-    textTransform: 'uppercase' as const,
-    color: 'rgba(212,175,55,0.8)',
-    fontFamily: 'var(--font-ui)',
-  };
-
   const sectionTitle: React.CSSProperties = {
     fontSize: 20,
     fontWeight: 700,
     color: '#ffffff',
     fontFamily: 'var(--font-ui)',
     letterSpacing: '-0.01em',
-  };
-
-  const fieldLabel: React.CSSProperties = {
-    fontSize: 11,
-    fontWeight: 500,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const,
-    color: 'rgba(255,255,255,0.4)',
-    fontFamily: 'var(--font-ui)',
-    marginBottom: 5,
-    display: 'block',
   };
 
   const inputStyle: React.CSSProperties = {
@@ -206,26 +186,7 @@ export default function AdminMatchPage() {
     }
   }
 
-  async function handleRecalculate() {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/admin/matches/recalculate`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.detail ?? data.message ?? `Error ${res.status}`);
-        return;
-      }
-      toast.success(`Recalculated points from ${data.count} matches`);
-      setSuccess(`✅ Recalculated points from ${data.count} matches`);
-    } catch {
-      toast.error('Recalculation failed');
-      setError('Recalculation failed');
-    } finally {
-      setLoading(false);
-    }
-  }
+
 
   async function handleScrape() {
     setLoading(true)
@@ -284,18 +245,18 @@ export default function AdminMatchPage() {
   return (
     <div style={pageStyle}>
       <div style={card}>
-        <div style={eyebrow}>Admin — Match Entry</div>
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", lineHeight: 1 }}>Admin — Match Entry</div>
         <div style={sectionTitle}>Submit Match Result</div>
       </div>
 
       <div style={card}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: 12 }}>
           <div>
-            <label style={fieldLabel}>Match ID</label>
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Match ID</label>
             <input style={inputStyle} value={matchId} onChange={(e) => setMatchId(e.target.value)} />
           </div>
           <div>
-            <label style={fieldLabel}>Stage</label>
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Stage</label>
             <select style={selectStyle} value={stage} onChange={(e) => setStage(e.target.value)}>
               <option value="GROUP">Group Stage</option>
               <option value="R32">Round of 32</option>
@@ -310,20 +271,31 @@ export default function AdminMatchPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '120px 120px 1fr 1fr', gap: 12 }}>
           <div>
-            <label style={fieldLabel}>Home Code</label>
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Home Code</label>
             <input style={inputStyle} value={homeCode} onChange={(e) => setHomeCode(e.target.value.toUpperCase())} />
           </div>
           <div>
-            <label style={fieldLabel}>Away Code</label>
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Away Code</label>
             <input style={inputStyle} value={awayCode} onChange={(e) => setAwayCode(e.target.value.toUpperCase())} />
           </div>
           <div>
-            <label style={fieldLabel}>Home Score</label>
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Home Score</label>
             <input type="number" style={inputStyle} value={homeScore as any} onChange={(e) => setHomeScore(e.target.value === '' ? '' : Number(e.target.value))} />
           </div>
           <div>
-            <label style={fieldLabel}>Away Score</label>
-            <input type="number" style={inputStyle} value={awayScore as any} onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Away Score</label>
+            <input
+              type="number"
+              style={inputStyle}
+              value={awayScore as any}
+              onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
+            />
           </div>
         </div>
       </div>
@@ -331,7 +303,7 @@ export default function AdminMatchPage() {
       <div style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={eyebrow}>Player Performances</div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", lineHeight: 1 }}>Player Performances</div>
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>{rows.length} player{rows.length !== 1 ? 's' : ''} added</div>
           </div>
           <button style={ghostBtn} onClick={addRow}>+ Add Player</button>
@@ -349,7 +321,7 @@ export default function AdminMatchPage() {
             {rows.map((p, i) => (
               <div key={i} style={{ display: 'grid', gap: 8 }}>
               <div>
-                <label style={fieldLabel}>Player Name</label>
+                <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Player Name</label>
                 <input style={inputStyle} value={p.name ?? ''} onChange={(e) => handleSearchChange(i, e.target.value)} />
                 {search.length >= 2 && suggestions.length > 0 && (
                   <div style={{ marginTop: 6, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.04)' }}>
@@ -380,27 +352,27 @@ export default function AdminMatchPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, alignItems: 'center' }}>
                 <div>
-                  <label style={fieldLabel}>Goals</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Goals</label>
                   <input style={inputStyle} type="number" value={p.goals ?? ''} onChange={(e) => updateRow(i, { goals: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label style={fieldLabel}>Assists</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Assists</label>
                   <input style={inputStyle} type="number" value={p.assists ?? ''} onChange={(e) => updateRow(i, { assists: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label style={fieldLabel}>Minutes</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Minutes</label>
                   <input style={inputStyle} type="number" value={p.minutes_played ?? ''} onChange={(e) => updateRow(i, { minutes_played: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label style={fieldLabel}>Yellow</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Yellow</label>
                   <input style={inputStyle} type="number" value={p.yellow_cards ?? ''} onChange={(e) => updateRow(i, { yellow_cards: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label style={fieldLabel}>Red</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Red</label>
                   <input style={inputStyle} type="number" value={p.red_cards ?? ''} onChange={(e) => updateRow(i, { red_cards: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label style={fieldLabel}>Saves</label>
+                  <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Saves</label>
                   <input style={inputStyle} type="number" value={p.saves ?? ''} onChange={(e) => updateRow(i, { saves: e.target.value === '' ? undefined : Number(e.target.value) })} />
                 </div>
               </div>

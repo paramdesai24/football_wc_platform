@@ -28,7 +28,7 @@ export function ToastContainer() {
       }}
     >
       {toasts.map((toast) => {
-        const c = COLORS[toast.type] ?? COLORS.info
+        const c = COLORS[toast.type] || COLORS.info || { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', icon: 'ℹ️' }
 
         return (
           <button

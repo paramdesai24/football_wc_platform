@@ -354,35 +354,12 @@ export default function PlayAsTeamPage() {
               <div
                 key={sim.index}
                 onClick={() => { setSelectedSim(sim); setSelectedMatchIdx(0); setPhase('detail'); }}
-                style={{
-                  ...(idx === simResults.length - 1 && simResults.length % 2 !== 0
+                className="wc-sim-card"
+                style={
+                  idx === simResults.length - 1 && simResults.length % 2 !== 0
                     ? { gridColumn: '1 / -1', maxWidth: 'calc(50% - 6px)', margin: '0 auto', width: '100%' }
-                    : {}),
-                  background: 'rgba(10, 18, 34, 0.72)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  borderRadius: '14px',
-                  padding: '32px 20px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  minHeight: '160px',
-                  transition: 'border-color 0.15s ease, transform 0.15s ease',
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.borderColor = 'rgba(212,175,55,0.45)';
-                  el.style.transform = 'translateY(-3px)';
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLDivElement;
-                  el.style.borderColor = 'rgba(255,255,255,0.09)';
-                  el.style.transform = 'translateY(0)';
-                }}
+                    : undefined
+                }
               >
                 <span style={{ fontSize: '36px', lineHeight: 1 }}>{sim.positionEmoji}</span>
                 <span style={{

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "@/services/api";
 import { toast } from "@/store/toastStore";
@@ -48,9 +48,6 @@ function actionButton(primary = true): React.CSSProperties {
 
 export default function AuctionLobbyPage() {
   const navigate = useNavigate();
-  const userId = useIdentityStore((s) => s.userId);
-  const username = useIdentityStore((s) => s.username);
-  const teamName = useIdentityStore((s) => s.teamName);
   const setIdentityUserId = useIdentityStore((s) => s.setUserId);
   const setIdentityUsername = useIdentityStore((s) => s.setUsername);
   const setIdentityTeamName = useIdentityStore((s) => s.setTeamName);
@@ -67,6 +64,13 @@ export default function AuctionLobbyPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [createdLeagueId, setCreatedLeagueId] = useState("");
 
+
+  const onEnter = (action: () => void) => (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      action();
+    }
+  };
 
   async function handleCreate() {
     setCreateLoading(true);
@@ -255,7 +259,14 @@ export default function AuctionLobbyPage() {
             </div>
             <div>
               <label style={fieldLabel()}>Squad size</label>
-              <input className="input-field" style={inputStyle()} type="number" value={createForm.squad_size} onChange={(event) => setCreateForm((current) => ({ ...current, squad_size: Number(event.target.value) }))} />
+              <input
+                className="input-field"
+                style={inputStyle()}
+                type="number"
+                value={createForm.squad_size}
+                onChange={(event) => setCreateForm((current) => ({ ...current, squad_size: Number(event.target.value) }))}
+                onKeyDown={onEnter(handleCreate)}
+              />
             </div>
           </div>
 
@@ -359,6 +370,7 @@ export default function AuctionLobbyPage() {
                 setIdentityTeamName(value);
                 setIdentityUsername(value);
               }}
+              onKeyDown={onEnter(handleJoin)}
               placeholder="My Dream Team"
               autoComplete="off"
             />
@@ -398,6 +410,7 @@ export default function AuctionLobbyPage() {
               style={inputStyle()}
               value={rejoinForm.user_id}
               onChange={(event) => setRejoinForm((current) => ({ ...current, user_id: event.target.value }))}
+              onKeyDown={onEnter(handleRejoin)}
               placeholder="username"
               autoComplete="off"
             />

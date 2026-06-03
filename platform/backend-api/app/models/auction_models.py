@@ -158,3 +158,13 @@ class LeaderboardSnapshot(AuctionBase):
     cumulative_points = Column(Integer, default=0)
     rank_at_snapshot = Column(Integer)
     snapshot_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class User(AuctionBase):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String, unique=True, nullable=False, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

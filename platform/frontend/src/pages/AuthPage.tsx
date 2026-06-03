@@ -240,6 +240,12 @@ export default function AuthPage() {
               style={{ ...inputBaseStyle, paddingRight: '42px' }}
               onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)')}
               onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onSubmit(e)
+                }
+              }}
             />
             <button
               type="button"

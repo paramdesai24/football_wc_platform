@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
+import { apiPost } from '@/services/api'
 
 type User = {
   id: string
@@ -23,7 +24,7 @@ type AuthState = {
   setUser: (u: User | null) => void
 }
 
-export const useAuthStore = create<AuthState>(
+export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
@@ -32,8 +33,13 @@ export const useAuthStore = create<AuthState>(
       error: null,
       cooldownUntil: null,
       init: async () => {
+        const currentUser = get().user
+        if (currentUser && currentUser.provider === 'custom') {
+          set({ loading: false, initialized: true })
+          return
+        }
         if (!isSupabaseConfigured || !supabase) {
-          set({ loading: false, initialized: true, error: 'Supabase is not configured yet.' })
+          set({ loading: false, initialized: true, error: null })
           return
         }
         set({ loading: true })
@@ -44,6 +50,8 @@ export const useAuthStore = create<AuthState>(
           if (session?.user) {
             const u = { id: session.user.id, email: session.user.email, provider: 'supabase' }
             set({ user: u })
+          } else {
+            set({ user: null })
           }
         } catch (err: any) {
           set({ error: err?.message ?? String(err) })
@@ -52,22 +60,18 @@ export const useAuthStore = create<AuthState>(
         }
       },
       signUp: async (email, password, username) => {
-        if (!isSupabaseConfigured || !supabase) {
-          set({ error: 'Supabase is not configured yet.' })
-          return
-        }
         set({ loading: true, error: null })
         try {
-          const { data, error } = await supabase.auth.signUp({ email, password }, { data: { username } })
+          const { data, error } = await apiPost<{ id: string; email: string; username: string }>('/api/v1/auth/signup', {
+            email,
+            password,
+            username: username || email.split('@')[0],
+          })
           if (error) {
-            if (/rate/i.test(error.message)) {
-              set({ cooldownUntil: Date.now() + 60_000 })
-            }
-            throw error
+            throw new Error(error)
           }
-          // For email signups, Supabase may require confirmation. We'll not assume immediate session.
-          if (data?.user) {
-            set({ user: { id: data.user.id, email: data.user.email, username } })
+          if (data) {
+            set({ user: { id: data.id, email: data.email, username: data.username, provider: 'custom' } })
           }
         } catch (err: any) {
           set({ error: err?.message ?? String(err) })
@@ -76,19 +80,17 @@ export const useAuthStore = create<AuthState>(
         }
       },
       signIn: async (email, password) => {
-        if (!isSupabaseConfigured || !supabase) {
-          set({ error: 'Supabase is not configured yet.' })
-          return
-        }
         set({ loading: true, error: null })
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+          const { data, error } = await apiPost<{ id: string; email: string; username: string }>('/api/v1/auth/login', {
+            email,
+            password,
+          })
           if (error) {
-            if (/rate/i.test(error.message)) set({ cooldownUntil: Date.now() + 60_000 })
-            throw error
+            throw new Error(error)
           }
-          if (data?.user) {
-            set({ user: { id: data.user.id, email: data.user.email } })
+          if (data) {
+            set({ user: { id: data.id, email: data.email, username: data.username, provider: 'custom' } })
           }
         } catch (err: any) {
           set({ error: err?.message ?? String(err) })
@@ -111,13 +113,12 @@ export const useAuthStore = create<AuthState>(
         }
       },
       signOut: async () => {
-        if (!isSupabaseConfigured || !supabase) {
-          set({ user: null, error: 'Supabase is not configured yet.' })
-          return
-        }
+        const currentUser = get().user
         set({ loading: true })
         try {
-          await supabase.auth.signOut()
+          if (currentUser?.provider === 'supabase' && isSupabaseConfigured && supabase) {
+            await supabase.auth.signOut()
+          }
         } catch (err: any) {
           set({ error: err?.message ?? String(err) })
         } finally {
@@ -128,10 +129,10 @@ export const useAuthStore = create<AuthState>(
     }),
     {
       name: 'auth-storage',
-      getStorage: () => localStorage,
       partialize: (s) => ({ user: s.user }),
     },
   ),
 )
 
 export default useAuthStore
+

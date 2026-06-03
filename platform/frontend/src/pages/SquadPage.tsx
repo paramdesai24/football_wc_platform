@@ -111,7 +111,7 @@ export default function SquadPage() {
       ) : (
         <div style={{ display: "grid", gap: 18 }}>
           {(["GK", "DEF", "MID", "FWD"] as const).map((position) => {
-            const players = byPos[position];
+            const players = byPos[position] || [];
             if (!players.length) return null;
             return (
               <section key={position} className="wc-card" style={{ padding: 20, display: "grid", gap: 14 }}>

@@ -11,6 +11,8 @@ interface BidControlsProps {
 
 export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, onBid }: BidControlsProps) {
   const [bidAmount, setBidAmount] = useState(String(Math.max(currentBid + 50, 50)));
+  const [pressing, setPressing] = useState(false);
+  const [success, setSuccess] = useState(false);
   const currentPlayer = useAuctionStore((state) => state.currentPlayer);
   const bidPending = useAuctionStore((state) => state.bidPending);
   const basePrice = Number(currentPlayer?.base_price ?? 0);
@@ -40,7 +42,11 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
 
   const handleBid = () => {
     if (buttonDisabled) return;
+    setPressing(true);
+    setTimeout(() => setPressing(false), 200);
     onBid(parsedBid);
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 400);
   };
 
   const buttonLabel = bidPending
@@ -54,9 +60,10 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
   return (
     <div className="wc-card" style={{ padding: 18, display: "grid", gap: 14 }}>
       <div style={{ display: "grid", gap: 8 }}>
-        <label style={{ color: "var(--color-text-muted)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>Bid amount</label>
+        <label style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1 }}>Bid amount</label>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <input
+            id="bid-amount-input"
             type="number"
             min={currentBid + 1}
             max={myBudget}
@@ -86,6 +93,7 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
             type="button"
             onClick={handleBid}
             disabled={buttonDisabled}
+            className={`${pressing ? "btn-press" : ""} ${success ? "bid-success" : ""}`}
             style={{
               height: 46,
               padding: "0 18px",
@@ -112,6 +120,25 @@ export function BidControls({ currentBid, myBudget, currentBidderId, myUserId, o
           {(!currentBid || currentBid <= 0)
             ? `Opening bid: ${basePrice.toLocaleString()} coins (base price) · Your budget: ${myBudget.toLocaleString()} coins`
             : `Current bid: ${currentBid.toLocaleString()} coins · Minimum next: ${(currentBid + 10).toLocaleString()} coins · Your budget: ${myBudget.toLocaleString()} coins`}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 14, paddingTop: 12, borderTop: "1px solid rgba(255, 255, 255, 0.08)", marginTop: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+          <kbd style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, padding: "2px 6px", fontFamily: "var(--font-mono)", fontSize: 10, color: "#fff" }}>B</kbd>
+          <span>Focus Bid</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+          <kbd style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, padding: "2px 6px", fontFamily: "var(--font-mono)", fontSize: 10, color: "#fff" }}>Space</kbd>
+          <span>Quick +50</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+          <kbd style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, padding: "2px 6px", fontFamily: "var(--font-mono)", fontSize: 10, color: "#fff" }}>Enter</kbd>
+          <span>Submit Bid</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+          <kbd style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 4, padding: "2px 6px", fontFamily: "var(--font-mono)", fontSize: 10, color: "#fff" }}>Esc</kbd>
+          <span>Cancel</span>
         </div>
       </div>
 

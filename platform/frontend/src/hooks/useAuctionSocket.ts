@@ -62,7 +62,7 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
         Object.entries(payload.users ?? {}).map(([userId, user]) => [
           userId,
           {
-            ...user,
+            ...(user as any),
             squad: (user as any)?.squad ?? (existingUsers[userId] as any)?.squad ?? [],
             squad_details: (user as any)?.squad_details ?? (existingUsers[userId] as any)?.squad_details ?? [],
           },
@@ -105,8 +105,14 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
     }
 
     if (type === "player_sold") {
-      addMessage(`✅ ${payload.player.name} → ${payload.winner} for ${payload.price} coins`);
-      toast.success(`${payload.player?.name} → ${payload.winner} for ${payload.price} coins`);
+      const isUnsold = !payload.winner || payload.winner === "No buyer" || !(payload.price > 0);
+      if (isUnsold) {
+        addMessage(`☁️ ${payload.player?.name ?? 'Player'} went unsold → No buyer for 0 coins`);
+        toast.error(`${payload.player?.name ?? 'Player'} went unsold — no bids placed`);
+      } else {
+        addMessage(`✅ ${payload.player.name} → ${payload.winner} for ${payload.price} coins`);
+        toast.success(`${payload.player?.name} → ${payload.winner} for ${payload.price} coins`);
+      }
       setCurrentPlayer(null);
     }
 

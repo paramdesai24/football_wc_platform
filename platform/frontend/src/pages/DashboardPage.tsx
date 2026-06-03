@@ -8,6 +8,7 @@ import { FlagImg } from "@/components/FlagImg";
 import { teamFlagCode } from "@/lib/flags";
 import { FeaturedMatchCard } from "@/components/cards/FeaturedMatchCard";
 import { StandingsTable } from "@/components/tables/StandingsTable";
+import { SpringCard } from "@/components/ui/SpringCard";
 
 interface HealthData {
   status?: string;
@@ -128,8 +129,9 @@ export default function DashboardPage() {
 
   return (
     <div className="page-content">
-      <section
+      <SpringCard
         className="wc-card"
+        delay={0}
         style={{
           minHeight: "calc(100vh - 124px)",
           display: "grid",
@@ -166,7 +168,7 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-      </section>
+      </SpringCard>
 
       {upcomingNote && (
         <div style={{ marginBottom: 14, background: "rgba(212, 175, 55, 0.08)", border: "1px solid rgba(212, 175, 55, 0.18)", borderRadius: 12, padding: "10px 12px", color: "#f4e1a0", fontSize: "0.875rem" }}>
@@ -175,11 +177,11 @@ export default function DashboardPage() {
       )}
 
       {nextMatch ? (
-        <div style={{ marginBottom: 22 }}>
+        <SpringCard delay={100} style={{ marginBottom: 22 }}>
           <FeaturedMatchCard match={nextMatch} onOpenPredictions={() => navigate("/predictions")} />
-        </div>
+        </SpringCard>
       ) : (
-        <section className="wc-card" style={{ marginBottom: 22 }}>
+        <SpringCard delay={100} className="wc-card" style={{ marginBottom: 22 }}>
           <div className="wc-card-header">
             <div className="wc-card-title-group">
               <div className="wc-eyebrow">Featured match</div>
@@ -187,11 +189,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ color: "var(--color-text-muted)" }}>No upcoming match feed available.</div>
-        </section>
+        </SpringCard>
       )}
 
       <div className="layout-2col">
-        <section className="wc-card">
+        <SpringCard className="wc-card" delay={150}>
           <div className="wc-card-header">
             <div className="wc-card-title-group">
               <div className="wc-eyebrow">Championship odds</div>
@@ -208,7 +210,7 @@ export default function DashboardPage() {
                 const barColor = row.rank === 1 ? "#d4af37" : row.rank <= 3 ? "#22c55e" : row.rank <= 6 ? "#3b82f6" : "rgba(255,255,255,0.25)";
                 const rankIcon = row.rank === 1 ? "🏆" : row.rank === 2 ? "🥈" : row.rank === 3 ? "🥉" : "";
                 return (
-                  <div key={row.country_uid} style={{ display: "grid", gap: 8 }}>
+                  <div key={row.country_uid} className={`stagger-item delay-${Math.min(index, 10)}`} style={{ display: "grid", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                         <span style={{ fontSize: 18 }}>{rankIcon}</span>
@@ -217,7 +219,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         {index === 0 ? <span className="wc-badge wc-badge-gold">#1</span> : <span className="wc-pill">#{index + 1}</span>}
-                        <span className="wc-mono" style={{ fontSize: "1.1rem", fontWeight: 700 }}>{percent(chance)}</span>
+                        <span className="wc-mono num-md">{percent(chance)}</span>
                       </div>
                     </div>
                     <div className="wc-odds-bar">
@@ -230,9 +232,9 @@ export default function DashboardPage() {
               <div style={{ color: "var(--color-text-muted)" }}>No live odds available yet.</div>
             )}
           </div>
-        </section>
+        </SpringCard>
 
-        <section className="wc-card">
+        <SpringCard className="wc-card" delay={200}>
           <div className="wc-card-header">
             <div className="wc-card-title-group">
               <div className="wc-eyebrow">Tournament pulse</div>
@@ -254,17 +256,17 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </section>
+        </SpringCard>
       </div>
 
-      <div style={{ marginBottom: 22 }}>
+      <SpringCard delay={250} style={{ marginBottom: 22 }}>
         <StandingsTable
           rows={topStandings}
           title="Current standings"
           subtitle={rankingsNote || undefined}
           onOpenRankings={() => navigate("/rankings")}
         />
-      </div>
+      </SpringCard>
 
       {healthError && (
         <div className="wc-card" style={{ marginBottom: 16, borderLeft: "3px solid var(--wc-red)" }}>

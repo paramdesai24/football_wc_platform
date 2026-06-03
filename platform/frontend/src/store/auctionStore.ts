@@ -74,7 +74,25 @@ interface AuctionState {
   reset: () => void;
 }
 
-const initialState = {
+const initialState: Pick<
+  AuctionState,
+  | "leagueId"
+  | "userId"
+  | "username"
+  | "status"
+  | "connectionStatus"
+  | "currentPlayer"
+  | "currentHighBid"
+  | "currentBidderId"
+  | "currentNominator"
+  | "users"
+  | "upcomingPlayers"
+  | "myBudget"
+  | "timerSeconds"
+  | "maxTimerSeconds"
+  | "bidPending"
+  | "messages"
+> = {
   leagueId: null,
   userId: null,
   username: null,

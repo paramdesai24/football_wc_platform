@@ -23,6 +23,18 @@ async def lifespan(app: FastAPI):
     os.makedirs(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data"), exist_ok=True)
     init_db()
     logger.info("Database initialized")
+    
+    # Initialize Postgres tables for auction/FPL
+    from app.core.database import postgres_engine
+    from app.models.auction_models import AuctionBase
+    if postgres_engine is not None:
+        try:
+            async with postgres_engine.begin() as conn:
+                await conn.run_sync(AuctionBase.metadata.create_all)
+            logger.info("Postgres tables initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Postgres tables: {e}")
+            
     yield
     logger.info("Shutting down")
 
