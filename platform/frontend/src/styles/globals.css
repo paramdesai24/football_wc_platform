@@ -1269,6 +1269,91 @@ nav.nav-links,
   margin-bottom: 20px;
 }
 
+/* --- Analytics Page Custom Responsive Classes --- */
+.analytics-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* First card (Smart Score) spans full width on mobile for hierarchy */
+.analytics-metrics-grid > :first-child {
+  grid-column: span 2;
+}
+
+@media (min-width: 640px) {
+  .analytics-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .analytics-metrics-grid > :first-child {
+    grid-column: span 1;
+  }
+}
+
+@media (min-width: 900px) {
+  .analytics-metrics-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.analytics-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .analytics-secondary-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.analytics-breakdowns-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .analytics-breakdowns-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+
+.analytics-team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .analytics-team-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.analytics-stat-card {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s;
+}
+
+@media (min-width: 768px) {
+  .analytics-stat-card {
+    padding: 16px 18px;
+  }
+}
+
 .analytics-field {
   display: flex;
   flex-direction: column;

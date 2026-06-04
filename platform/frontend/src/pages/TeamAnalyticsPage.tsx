@@ -223,16 +223,30 @@ export default function TeamAnalyticsPage() {
       )}
 
       {data && (
-        <div className="wc-card card-enter" style={{ padding: 28, display: "grid", gap: 24, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 15px 35px rgba(0,0,0,0.4)", borderRadius: 16 }}>
+        <div className="wc-card card-enter" style={{ padding: "20px 22px", display: "grid", gap: 20, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 15px 35px rgba(0,0,0,0.4)", borderRadius: 16 }}>
           {/* Header Row of fetched details */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 20, flexWrap: "wrap", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div className="analytics-team-header" style={{ paddingBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <FlagImg code={teamFlagCode(data.country_id) || getTeamCode(data.country_name, data.country_id)} size={44} style={{ borderRadius: 6, border: "2px solid rgba(255,255,255,0.15)", boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }} />
               <div>
-                <h2 style={{ fontSize: "2.1rem", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.03em", fontFamily: "var(--font-ui)", lineHeight: 1.1 }}>
-                  {cleanTeamName(data.country_name)}
+                <h2 style={{ fontSize: "2.1rem", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.03em", fontFamily: "var(--font-ui)", lineHeight: 1.1, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span>{cleanTeamName(data.country_name)}</span>
+                  <span style={{ 
+                    background: data.momentum >= 0 ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", 
+                    border: `1px solid ${data.momentum >= 0 ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`, 
+                    color: data.momentum >= 0 ? "#10b981" : "#ef4444", 
+                    fontWeight: 800, 
+                    fontSize: "12px",
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4
+                  }}>
+                    {data.momentum >= 0 ? "▲" : "▼"} {Number(data.momentum).toFixed(2)}
+                  </span>
                 </h2>
-                <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginTop: 4, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginTop: 6, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                   <span className="wc-badge" style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: "var(--color-accent)", padding: "2px 8px", borderRadius: 4, fontSize: "0.72rem", fontWeight: 700 }}>
                     {data.confederation}
                   </span>
@@ -247,43 +261,14 @@ export default function TeamAnalyticsPage() {
                 </div>
               </div>
             </div>
-
-            {/* Momentum widget */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", textAlign: "right" }}>
-              <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 4 }}>
-                CURRENT MOMENTUM
-              </div>
-              <span style={{ 
-                background: data.momentum >= 0 ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", 
-                border: `1px solid ${data.momentum >= 0 ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`, 
-                color: data.momentum >= 0 ? "#10b981" : "#ef4444", 
-                fontWeight: 800, 
-                fontSize: "14px",
-                padding: "4px 10px",
-                borderRadius: "8px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6
-              }}>
-                {data.momentum >= 0 ? "▲" : "▼"} {Number(data.momentum).toFixed(2)}
-              </span>
-            </div>
           </div>
 
           {/* Primary stats row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16 }}>
+          <div className="analytics-metrics-grid">
             {metrics.map((item) => (
               <div 
                 key={item.label} 
-                className="wc-card stat-card" 
-                style={{ 
-                  background: "rgba(255,255,255,0.015)", 
-                  border: "1px solid rgba(255,255,255,0.05)", 
-                  borderRadius: 12, 
-                  padding: "16px 18px",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
-                  transition: "border-color 0.2s"
-                }}
+                className="analytics-stat-card"
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                   <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{item.label}</div>
@@ -307,9 +292,9 @@ export default function TeamAnalyticsPage() {
           </div>
 
           {/* Secondary Stats Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+          <div className="analytics-secondary-grid">
             {/* Form */}
-            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div className="analytics-stat-card">
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Form (recent)</div>
               <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round(data.recent_form * 100)}%</div>
               <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -318,7 +303,7 @@ export default function TeamAnalyticsPage() {
             </div>
 
             {/* Squad Strength */}
-            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div className="analytics-stat-card">
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Squad Strength</div>
               <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round((data.squad_strength ?? 0) * 100)}%</div>
               <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -327,7 +312,7 @@ export default function TeamAnalyticsPage() {
             </div>
 
             {/* Momentum */}
-            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div className="analytics-stat-card">
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Momentum</div>
               <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Number(data.momentum).toFixed(2)}</div>
               <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -343,7 +328,7 @@ export default function TeamAnalyticsPage() {
             </div>
 
             {/* Consistency */}
-            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div className="analytics-stat-card">
               <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Consistency</div>
               <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round(data.consistency * 100)}%</div>
               <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -353,7 +338,7 @@ export default function TeamAnalyticsPage() {
           </div>
 
           {/* Component Breakdowns */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginTop: 10 }}>
+          <div className="analytics-breakdowns-grid" style={{ marginTop: 10 }}>
             {/* Attack Profile */}
             <div className="wc-card" style={{ padding: 24, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 16, backdropFilter: "blur(12px)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
