@@ -6,7 +6,8 @@ router = APIRouter()
 
 
 CURRENT_FILE = Path(__file__).resolve()
-DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+# parents[5] = platform/  →  platform/data/processed
+DATA_PATH = CURRENT_FILE.parents[5] / "data" / "processed"
 
 
 def load_rankings():

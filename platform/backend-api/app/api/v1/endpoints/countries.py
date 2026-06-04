@@ -8,9 +8,9 @@ router = APIRouter()
 
 # Load rankings data
 CURRENT_FILE = Path(__file__).resolve()
-# __file__ is in platform/backend-api/app/api/v1/endpoints/
-# platform/data/processed is at CURRENT_FILE.parents[4] / "data" / "processed"
-DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+# __file__ is at: platform/backend-api/app/api/v1/endpoints/countries.py
+# parents[5] = platform/   →   platform/data/processed
+DATA_PATH = CURRENT_FILE.parents[5] / "data" / "processed"
 
 
 def load_rankings():

@@ -6,8 +6,10 @@ from pydantic import BaseModel
 
 # Add project root to path for engine access
 CURRENT_FILE = Path(__file__).resolve()
-project_root = CURRENT_FILE.parents[6]  # Go up to FIFA WC root
-DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+# parents[5] = platform/backend-api/../  = platform/
+# parents[6] = repo root (where match_engine/ lives)
+project_root = CURRENT_FILE.parents[6]
+DATA_PATH = CURRENT_FILE.parents[5] / "data" / "processed"
 
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))

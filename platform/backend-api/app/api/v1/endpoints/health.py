@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Paths used by health checks
 CURRENT_FILE = Path(__file__).resolve()
-DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+DATA_PATH = CURRENT_FILE.parents[5] / "data" / "processed"
 RANKINGS_FILE = DATA_PATH / "dynamic_world_rankings_active.csv"
 
 
