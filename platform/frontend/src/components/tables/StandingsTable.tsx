@@ -73,7 +73,7 @@ export function StandingsTable({ rows, title, subtitle, onOpenRankings }: Standi
               <th className="col-rank">#</th>
               <th className="col-country">Country</th>
               <th className="col-confed">Confed.</th>
-              <th className="col-num numeric">Smart Score</th>
+              <th className="col-num numeric" title="Composite weighted index (0–100) from ELO, form, squad &amp; attack signals">Smart Score</th>
               <th className="col-num numeric">Attack</th>
               <th className="col-num numeric">Defense</th>
               <th className="col-num numeric">Form</th>
@@ -91,7 +91,11 @@ export function StandingsTable({ rows, title, subtitle, onOpenRankings }: Standi
                     </span>
                   </td>
                   <td className="col-confed">{row.confederation || CONFEDERATION[normalizeCountryCode(teamFlagCode(row.country_uid) || row.country_uid)] || CONFEDERATION[normalizeCountryCode(teamFlagCode(row.country_name) || row.country_name)] || CONFED_MAP[row.country_name] || "—"}</td>
-                  <td className="col-num numeric">{Number(row.elo_rating).toFixed(0)}</td>
+                  <td className="col-num numeric">
+                    {row.overall_rank_score != null
+                      ? (Number(row.overall_rank_score) * 100).toFixed(1)
+                      : Number(row.elo_rating).toFixed(0)}
+                  </td>
                   <td className="col-num numeric">{Number(row.attack_rating).toFixed(1)}</td>
                   <td className="col-num numeric">{Number(row.defense_rating).toFixed(1)}</td>
                   <td className="col-num numeric">{row.recent_form_score != null ? `${(Number(row.recent_form_score) * 100).toFixed(1)}%` : "-"}</td>

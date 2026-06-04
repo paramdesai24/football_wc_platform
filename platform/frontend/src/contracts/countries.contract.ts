@@ -9,6 +9,7 @@ export interface CountryRankingRow {
   squad_overall_strength?: number;
   momentum_score?: number;
   consistency_score?: number;
+  overall_rank_score?: number;
   confederation?: string;
 }
 
