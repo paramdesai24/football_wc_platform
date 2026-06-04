@@ -7,14 +7,17 @@ from pathlib import Path
 router = APIRouter()
 
 # Load rankings data
-DATA_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "processed"
+CURRENT_FILE = Path(__file__).resolve()
+# __file__ is in platform/backend-api/app/api/v1/endpoints/
+# platform/data/processed is at CURRENT_FILE.parents[4] / "data" / "processed"
+DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
 
 
 def load_rankings():
     """Load rankings CSV. Ratings are used as-is (no scaling applied);
     the data pipeline is the single source of truth for calibrated values."""
     try:
-        p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
+        p = DATA_PATH / "dynamic_world_rankings_active.csv"
         df = pd.read_csv(p)
         return df
     except Exception as e:

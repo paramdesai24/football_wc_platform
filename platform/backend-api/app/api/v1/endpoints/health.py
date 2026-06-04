@@ -5,7 +5,9 @@ import pandas as pd
 from pathlib import Path
 
 # Paths used by health checks
-RANKINGS_FILE = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
+CURRENT_FILE = Path(__file__).resolve()
+DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+RANKINGS_FILE = DATA_PATH / "dynamic_world_rankings_active.csv"
 
 
 router = APIRouter()
@@ -14,8 +16,7 @@ router = APIRouter()
 @router.get("/health")
 async def health_check():
     # Check if data is available
-    p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
-    data_available = p.exists()
+    data_available = RANKINGS_FILE.exists()
     
     return {
         "status": "healthy",

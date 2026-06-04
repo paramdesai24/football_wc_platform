@@ -5,11 +5,15 @@ from pathlib import Path
 router = APIRouter()
 
 
+CURRENT_FILE = Path(__file__).resolve()
+DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+
+
 def load_rankings():
     """Load rankings CSV. Ratings are used as-is (no scaling applied);
     the data pipeline is the single source of truth for calibrated values."""
     try:
-        p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
+        p = DATA_PATH / "dynamic_world_rankings_active.csv"
         df = pd.read_csv(p)
         return df
     except Exception as e:
@@ -33,10 +37,9 @@ import json
 def load_breakdowns():
     """Load pre-computed component breakdowns for attack and defense."""
     try:
-        p_dir = Path(r"C:\FIFA WC\platform\data\processed")
-        with open(p_dir / "attack_breakdown.json", "r", encoding="utf-8") as f:
+        with open(DATA_PATH / "attack_breakdown.json", "r", encoding="utf-8") as f:
             attack_breakdown = json.load(f)
-        with open(p_dir / "defense_breakdown.json", "r", encoding="utf-8") as f:
+        with open(DATA_PATH / "defense_breakdown.json", "r", encoding="utf-8") as f:
             defense_breakdown = json.load(f)
         return attack_breakdown, defense_breakdown
     except Exception as e:

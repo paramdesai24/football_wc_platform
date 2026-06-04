@@ -5,7 +5,10 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 # Add project root to path for engine access
-project_root = Path(r"C:\FIFA WC")
+CURRENT_FILE = Path(__file__).resolve()
+project_root = CURRENT_FILE.parents[6]  # Go up to FIFA WC root
+DATA_PATH = CURRENT_FILE.parents[4] / "data" / "processed"
+
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -35,7 +38,7 @@ class PredictionRequest(BaseModel):
 
 def load_rankings():
     try:
-        p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
+        p = DATA_PATH / "dynamic_world_rankings_active.csv"
         return pd.read_csv(p)
     except Exception as e:
         print(f"Error loading rankings: {e}")

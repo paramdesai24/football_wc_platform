@@ -8,13 +8,15 @@ import os
 
 # Add tournament engine to path - use absolute path resolution
 current_file = Path(__file__).resolve()
-backend_api_dir = current_file.parents[3]  # backend-api
+backend_api_dir = current_file.parents[4]  # platform/backend-api
 platform_dir = backend_api_dir.parent  # platform
 project_root = platform_dir.parent  # FIFA WC
 
 # Add both to path
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "tournament_engine"))
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+if str(project_root / "tournament_engine") not in sys.path:
+    sys.path.insert(0, str(project_root / "tournament_engine"))
 
 router = APIRouter()
 
@@ -27,7 +29,7 @@ class SimulationRequest(BaseModel):
 
 def load_rankings():
     try:
-        p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
+        p = project_root / "platform" / "data" / "processed" / "dynamic_world_rankings_active.csv"
         return pd.read_csv(p)
     except Exception as e:
         print(f"Error loading rankings: {e}")
