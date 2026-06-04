@@ -11,8 +11,10 @@ The pipeline calculates the authoritative country metrics:
 * **Attacking Rating (V2)**: Weighted combination of recent goal count (exponentially decayed), forward-line squad valuation, and international tournament ratings.
 * **Defensive Rating (V2.1)**: Weighted combination of Z-score goals-conceded rate, clean sheet rate, backline valuation, and goalkeeper performance index.
 * **Power Index**: Composite rank index:
-  $$power\_index = 0.35 \times \text{elo} + 0.20 \times \text{attack} + 0.20 \times \text{defense} + 0.15 \times \text{squad} + 0.10 \times \text{form}$$
-* **Elo Ratings**: Propagation of true Elo metrics from source files to final export assets, ensuring that New Zealand remains the sole team with fallback imputed $1500.0$.
+  ```text
+  Power Index = 0.35 * Elo + 0.20 * Attack + 0.20 * Defense + 0.15 * Squad + 0.10 * Form
+  ```
+* **Elo Ratings**: Propagation of true Elo metrics from source files to final export assets, ensuring that New Zealand remains the sole team with fallback imputed 1500.0.
 
 ---
 

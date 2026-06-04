@@ -27,13 +27,17 @@ match_engine/
 
 ## ⚙️ Mathematical Model
 
-The score simulation computes expected goals for the Home team ($g_H$) and Away team ($g_A$) based on:
+The score simulation computes expected goals for the Home team (g_H) and Away team (g_A) based on:
 
-$$g_H = \lambda_H \times \text{elo\_advantage} \times \text{attack\_advantage}$$
-$$g_A = \lambda_A \times \text{elo\_disadvantage} \times \text{defense\_advantage}$$
+```text
+g_H = lambda_H * elo_advantage * attack_advantage
+g_A = lambda_A * elo_disadvantage * defense_advantage
+```
 
-These expected values parameters ($\lambda$) are then sampled:
+These expected values parameters (lambda) are then sampled:
 
-$$\text{Goals} \sim \text{Poisson}(\lambda)$$
+```text
+Goals ~ Poisson(lambda)
+```
 
 This structure guarantees that quality differences are translated into realistic scoring probabilities while maintaining the unpredictability of cup football.
