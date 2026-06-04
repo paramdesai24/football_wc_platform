@@ -67,7 +67,7 @@ async def list_countries(
 @router.get("/rankings")
 async def country_rankings(
     confederation: Optional[str] = Query(None),
-    limit: int = Query(20, ge=1, le=40),   # hard-capped at 40 as per product spec
+    limit: int = Query(20, ge=1, le=200),
 ):
     df = load_rankings()
     if df.empty:

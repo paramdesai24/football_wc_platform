@@ -56,7 +56,7 @@ export default function TeamAnalyticsPage() {
 
   useEffect(() => {
     // Fetch available teams from the backend rankings endpoint and populate dropdown
-    apiGet<{ data?: { country_name: string; country_uid: string }[] }>("/api/v1/countries/rankings?limit=200").then((res) => {
+    apiGet<{ data?: { country_name: string; country_uid: string }[] }>("/api/v1/countries/?limit=200").then((res) => {
       const rows = Array.isArray(res.data) ? res.data : (res.data as any)?.data;
       if (rows && rows.length > 0) {
         // Map to expected shape
