@@ -18,8 +18,8 @@ const MAX_COUNTRIES = 40;
 
 export default function RankingsPage() {
   const [conf, setConf] = useState("All");
-  const [limit, setLimit] = useState(20);
-  const [data, setData] = useState<CountryRankingRow[]>([]);
+  const [topN, setTopN] = useState(20);
+  const [rankings, setRankings] = useState<CountryRankingRow[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -29,13 +29,12 @@ export default function RankingsPage() {
   };
 
   const handleLimitChange = (nextLimit: number) => {
-    setLoading(true);
-    setLimit(Math.min(nextLimit, MAX_COUNTRIES));
+    setTopN(nextLimit);
   };
 
   useEffect(() => {
     const confParam = conf === "All" ? "" : conf;
-    const safeLimit = Math.min(limit, MAX_COUNTRIES);
+    const safeLimit = MAX_COUNTRIES;
 
     apiGet<{ data?: CountryRankingRow[] }>(
       `/api/v1/countries/rankings?confederation=${confParam}&limit=${safeLimit}`
@@ -44,10 +43,10 @@ export default function RankingsPage() {
 
       if (res.error || !res.data) {
         if (USE_MOCKS) {
-          setData(getMockCountryRankings().slice(0, safeLimit));
+          setRankings(getMockCountryRankings().slice(0, safeLimit));
           setNote("Using dev mock rankings.");
         } else {
-          setData([]);
+          setRankings([]);
           setNote("No live rankings available.");
         }
         return;
@@ -58,17 +57,20 @@ export default function RankingsPage() {
         : (res.data as { data?: CountryRankingRow[] }).data;
 
       if (rows && rows.length > 0) {
-        setData(rows.slice(0, MAX_COUNTRIES));
+        setRankings(rows.slice(0, MAX_COUNTRIES));
         setNote("");
       } else if (USE_MOCKS) {
-        setData(getMockCountryRankings().slice(0, safeLimit));
+        setRankings(getMockCountryRankings().slice(0, safeLimit));
         setNote("Using dev mock rankings.");
       } else {
-        setData([]);
+        setRankings([]);
         setNote("No live rankings available.");
       }
     });
-  }, [conf, limit]);
+  }, [conf]);
+
+  const totalTeams = rankings.length;
+  const visibleRankings = rankings.slice(0, Math.min(topN, totalTeams));
 
   return (
     <div className="page-content">
@@ -100,27 +102,27 @@ export default function RankingsPage() {
             </select>
           </div>
 
-          {/* Depth slider — hard max 40 */}
+          {/* Depth slider — dynamic max */}
           <div style={{ minWidth: 220 }}>
             <label style={{ display: "block", fontSize: "0.7rem", fontWeight: 700, color: "var(--color-text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
               Show top{" "}
               <span style={{ color: "var(--color-gold)", fontWeight: 800, fontSize: "0.85rem" }}>
-                {limit}
+                {Math.min(topN, totalTeams)}
               </span>
-              {" "}of {MAX_COUNTRIES}
+              {" "}of {totalTeams}
             </label>
             <input
               type="range"
               min={5}
-              max={MAX_COUNTRIES}
+              max={totalTeams}
               step={5}
-              value={limit}
+              value={topN}
               onChange={(e) => handleLimitChange(Number(e.target.value))}
               style={{ width: "100%", accentColor: "var(--color-gold)" }}
             />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "var(--color-text-muted)", marginTop: 2 }}>
               <span>5</span>
-              <span>40 max</span>
+              <span>{totalTeams} max</span>
             </div>
           </div>
         </div>
@@ -128,9 +130,9 @@ export default function RankingsPage() {
         {/* ── Summary stat tiles ───────────────────────────────── */}
         <div className="layout-3col" style={{ marginTop: 18 }}>
           {[
-            { label: "Visible teams", value: loading ? "…" : String(data.length) },
+            { label: "Visible teams", value: loading ? "…" : String(Math.min(topN, totalTeams)) },
             { label: "Confederation", value: conf },
-            { label: "Ranking depth", value: `Top ${limit}` },
+            { label: "Ranking depth", value: `Top ${Math.min(topN, totalTeams)}` },
           ].map((item) => (
             <div key={item.label} className="wc-stat-tile">
               <div className="metric">
@@ -143,9 +145,9 @@ export default function RankingsPage() {
       </div>
 
       {/* ── Podium — top 3 cards ─────────────────────────────────── */}
-      {data.slice(0, 3).length > 0 && (
+      {visibleRankings.slice(0, 3).length > 0 && (
         <div className="layout-3col" style={{ marginBottom: 18 }}>
-          {data.slice(0, 3).map((row, index) => (
+          {visibleRankings.slice(0, 3).map((row, index) => (
             <div key={row.country_uid} className="wc-card">
               <div className="wc-eyebrow">Top {index + 1}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "1.15rem", fontWeight: 800, marginBottom: 4 }}>
@@ -219,17 +221,18 @@ export default function RankingsPage() {
       )}
 
       {/* ── Full table ──────────────────────────────────────────── */}
-      {data.length === 0 && !loading ? (
+      {visibleRankings.length === 0 && !loading ? (
         <EmptyState
           icon="📊"
           title="No rankings yet"
           description="No data for this filter. Try a different confederation or increase the depth slider."
         />
       ) : (
-        <div className="table-scroll-wrapper">
-          <StandingsTable rows={data} title={`Full table — Top ${data.length}`} />
+        <div className="table-scroll-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <StandingsTable rows={visibleRankings} title={`Full table — Top ${visibleRankings.length}`} />
         </div>
       )}
     </div>
   );
 }
+

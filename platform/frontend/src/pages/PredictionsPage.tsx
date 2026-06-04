@@ -79,7 +79,7 @@ export default function PredictionsPage() {
 
         <div className="layout-hero-compact">
           <div style={{ display: "grid", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 4 }}>
                   Home Team
@@ -100,13 +100,12 @@ export default function PredictionsPage() {
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <button className="btn btn-primary" disabled={loading} onClick={handlePredict}>
-                {loading ? <><span className="spinner" /> Predicting...</> : "Generate Prediction"}
+              <button className="btn btn-primary" style={{ width: "100%" }} disabled={loading} onClick={handlePredict}>
+                {loading ? <><span className="spinner" /> Predicting...</> : "Predict Match"}
               </button>
-              <span className="wc-pill wc-pill-blue">Backend prediction engine</span>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <span className="wc-pill wc-pill-blue">Backend prediction engine</span>
+              </div>
             </div>
 
             <div className="layout-3col">
@@ -182,7 +181,7 @@ export default function PredictionsPage() {
             <div className="wc-badge wc-badge-gold">Live prediction</div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
+          <div className="pred-stats-grid" style={{ marginBottom: 14 }}>
             {[
               { label: "Home Win", value: result.home_win_pct ?? 0, color: "var(--color-green)" },
               { label: "Draw", value: result.draw_pct ?? 0, color: "var(--color-yellow)" },
@@ -199,7 +198,7 @@ export default function PredictionsPage() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 0.72fr)", gap: 16 }}>
+          <div className="pred-detail-grid">
             <div>
               <div style={{ background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 12, padding: "10px 12px", fontSize: "0.875rem", fontWeight: 600, color: "#9ff0bd", marginBottom: result.explanation ? 8 : 0 }}>
                 {result.match ? `✓ Prediction: ${result.match}` : "Prediction generated"} → {result.predicted_score ?? "TBD"}
@@ -323,7 +322,7 @@ export default function PredictionsPage() {
           ℹ {historyNote}
         </div>
       ) : (
-        <div className="wc-table-shell">
+        <div className="wc-table-shell" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table className="data-table wc-table">
             <thead>
               <tr>

@@ -2239,3 +2239,52 @@ html, body, #root {
     grid-template-columns: 1fr !important;
   }
 }
+
+.pred-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .pred-stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.pred-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .pred-detail-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.nav-user-label {
+  display: none;
+}
+@media (min-width: 861px) {
+  .nav-user-label { display: inline; }
+}
+
+.podium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 400px) {
+  .podium-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  footer {
+    flex-direction: column;
+    align-items:    flex-start;
+    gap:            8px;
+  }
+  footer > div:last-child {
+    align-self: flex-start;
+  }
+}
+
+
+
+

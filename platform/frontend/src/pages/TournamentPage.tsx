@@ -224,6 +224,17 @@ function Expander({
   );
 }
 
+const TEAM_FLAG: Record<string, string> = {
+  'Spain': 'es', 'France': 'fr', 'Germany': 'de', 'Brazil': 'br',
+  'Argentina': 'ar', 'Portugal': 'pt', 'Netherlands': 'nl',
+  'England': 'gb-eng', 'Italy': 'it', 'Japan': 'jp',
+  'Morocco': 'ma', 'USA': 'us', 'Mexico': 'mx', 'Croatia': 'hr',
+}
+const getFlagCode = (name?: string) => {
+  if (!name) return null;
+  return TEAM_FLAG[name] ?? teamFlagCode(name) ?? null;
+}
+
 // ---- main ----
 export default function TournamentPage() {
   const [state, setState] = useState<TournamentStateResponse | null>(null);
@@ -303,19 +314,36 @@ export default function TournamentPage() {
         <>
           <div className="layout-hero-compact" style={{ marginBottom: 16 }}>
             <div className="wc-card section-card" style={{ display: "grid", gap: 14 }}>
-              <div className="podium-row">
-                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
-                  <div className="podium-label">Champion</div>
-                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.champion || "TBD")} size={20} /><span>{state.champion || "TBD"}</span></div>
-                </div>
-                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
-                  <div className="podium-label">Runner-up</div>
-                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.runner_up || "TBD")} size={20} /><span>{state.runner_up || "TBD"}</span></div>
-                </div>
-                <div className="wc-card podium-card" style={{ background: "var(--color-bg-raised)" }}>
-                  <div className="podium-label">Third Place</div>
-                  <div className="podium-value" style={{ display: "flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(state.third_place || "TBD")} size={20} /><span>{state.third_place || "TBD"}</span></div>
-                </div>
+              <div className="podium-grid">
+                {[
+                  { label: 'CHAMPION',   emoji: '🏆', value: state?.champion,    color: '#d4af37' },
+                  { label: 'RUNNER-UP',  emoji: '🥈', value: state?.runner_up,   color: 'rgba(192,192,192,0.9)' },
+                  { label: 'THIRD PLACE', emoji: '🥉', value: state?.third_place, color: 'rgba(205,127,50,0.9)' },
+                ].map(item => {
+                  const flagCode = getFlagCode(item.value)
+                  return (
+                    <div key={item.label} className="wc-card podium-card" style={{ background: "var(--color-bg-raised)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 10px", border: `1px solid ${item.color}` }}>
+                      <span style={{ fontSize: 24 }}>{item.emoji}</span>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
+                        {item.label}
+                      </div>
+                      {item.value ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {flagCode && (
+                            <FlagImg code={flagCode} size={16} />
+                          )}
+                          <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {item.value}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>
+                          TBD
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Matches summary and tournament pulse removed — streamlined UI */}

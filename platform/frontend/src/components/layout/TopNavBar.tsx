@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { NAV_ITEMS } from "@/routes/constants";
 import useAuthStore from '@/store/authStore'
-import { ChevronDown, LogOut } from 'lucide-react'
 
 function NavIcon() {
   const PRIMARY = "/worldcup_icon.webp";
@@ -27,46 +26,52 @@ function NavIcon() {
   );
 }
 
+const dropdownItemStyle: React.CSSProperties = {
+  display:      'block',
+  width:        '100%',
+  padding:      '9px 12px',
+  background:   'transparent',
+  border:       'none',
+  borderRadius: 8,
+  color:        'rgba(255,255,255,0.75)',
+  fontFamily:   'var(--font-ui)',
+  fontSize:     13,
+  fontWeight:   500,
+  cursor:       'pointer',
+  textAlign:    'left',
+  transition:   'background 0.1s',
+}
+
 export function TopNavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
-  const userMenuRef = useRef<HTMLDivElement | null>(null)
+  const dropdownRef = useRef<HTMLDivElement | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const nav = document.querySelector('.navbar');
       if (nav && !nav.contains(e.target as Node)) {
         setMenuOpen(false);
-        setUserMenuOpen(false)
       }
     };
-
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const userDisplay = useMemo(() => {
-    if (!user) {
-      return ''
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
     }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
-    return user.username ?? user.email ?? user.id.slice(0, 6)
-  }, [user])
-
-  const userInitial = useMemo(() => {
-    if (!userDisplay) {
-      return '?'
-    }
-
-    return userDisplay.trim().charAt(0).toUpperCase()
-  }, [userDisplay])
-
-  async function handleSignOut() {
-    setUserMenuOpen(false)
-    await signOut()
-  }
+  const avatarLetter = (user?.username?.[0] ?? user?.email?.[0] ?? 'U').toUpperCase()
 
   return (
     <header
@@ -163,47 +168,82 @@ export function TopNavBar() {
           )}
         </nav>
         {user && (
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <div ref={userMenuRef} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen((open) => !open)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  background: 'rgba(212,175,55,0.1)',
-                  border: '1px solid rgba(212,175,55,0.2)',
-                  borderRadius: '20px',
-                  padding: '6px 14px 6px 8px',
-                  cursor: 'pointer',
-                  color: '#fff',
-                }}
-              >
-                <div style={{ width: 28, height: 28, borderRadius: '999px', background: '#d4af37', color: '#0a0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800 }}>
-                  {userInitial}
-                </div>
-                <span style={{ fontSize: '13px', color: '#fff' }}>{userDisplay}</span>
-                <ChevronDown size={14} color="rgba(255,255,255,0.75)" />
-              </button>
+          <div ref={dropdownRef} style={{ position: 'relative', zIndex: 60 }}>
+            {/* Avatar button — always visible */}
+            <button
+              onClick={() => setDropdownOpen(o => !o)}
+              style={{
+                width:          34,
+                height:         34,
+                borderRadius:   '50%',
+                background:     '#d4af37',
+                border:         'none',
+                color:          '#0a0f1a',
+                fontFamily:     'var(--font-ui)',
+                fontSize:       13,
+                fontWeight:     700,
+                cursor:         'pointer',
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                flexShrink:     0,
+              }}
+            >
+              {avatarLetter}
+            </button>
 
-              {userMenuOpen && (
-                <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 10px)', minWidth: 160, background: 'rgba(10,18,34,0.96)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, boxShadow: '0 18px 40px rgba(0,0,0,0.42)', padding: 8, zIndex: 60 }}>
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 'none', background: 'rgba(248,113,113,0.08)', color: '#f87171', borderRadius: 10, padding: '10px 12px', cursor: 'pointer', textAlign: 'left' }}
-                  >
-                    <LogOut size={14} />
-                    Log out
-                  </button>
+            {/* Dropdown — fixed so it doesn't get clipped */}
+            {dropdownOpen && (
+              <div style={{
+                position:        'absolute',
+                right:           0,
+                top:             'calc(100% + 8px)',
+                width:           240,
+                background:      'rgba(10, 18, 34, 0.95)',
+                backdropFilter:  'blur(20px)',
+                border:          '1px solid rgba(255,255,255,0.08)',
+                borderRadius:    12,
+                padding:         12,
+                boxShadow:       '0 10px 25px rgba(0,0,0,0.5)',
+                display:         'flex',
+                flexDirection:   'column',
+                gap:             8,
+              }}>
+                {/* User info */}
+                <div style={{ padding: '4px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8, marginBottom: 4 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.username ?? 'User'}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.email}
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {/* Menu items */}
+                <button
+                  onClick={() => { setDropdownOpen(false); navigate('/auction') }}
+                  style={dropdownItemStyle}
+                >
+                  🏟 Auction
+                </button>
+                <button
+                  onClick={() => { setDropdownOpen(false); navigate('/auction/info') }}
+                  style={dropdownItemStyle}
+                >
+                  ℹ️ Player Pool
+                </button>
+                
+                <button
+                  onClick={() => { setDropdownOpen(false); signOut() }}
+                  style={{ ...dropdownItemStyle, color: '#f87171' }}
+                >
+                  → Log Out
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
-
     </header>
   );
 }

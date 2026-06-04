@@ -5,155 +5,100 @@ import { SpringNumber } from "@/components/ui/SpringNumber";
 interface PlayerCardProps {
   player: AuctionPlayer;
   currentBid: number;
-  isOnBlock: boolean;
+  isOnBlock?: boolean;
 }
 
-const money = new Intl.NumberFormat("en-US");
+export function PlayerCard({ player, currentBid }: PlayerCardProps) {
+  if (!player) return (
+    <div className="wc-card" style={{ padding: 30, textAlign: "center", color: "var(--color-text-secondary)" }}>
+      <div style={{ fontSize: 32, marginBottom: 8 }}>⚽</div>
+      Waiting for next nomination...
+    </div>
+  )
 
-function formatMinutes(value: number) {
-  return `${Math.round(value).toLocaleString()}'`;
-}
-
-function formatMarketValue(value: number) {
-  if (value >= 1_000_000) {
-    return `€${(value / 1_000_000).toFixed(0)}M`;
-  }
-  return `€${(value / 1_000).toFixed(0)}K`;
-}
-
-export function PlayerCard({ player, currentBid, isOnBlock }: PlayerCardProps) {
-  const hasBid = currentBid > 0;
+  const hasNoBids = !currentBid || currentBid <= 0
 
   return (
-    <div className="wc-card" style={{ padding: 20, display: "grid", gap: 16, border: isOnBlock ? "1px solid rgba(212,175,55,0.55)" : "1px solid rgba(255,255,255,0.08)", boxShadow: isOnBlock ? "0 0 0 1px rgba(212,175,55,0.18), 0 24px 60px rgba(0,0,0,0.28)" : "none" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ padding: "5px 10px", borderRadius: 999, background: "rgba(212,175,55,0.14)", color: "var(--color-accent)", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>{player.tier}</span>
-          <span style={{ padding: "5px 10px", borderRadius: 999, background: "rgba(255,255,255,0.08)", color: "var(--color-text-secondary)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>{player.position}</span>
+    <div className="wc-card" style={{ padding: 24, display: "grid", gap: 20, border: "1px solid rgba(212,175,55,0.4)", boxShadow: "0 0 25px rgba(212,175,55,0.15), 0 24px 60px rgba(0,0,0,0.4)" }}>
+      {/* Top bar: tier + position + ON THE BLOCK */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ padding: "4px 8px", borderRadius: 6, background: "rgba(212,175,55,0.15)", color: "#d4af37", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" }}>
+            {player.tier?.toUpperCase()}
+          </span>
+          <span style={{ padding: "4px 8px", borderRadius: 6, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", fontSize: 10, fontWeight: 700 }}>
+            {player.position}
+          </span>
         </div>
-        {isOnBlock && <span style={{ color: "var(--color-accent)", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>On the block</span>}
+        <span style={{ color: "#d4af37", fontSize: 10, fontWeight: 800, letterSpacing: "0.1em" }}>
+          ON THE BLOCK
+        </span>
       </div>
 
-      <div className="player-card-inner">
-        <div style={{ position: "relative", width: 110, height: 110, borderRadius: 20, overflow: "hidden", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      {/* Player photo — large, centered */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "10px 0" }}>
+        {player.image_url ? (
           <img
             src={player.image_url}
             alt={player.name}
-            loading="lazy"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            onError={(event) => {
-              (event.currentTarget as HTMLImageElement).style.opacity = "0";
-            }}
+            style={{ width: 140, height: 140, borderRadius: 16, objectFit: "cover", border: "2px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 20px rgba(0,0,0,0.5)" }}
           />
+        ) : (
+          <div style={{ width: 140, height: 140, borderRadius: 16, background: "rgba(255,255,255,0.04)", border: "2px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+            ⚽
+          </div>
+        )}
+      </div>
+
+      {/* Name + flag + club */}
+      <div style={{ textAlign: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
+          <FlagImg code={player.flag_code} size={20} />
+          <h2 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#fff", margin: 0, fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
+            {player.name}
+          </h2>
         </div>
-
-        <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <FlagImg code={player.flag_code} size={24} />
-            <div style={{ minWidth: 0 }}>
-              <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: "2rem", letterSpacing: "-0.03em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={player.name}>{player.name}</h2>
-              <div style={{ color: "var(--color-text-secondary)", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={player.club}>{player.club}</div>
-            </div>
-          </div>
-
-          <div className="player-card-metrics">
-            <Metric label="Market value" value={formatMarketValue(player.market_value)} />
-            <div style={{
-              padding: "10px 12px",
-              borderRadius: 16,
-              background: "rgba(212,175,55,0.12)",
-              border: "1px solid rgba(212,175,55,0.3)",
-              minWidth: 0,
-              overflow: "hidden"
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1, marginBottom: 4 }}>Current bid</div>
-              <div style={{ color: "#fff", lineHeight: 1.1 }}>
-                {hasBid ? (
-                  <SpringNumber value={currentBid} style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1, color: "#d4af37" }} formatter={n => Math.round(n).toLocaleString() + " coins"} />
-                ) : "—"}
-              </div>
-            </div>
-            <Metric label="Goals" value={player.goals_2526} />
-            <Metric label="Assists" value={player.assists_2526} />
-          </div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
+          {player.club}
         </div>
       </div>
 
-      <div className="player-card-ministats">
-        <MiniStat label="Minutes" value={formatMinutes(player.minutes_2526)} />
-        <MiniStat label="Form" value={player.form_score.toFixed(1)} />
-        <MiniStat label="Base price" value={`${money.format(player.base_price)} coins`} />
+      {/* Stats — 2 column grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {[
+          { label: 'MARKET VALUE', value: player.market_value >= 1_000_000 ? `€${(player.market_value/1_000_000).toFixed(0)}M` : `€${(player.market_value/1_000).toFixed(0)}K` },
+          { label: 'BASE PRICE',   value: `${player.base_price?.toLocaleString()} coins` },
+          { label: 'GOALS',        value: player.goals_2526 ?? 0 },
+          { label: 'ASSISTS',      value: player.assists_2526 ?? 0 },
+          { label: 'MINUTES',      value: `${(player.minutes_2526 ?? 0).toLocaleString()}'` },
+          { label: 'FORM',         value: player.form_score ? player.form_score.toFixed(1) : '—' },
+        ].map(s => (
+          <div key={s.label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: "8px 12px" }}>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "0.05em", marginBottom: 2 }}>
+              {s.label}
+            </div>
+            <div style={{ fontSize: 13, color: "#fff", fontWeight: 700, fontFamily: "var(--font-ui)" }}>
+              {s.value}
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
-  );
-}
 
-function Metric({ label, value, highlight, valueClassName }: { label: string; value: string | number; highlight?: boolean; valueClassName?: string }) {
-  return (
-    <div style={{
-      padding: "10px 12px",
-      borderRadius: 16,
-      background: highlight ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)",
-      border: highlight ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)",
-      minWidth: 0,
-      overflow: "hidden"
-    }}>
-      <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", lineHeight: 1, marginBottom: 4 }} title={label}>
-        {label}
-      </div>
-      <div
-        className={valueClassName}
-        style={{
-          color: "#fff",
-          fontFamily: valueClassName ? undefined : "var(--font-display)",
-          fontSize: valueClassName ? undefined : "clamp(1.15rem, 2vw, 1.45rem)",
-          fontWeight: valueClassName ? undefined : 700,
-          lineHeight: 1.1,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis"
-        }}
-        title={String(value)}
-      >
-        {value}
+      {/* Current bid — hero display */}
+      <div style={{ background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, padding: "12px", textAlign: "center" }}>
+        <div style={{ fontSize: 10, color: "rgba(212,175,55,0.6)", fontWeight: 800, letterSpacing: "0.08em", marginBottom: 4 }}>
+          CURRENT BID
+        </div>
+        <div style={{ fontSize: "1.75rem", color: "#d4af37", fontWeight: 800, fontFamily: "var(--font-display)" }}>
+          {hasNoBids ? '—' : (
+            <SpringNumber
+              value={currentBid}
+              style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem", fontWeight: 800, color: "#d4af37" }}
+              formatter={n => Math.round(n).toLocaleString() + " coins"}
+            />
+          )}
+        </div>
       </div>
     </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{
-      padding: "10px 12px",
-      borderRadius: 16,
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      minWidth: 0,
-      overflow: "hidden"
-    }}>
-      <div style={{
-        color: "var(--color-text-muted)",
-        fontSize: 10,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        marginBottom: 4,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis"
-      }} title={label}>
-        {label}
-      </div>
-      <div style={{
-        color: "#fff",
-        fontFamily: "var(--font-ui)",
-        fontSize: 13,
-        fontWeight: 700,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis"
-      }} title={value}>
-        {value}
-      </div>
-    </div>
-  );
-}
+  )
+}
