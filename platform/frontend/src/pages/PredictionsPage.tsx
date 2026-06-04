@@ -206,8 +206,52 @@ export default function PredictionsPage() {
               </div>
 
               {result.explanation && (
-                <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.65 }}>
+                <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.65, marginBottom: 12 }}>
                   {result.explanation}
+                </div>
+              )}
+
+              {/* Advantage Breakdown Cards */}
+              {result.advantage_breakdown && (
+                <div style={{ marginTop: 16, display: "grid", gap: 10, background: "var(--color-bg-raised, rgba(255,255,255,0.02))", padding: 14, borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div className="eyebrow" style={{ color: "var(--color-accent)" }}>Model Advantage Breakdown</div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginBottom: 4 }}>Positive values favor {result.home_team ?? homeTeam}, negative values favor {result.away_team ?? awayTeam}.</div>
+                  
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {[
+                      { label: "Attack Advantage", val: result.advantage_breakdown.attack_advantage, tone: "var(--color-green)", desc: "Weighted forward strength differential" },
+                      { label: "Defense Advantage", val: result.advantage_breakdown.defense_advantage, tone: "var(--color-gold)", desc: "Weighted defensive record differential" },
+                      { label: "Elo Advantage", val: result.advantage_breakdown.elo_advantage, tone: "var(--color-accent)", desc: "Authoritative baseline ranking differential" },
+                      { label: "Form Advantage", val: result.advantage_breakdown.form_advantage, tone: "var(--color-yellow, #eab308)", desc: "Recent match results differential" },
+                      { label: "Overall Advantage", val: result.advantage_breakdown.overall_advantage, tone: "var(--color-gold)", desc: "Composite weighted differential" }
+                    ].map((item) => {
+                      const sign = item.val >= 0 ? "+" : "";
+                      const percent = Math.min(100, Math.max(0, 50 + item.val * 10)); // simple visual mapping
+                      return (
+                        <div key={item.label}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: 2 }}>
+                            <span style={{ fontWeight: 600 }}>{item.label}</span>
+                            <span style={{ fontWeight: 700 }}>{sign}{item.val.toFixed(4)}</span>
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)", marginBottom: 4 }}>{item.desc}</div>
+                          <div className="wc-odds-bar" style={{ height: 6, position: "relative" }}>
+                            {/* Midpoint line */}
+                            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, backgroundColor: "rgba(255,255,255,0.2)" }} />
+                            <div
+                              className="wc-odds-fill"
+                              style={{
+                                position: "absolute",
+                                left: item.val >= 0 ? "50%" : `${percent}%`,
+                                width: `${Math.abs(percent - 50)}%`,
+                                backgroundColor: item.val >= 0 ? "var(--color-green)" : "var(--color-red)",
+                                height: "100%"
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

@@ -86,9 +86,10 @@ export default function TeamAnalyticsPage() {
 
   const metrics = data
     ? [
-        { label: "Smart Score", value: Math.round(data.elo_rating), tone: "var(--color-accent)", fill: smartScoreBar(data.elo_rating) },
-        { label: "Attack", value: Math.round(data.attack_rating), tone: "var(--color-green)", fill: ratingBar(data.attack_rating) },
-        { label: "Defense", value: Math.round(data.defense_rating), tone: "var(--color-gold)", fill: ratingBar(data.defense_rating) },
+        { label: "Power Index", value: Math.round(data.power_index ?? 50.0), tone: "var(--color-accent)", fill: data.power_index ?? 50.0 },
+        { label: "Smart Score (Elo)", value: Math.round(data.elo_rating), tone: "var(--color-accent)", fill: smartScoreBar(data.elo_rating) },
+        { label: "Attack Rating", value: Math.round(data.attack_rating), tone: "var(--color-green)", fill: ratingBar(data.attack_rating) },
+        { label: "Defense Rating", value: Math.round(data.defense_rating), tone: "var(--color-gold)", fill: ratingBar(data.defense_rating) },
       ]
     : [];
 
@@ -117,7 +118,7 @@ export default function TeamAnalyticsPage() {
               )}
             </div>
             <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-              {data ? `Rank ${data.rank ?? "-"} · ${data.confederation ?? "Unknown confederation"}` : "Load a team card to reveal the latest analytics bundle."}
+              {data ? `Elo Rank ${data.rank ?? "-"} · Power Rank ${data.power_rank ?? "-"} · ${data.confederation ?? "Unknown confederation"}` : "Load a team card to reveal the latest analytics bundle."}
             </div>
           </div>
         </div>
@@ -175,7 +176,7 @@ export default function TeamAnalyticsPage() {
                 <span>{cleanTeamName(data.country_name)}</span>
               </div>
               <div className="team-sub">
-                {data.confederation ?? "-"} · Rank {data.rank ?? "-"}
+                {data.confederation ?? "-"} · Elo Rank {data.rank ?? "-"} {data.power_rank ? `· Power Rank ${data.power_rank}` : ""}
               </div>
             </div>
             <div className="momentum-badge">
@@ -183,7 +184,7 @@ export default function TeamAnalyticsPage() {
             </div>
           </div>
 
-          <div className="layout-3col">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             {metrics.map((item) => (
               <div key={item.label} className="wc-card stat-card">
                 <div className="stat-card-top">
@@ -213,6 +214,13 @@ export default function TeamAnalyticsPage() {
               </div>
             </div>
             <div className="wc-card stat-card" style={{ flex: 1 }}>
+              <div className="stat-label">Squad Strength</div>
+              <div className="stat-value">{Math.round((data.squad_strength ?? 0) * 100)}%</div>
+              <div className="stat-bar-track">
+                <div className="stat-bar-fill" style={{ width: `${(data.squad_strength ?? 0) * 100}%`, backgroundColor: "var(--color-gold)", boxShadow: "0 0 10px var(--color-gold)" }} />
+              </div>
+            </div>
+            <div className="wc-card stat-card" style={{ flex: 1 }}>
               <div className="stat-label">Momentum</div>
               <div className="stat-value">{Number(data.momentum).toFixed(2)}</div>
               <div className="stat-bar-track">
@@ -233,6 +241,73 @@ export default function TeamAnalyticsPage() {
                 <div className="stat-bar-fill" style={{ width: `${consistencyBar(data.consistency)}%`, backgroundColor: "var(--color-gold)", boxShadow: "0 0 10px var(--color-gold)" }} />
               </div>
             </div>
+          </div>
+
+          {/* Detailed Component Breakdowns */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, marginTop: 16 }}>
+            
+            {/* Attack Profile */}
+            <div className="wc-card" style={{ padding: 22, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 16, backdropFilter: "blur(12px)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#10b981" }} />
+                Attacking Profile
+              </div>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "8px 0 16px 0", letterSpacing: "-0.015em", color: "#fff" }}>Offensive Metrics</h3>
+              
+              <div style={{ display: "grid", gap: 16 }}>
+                {[
+                  { label: "Scoring Frequency", val: data.attack_breakdown?.recency_attack ?? 0, desc: "Recent goalscoring rate adjusted for opponent quality" },
+                  { label: "Squad Attacking Threat", val: data.attack_breakdown?.squad_attack ?? 0, desc: "Forward line market valuation & attacking depth" },
+                  { label: "Quality Baseline", val: data.attack_breakdown?.elo_component ?? 0, desc: "Long-term historical baseline performance" },
+                  { label: "Recent Momentum", val: data.attack_breakdown?.form_component ?? 0, desc: "Competitive record and fixture results trend" }
+                ].map((comp) => (
+                  <div key={comp.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{comp.label}</span>
+                      <span style={{ background: "rgba(16,185,129,0.12)", color: "#34d399", padding: "2px 8px", borderRadius: 6, fontSize: "0.75rem", fontWeight: 700 }}>
+                        {Math.round(comp.val)} pts
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", marginBottom: 6, lineHeight: 1.3 }}>{comp.desc}</div>
+                    <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                      <div style={{ width: `${comp.val}%`, height: "100%", background: "linear-gradient(90deg, #10b981, #34d399)", borderRadius: 3, boxShadow: "0 0 8px rgba(16,185,129,0.4)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Defense Profile */}
+            <div className="wc-card" style={{ padding: 22, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 16, backdropFilter: "blur(12px)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#d4af37", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#d4af37" }} />
+                Defensive Solidity Profile
+              </div>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "8px 0 16px 0", letterSpacing: "-0.015em", color: "#fff" }}>Defensive Metrics</h3>
+              
+              <div style={{ display: "grid", gap: 16 }}>
+                {[
+                  { label: "Goals Conceded Efficiency", val: data.defense_breakdown?.defensive_record ?? 0, desc: "Goals conceded record weighted against opponent quality" },
+                  { label: "Backline Market Depth", val: data.defense_breakdown?.defender_quality ?? 0, desc: "Market value and elite league representations of defenders" },
+                  { label: "Shot-Stopping Skill", val: data.defense_breakdown?.goalkeeper_quality ?? 0, desc: "Active goalkeeper save percentage & caps rating" },
+                  { label: "Shutout Consistency", val: data.defense_breakdown?.clean_sheet_component ?? 0, desc: "Frequency of recent clean sheets in competitive fixtures" }
+                ].map((comp) => (
+                  <div key={comp.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{comp.label}</span>
+                      <span style={{ background: "rgba(212,175,55,0.12)", color: "#f7d774", padding: "2px 8px", borderRadius: 6, fontSize: "0.75rem", fontWeight: 700 }}>
+                        {Math.round(comp.val)} pts
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", marginBottom: 6, lineHeight: 1.3 }}>{comp.desc}</div>
+                    <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                      <div style={{ width: `${comp.val}%`, height: "100%", background: "linear-gradient(90deg, #d4af37, #f7d774)", borderRadius: 3, boxShadow: "0 0 8px rgba(212,175,55,0.4)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       )}

@@ -81,8 +81,11 @@ class FootballIntelligenceDB:
                 conceded_per_match REAL,
                 attack_rating REAL,
                 defense_rating REAL,
+                elo_rating REAL,
                 historical_strength REAL,
                 recent_form_score REAL,
+                power_index REAL,
+                power_rank INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -159,8 +162,11 @@ class FootballIntelligenceDB:
                 conceded_per_match REAL,
                 attack_rating REAL,
                 defense_rating REAL,
+                elo_rating REAL,
                 historical_strength REAL,
                 recent_form_score REAL,
+                power_index REAL,
+                power_rank INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)

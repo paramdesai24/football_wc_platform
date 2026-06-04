@@ -106,13 +106,13 @@ class IntelligenceDataLoader:
         """Load a CSV with error handling."""
         try:
             df = pd.read_csv(path)
-            logger.info("  ✓ %s: %d rows × %d cols", label, len(df), len(df.columns))
+            logger.info("  [OK] %s: %d rows x %d cols", label, len(df), len(df.columns))
             return df
         except FileNotFoundError:
-            logger.warning("  ✗ %s not found: %s", label, path)
+            logger.warning("  [ERR] %s not found: %s", label, path)
             return None
         except Exception as e:
-            logger.error("  ✗ %s load error: %s", label, e)
+            logger.error("  [ERR] %s load error: %s", label, e)
             return None
 
     def _merge_intelligence(self):
@@ -176,11 +176,13 @@ class IntelligenceDataLoader:
             base = base[base["prediction_eligible"] == True].copy()
 
         # Fill NaN with sensible defaults
+        if "elo_rating" in base.columns:
+            base["elo_rating"] = base["elo_rating"].fillna(1500.0)
         numeric_cols = base.select_dtypes(include=[np.number]).columns
         base[numeric_cols] = base[numeric_cols].fillna(base[numeric_cols].median())
 
         self._merged = base.reset_index(drop=True)
-        logger.info("  Merged intelligence: %d teams × %d features", len(self._merged), len(self._merged.columns))
+        logger.info("  Merged intelligence: %d teams x %d features", len(self._merged), len(self._merged.columns))
 
     def _build_team_index(self):
         """Build a fast name→data lookup dictionary."""

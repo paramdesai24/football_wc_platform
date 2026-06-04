@@ -49,6 +49,7 @@ if SUPABASE_URL:
         connect_args={"ssl": _create_ssl_context()},
         pool_size=10,
         max_overflow=20,
+        pool_pre_ping=True,
         echo=False,
     )
     PostgresSessionLocal = sessionmaker(

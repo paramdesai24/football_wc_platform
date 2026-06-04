@@ -23,7 +23,9 @@ class DataCleaner:
         df = df.copy()
         logger.info(f"Cleaning players dataset: {len(df)} rows")
         
-        # Normalize names
+        # Normalize names — support both 'name' (raw source) and 'player_name' (legacy schema)
+        if "name" in df.columns:
+            df["name"] = df["name"].apply(normalize_player_name)
         if "player_name" in df.columns:
             df["player_name"] = df["player_name"].apply(normalize_player_name)
         

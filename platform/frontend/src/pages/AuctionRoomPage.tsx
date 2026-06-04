@@ -97,7 +97,6 @@ export default function AuctionRoomPage() {
   const [cardState, setCardState] = useState<'idle' | 'sold' | 'entering'>('idle');
   const [soldInfo, setSoldInfo] = useState<{ winner: string; isUnsold: boolean } | null>(null);
   const prevPlayerRef = useRef<typeof storeCurrentPlayer>(null);
-  const [nominatedName, setNominatedName] = useState<string | null>(null);
   const [centerKey, setCenterKey] = useState(0);
 
   useEffect(() => {
@@ -199,10 +198,7 @@ export default function AuctionRoomPage() {
 
   useEffect(() => {
     if (storeCurrentPlayer?.name) {
-      setNominatedName(storeCurrentPlayer.name);
-      const timer = setTimeout(() => setNominatedName(null), 500);
       setCenterKey(k => k + 1);
-      return () => clearTimeout(timer);
     }
   }, [storeCurrentPlayer?.name]);
 

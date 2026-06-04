@@ -121,6 +121,8 @@ COUNTRY_CANONICAL_MAPPING = {
     "USA National Team": "United States",
     "South Korea NT": "South Korea",
     "Republic of Korea": "South Korea",
+    "Korea, South": "South Korea",
+    "Korea, North": "North Korea",
     "North Korea": "North Korea",
     "Czech Republic": "Czechia",
     "Republic of Czechia": "Czechia",
@@ -142,6 +144,10 @@ COUNTRY_CANONICAL_MAPPING = {
     "New Caledonia": "New Caledonia",
     "Fiji": "Fiji",
     "Samoa": "Samoa",
+    # China / Curacao variants
+    "China PR": "China",
+    "Curaçao": "Curacao",
+    "Curacao": "Curacao",
 }
 
 # ISO 3166-1 alpha-2 codes

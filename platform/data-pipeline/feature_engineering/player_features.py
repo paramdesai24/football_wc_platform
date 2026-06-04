@@ -163,8 +163,11 @@ class PlayerFeatureEngineering:
         """Create unified master players dataset."""
         logger.info("Creating master players dataset...")
         
-        # Start with base player data
-        master = players[["player_id", "player_name", "country_of_citizenship", "position", "date_of_birth"]].copy()
+        # Support both 'name' (raw source) and 'player_name' (legacy schema)
+        name_col = "player_name" if "player_name" in players.columns else "name"
+        master = players[["player_id", name_col, "country_of_citizenship", "position", "date_of_birth"]].copy()
+        if name_col == "name":
+            master = master.rename(columns={"name": "player_name"})
         master = master.drop_duplicates(subset=["player_id"])
         
         # Add appearance statistics

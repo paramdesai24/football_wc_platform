@@ -1,284 +1,634 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import type { CountryRankingRow, UpcomingPredictionRow } from "@/contracts";
-import { apiGet } from "@/services/api";
+import React, { useEffect, useState } from "react";
+import type { CountryRankingRow } from "@/contracts";
+import { apiGet, API_BASE } from "@/services/api";
 import { USE_MOCKS } from "@/dev/devFlags";
-import { getMockCountryRankings, getMockUpcomingPredictions } from "@/dev/mockResponses";
-import { FlagImg } from "@/components/FlagImg";
+import { getMockCountryRankings } from "@/dev/mockResponses";
 import { teamFlagCode } from "@/lib/flags";
-import { FeaturedMatchCard } from "@/components/cards/FeaturedMatchCard";
-import { StandingsTable } from "@/components/tables/StandingsTable";
-import { SpringCard } from "@/components/ui/SpringCard";
 
-interface HealthData {
-  status?: string;
-  version?: string;
-  data_available?: boolean;
-  endpoints?: Record<string, string>;
-  [key: string]: unknown;
-}
-
-interface TournamentStatePreview {
-  champion?: string;
-  runner_up?: string;
-  third_place?: string;
-  matches?: Array<Record<string, unknown>>;
-  group_standings?: Record<string, Array<Record<string, unknown>>>;
-  [key: string]: unknown;
-}
-
-function percent(n: number): string {
-  return `${Math.round(n)}%`;
-}
+const MESSI_URL =
+  "https://media.cnn.com/api/v1/images/stellar/prod/221219105607-messi-crowd-world-cup-121822.jpg?q=w_3000,c_fill";
+const MESSI_FALLBACK = "/messi-hero-section.jpg";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const [health, setHealth] = useState<HealthData | null>(null);
-  const [healthError, setHealthError] = useState<string | null>(null);
-  const [tournament, setTournament] = useState<TournamentStatePreview | null>(null);
-  const [upcoming, setUpcoming] = useState<UpcomingPredictionRow[]>([]);
-  const [upcomingNote, setUpcomingNote] = useState("");
   const [rankings, setRankings] = useState<CountryRankingRow[]>([]);
-  const [rankingsNote, setRankingsNote] = useState("");
 
+  // New state
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [topPlayers, setTopPlayers] = useState<any[]>([]);
+  const [featuredNationIdx, setFeaturedNationIdx] = useState(0);
+  const [messiImgSrc, setMessiImgSrc] = useState(MESSI_URL);
+  // Analytics compare — real attack/defence from the analytics endpoint
+  const [analyticsTeams, setAnalyticsTeams] = useState<any[]>([]);
+
+  // Existing data fetches
   useEffect(() => {
-    apiGet<HealthData>("/health").then((res) => {
-      if (res.error) {
-        setHealthError(res.error);
-      } else {
-        setHealth(res.data ?? null);
-      }
-    });
-
-    apiGet<{ data?: TournamentStatePreview }>("/api/v1/tournament_results?refresh=false").then((res) => {
-      if (!res.error && res.data) {
-        const state = Array.isArray(res.data) ? null : (res.data as { data?: TournamentStatePreview }).data;
-        setTournament(state ?? null);
-      }
-    });
-
-    apiGet<{ data?: UpcomingPredictionRow[] }>("/api/v1/predictions/upcoming").then((res) => {
-      if (res.error || !res.data) {
-        if (USE_MOCKS) {
-          setUpcoming(getMockUpcomingPredictions());
-          setUpcomingNote("Using dev mock upcoming matches.");
-        } else {
-          setUpcoming([]);
-          setUpcomingNote("No live upcoming matches available.");
-        }
-        return;
-      }
-
-      const rows = Array.isArray(res.data) ? res.data : (res.data as { data?: UpcomingPredictionRow[] }).data;
-      if (rows && rows.length > 0) {
-        setUpcoming(rows);
-        setUpcomingNote("");
-      } else if (USE_MOCKS) {
-        setUpcoming(getMockUpcomingPredictions());
-        setUpcomingNote("Using dev mock upcoming matches.");
-      } else {
-        setUpcoming([]);
-        setUpcomingNote("No live upcoming matches available.");
-      }
-    });
-
     apiGet<{ data?: CountryRankingRow[] }>("/api/v1/countries/rankings?limit=16").then((res) => {
       if (res.error || !res.data) {
         if (USE_MOCKS) {
           setRankings(getMockCountryRankings());
-          setRankingsNote("Using dev mock rankings.");
         } else {
           setRankings([]);
-          setRankingsNote("No live ranking preview available.");
         }
         return;
       }
-
       const rows = Array.isArray(res.data) ? res.data : (res.data as { data?: CountryRankingRow[] }).data;
       if (rows && rows.length > 0) {
         setRankings(rows);
-        setRankingsNote("");
       } else if (USE_MOCKS) {
         setRankings(getMockCountryRankings());
-        setRankingsNote("Using dev mock rankings.");
       } else {
         setRankings([]);
-        setRankingsNote("No live ranking preview available.");
       }
     });
   }, []);
 
-  const dataState = health?.data_available ? "Live" : healthError ? "Offline" : "Pending";
-  const simulationState = health?.endpoints?.simulation ?? "Unknown";
-  const topTeam = rankings[0]?.country_name ?? "Awaiting live ranking feed";
-  const nextMatch = upcoming[0];
-  const topRankings = rankings.slice(0, 8);
-  const topStandings = rankings.slice(0, 12);
-  const topElo = topRankings[0]?.elo_rating ?? 1;
-
+  // Countdown timer
   useEffect(() => {
-    if (topRankings.length > 0) {
-      console.log("Championship odds raw data:", topRankings);
-    }
-  }, [topRankings]);
-  const topMover = [...rankings]
-    .sort((a, b) => (b.recent_form_score ?? 0) - (a.recent_form_score ?? 0))[0]?.country_name ?? topTeam;
-  const activeSimulations = tournament?.matches?.length ?? 0;
-  const volatilityIndex = rankings.length > 1 ? Math.round(Math.abs((rankings[0]?.elo_rating ?? 0) - (rankings[Math.min(5, rankings.length - 1)]?.elo_rating ?? 0)) / 10) : 0;
-  const qualificationTension = rankings.length > 8 ? Math.round(Math.max(0, (rankings[7]?.elo_rating ?? 0) - (rankings[11]?.elo_rating ?? 0)) / 10) : 0;
+    const kickoff = new Date("2026-06-11T00:00:00Z");
+    const tick = () => {
+      const diff = kickoff.getTime() - Date.now();
+      if (diff <= 0) { setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 }); return; }
+      setCountdown({
+        days:    Math.floor(diff / 86400000),
+        hours:   Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Fetch top Elite players
+  useEffect(() => {
+    fetch(`${API_BASE}/api/v1/auction/players?tier=Elite&limit=10`)
+      .then(r => r.json())
+      .then(d => setTopPlayers(d.players ?? []))
+      .catch(() => {});
+  }, []);
+
+  // Fetch real attack/defence ratings from analytics compare endpoint
+  // Only use top 8 teams by ELO — avoids inflated ratings on lower-ranked nations
+  useEffect(() => {
+    if (rankings.length === 0) return;
+    const top8ByElo = [...rankings]
+      .sort((a, b) => (b.elo_rating ?? 0) - (a.elo_rating ?? 0))
+      .slice(0, 8);
+    const uids = top8ByElo.map(r => r.country_uid).join(',');
+    fetch(`${API_BASE}/api/v1/analytics/compare?team_ids=${encodeURIComponent(uids)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d.data) && d.data.length > 0) setAnalyticsTeams(d.data);
+      })
+      .catch(() => {});
+  }, [rankings]);
+
+  // Rotating featured nation — cycle every 6 seconds
+  useEffect(() => {
+    if (!rankings || rankings.length === 0) return;
+    const id = setInterval(() => {
+      setFeaturedNationIdx(i => (i + 1) % Math.min(rankings.length, 8));
+    }, 6000);
+    return () => clearInterval(id);
+  }, [rankings]);
+
+  // Derived — use correct field names from CountryRankingRow
+  const featuredNation = rankings[featuredNationIdx] ?? null;
+
+  // Most Valuable Squads: sort by elo_rating descending (not the pre-computed rank)
+  const squadsByElo = [...rankings].sort((a, b) => (b.elo_rating ?? 0) - (a.elo_rating ?? 0));
+
+  // Use analytics compare data (real values) when available, fall back to rankings
+  const analyticsSrc = analyticsTeams.length > 0 ? analyticsTeams : squadsByElo.slice(0, 8).map(r => ({
+    country_id:   r.country_uid,
+    country_name: r.country_name,
+    attack:  r.attack_rating ?? 0,
+    defense: r.defense_rating ?? 0,
+  }));
+
+  const bestAttackAnalytics  = [...analyticsSrc].sort((a, b) => (b.attack  ?? 0) - (a.attack  ?? 0))[0];
+  const bestDefenseAnalytics = [...analyticsSrc].sort((a, b) => (b.defense ?? 0) - (a.defense ?? 0))[0];
+
+  // Match analytics team back to the rankings row (for flag code via country_uid)
+  const findRankRow = (uid: string | undefined) =>
+    rankings.find(r => r.country_uid === uid);
+
+  const bestAttackRow  = findRankRow(bestAttackAnalytics?.country_id);
+  const bestDefenseRow = findRankRow(bestDefenseAnalytics?.country_id);
+
+  const darkHorse   = rankings.find((_, i) => i >= 5 && i <= 8) ?? rankings[5];
+  const favourite   = rankings[0];
+
+  const maxElo = squadsByElo[0]?.elo_rating ?? 2200;
 
   return (
-    <div className="page-content">
-      <SpringCard
-        className="wc-card"
-        delay={0}
-        style={{
-          minHeight: "calc(100vh - 124px)",
-          display: "grid",
-          alignItems: "center",
-          textAlign: "center",
-          padding: "48px 28px 40px",
-          marginBottom: 22,
-        }}
-      >
-        <div style={{ maxWidth: 980, margin: "0 auto", display: "grid", gap: 22, justifyItems: "center" }}>
-          <div className="wc-badge wc-badge-gold">FIFA WORLD CUP 2026 · INTELLIGENCE PLATFORM</div>
-          <div style={{ display: "grid", gap: 12, justifyItems: "center" }}>
-            <h1 className="wc-hero-title">The World Cup, Decoded.</h1>
-            <p style={{ maxWidth: 820, margin: 0, color: "var(--color-text-secondary)", fontSize: "1.125rem", lineHeight: 1.7 }}>
-              AI-powered predictions, match simulations, and tournament intelligence.
-            </p>
-          </div>
+    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 40px" }}>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-            <button className="btn btn-primary" onClick={() => navigate("/predictions")}>Explore Predictions</button>
-            <button className="btn btn-green" onClick={() => navigate("/rankings")}>Live Standings</button>
-          </div>
+      {/* ══════════════════════════════════════════════ */}
+      {/* SECTION 1 — HERO                              */}
+      {/* ══════════════════════════════════════════════ */}
+      <div style={{
+        position:       "relative",
+        borderRadius:   20,
+        overflow:       "hidden",
+        marginBottom:   20,
+        minHeight:      320,
+        display:        "flex",
+        alignItems:     "center",
+        padding:        "48px 52px",
+        background:     "rgba(10,18,34,0.72)",
+        backdropFilter: "blur(16px)",
+        border:         "1px solid rgba(255,255,255,0.09)",
+      }}>
+        {/* Background — Messi fills the entire card, gradients handle blending */}
+        <div style={{
+          position:      "absolute",
+          inset:         0,
+          zIndex:        0,
+          pointerEvents: "none",
+        }}>
+          {/* Image underneath everything */}
+          <img
+            src={messiImgSrc}
+            alt="Messi lifting the World Cup trophy"
+            onError={() => setMessiImgSrc(MESSI_FALLBACK)}
+            style={{
+              width:          "100%",
+              height:         "100%",
+              objectFit:      "cover",
+              objectPosition: "65% center",
+              display:        "block",
+              filter:         "brightness(0.65) saturate(0.8)",
+            }}
+          />
+          {/* Left text-protection fade — solid for first 40%, then dissolves */}
+          <div style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(to right, rgba(10,18,34,1) 0%, rgba(10,18,34,0.97) 20%, rgba(10,18,34,0.8) 35%, rgba(10,18,34,0.4) 52%, rgba(10,18,34,0.05) 70%, transparent 85%)",
+          }} />
+          {/* Top edge fade */}
+          <div style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(to bottom, rgba(10,18,34,0.65) 0%, transparent 35%)",
+          }} />
+          {/* Bottom edge fade */}
+          <div style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(to top, rgba(10,18,34,0.75) 0%, transparent 40%)",
+          }} />
+          {/* Right edge fade */}
+          <div style={{
+            position:   "absolute",
+            inset:      0,
+            background: "linear-gradient(to left, rgba(10,18,34,0.55) 0%, transparent 30%)",
+          }} />
+        </div>
 
-          <div className="layout-3col" style={{ width: "100%", maxWidth: 760 }}>
+        {/* Left — text, sits on top of the background layer */}
+        <div style={{ flex: 1, zIndex: 1, position: "relative" }}>
+          <div style={{
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.18em",
+            textTransform: "uppercase", color: "rgba(212,175,55,0.8)",
+            marginBottom: 14, fontFamily: "var(--font-ui)",
+          }}>
+            FIFA WORLD CUP 2026 · INTELLIGENCE CENTER
+          </div>
+          <div style={{
+            fontFamily: "var(--font-ui)", fontSize: "clamp(32px,4vw,56px)",
+            fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em",
+            lineHeight: 1.05, marginBottom: 20,
+          }}>
+            The World Cup,<br />Decoded.
+          </div>
+          {/* Stat pills */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 28 }}>
             {[
-              { label: "Live feed", value: dataState },
-              { label: "Top team", value: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(topTeam)} size={18} /><span>{topTeam}</span></span> },
-              { label: "Next fixture", value: nextMatch ? nextMatch.match : "Awaiting schedule" },
-            ].map((item) => (
-              <div key={item.label} className="wc-stat-tile">
-                <div className="wc-stat-number" style={{ fontSize: "1.75rem" }}>{item.value}</div>
-                <div className="wc-stat-label" style={{ marginTop: 6 }}>{item.label}</div>
+              { label: "Nations",         value: "48" },
+              { label: "Auction Players", value: "1,191" },
+              { label: "Matches",         value: "104" },
+            ].map(s => (
+              <div key={s.label} style={{
+                background:    "rgba(255,255,255,0.07)",
+                border:        "1px solid rgba(255,255,255,0.1)",
+                borderRadius:  10,
+                padding:       "10px 18px",
+                display:       "flex",
+                flexDirection: "column",
+                gap:           2,
+              }}>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800, color: "#ffffff", lineHeight: 1 }}>
+                  {s.value}
+                </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "var(--font-ui)" }}>
+                  {s.label}
+                </span>
               </div>
             ))}
           </div>
+          {/* CTA buttons */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <a href="/auction" style={{
+              padding: "11px 26px", background: "#d4af37", borderRadius: 9,
+              color: "#0a0f1a", fontFamily: "var(--font-ui)", fontSize: 14,
+              fontWeight: 700, textDecoration: "none", display: "inline-block",
+            }}>
+              Enter Auction →
+            </a>
+            <a href="/predictions" style={{
+              padding: "11px 26px", background: "transparent",
+              border: "1px solid rgba(255,255,255,0.2)", borderRadius: 9,
+              color: "#ffffff", fontFamily: "var(--font-ui)", fontSize: 14,
+              fontWeight: 500, textDecoration: "none", display: "inline-block",
+            }}>
+              Match Predictions
+            </a>
+          </div>
         </div>
-      </SpringCard>
-
-      {upcomingNote && (
-        <div style={{ marginBottom: 14, background: "rgba(212, 175, 55, 0.08)", border: "1px solid rgba(212, 175, 55, 0.18)", borderRadius: 12, padding: "10px 12px", color: "#f4e1a0", fontSize: "0.875rem" }}>
-          ℹ {upcomingNote}
-        </div>
-      )}
-
-      {nextMatch ? (
-        <SpringCard delay={100} style={{ marginBottom: 22 }}>
-          <FeaturedMatchCard match={nextMatch} onOpenPredictions={() => navigate("/predictions")} />
-        </SpringCard>
-      ) : (
-        <SpringCard delay={100} className="wc-card" style={{ marginBottom: 22 }}>
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="wc-eyebrow">Featured match</div>
-              <h2 className="wc-section-title">Broadcast preview</h2>
-            </div>
-          </div>
-          <div style={{ color: "var(--color-text-muted)" }}>No upcoming match feed available.</div>
-        </SpringCard>
-      )}
-
-      <div className="layout-2col">
-        <SpringCard className="wc-card" delay={150}>
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="wc-eyebrow">Championship odds</div>
-              <h2 className="wc-section-title">Title race leaders</h2>
-              <div className="card-subtitle">Based on current rankings strength · Win probability proxy</div>
-            </div>
-            <div className="wc-badge">Top 8</div>
-          </div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {topRankings.length > 0 ? (
-              topRankings.map((row, index) => {
-                const chance = Math.min(35, Math.max(8, Math.round((row.elo_rating / topElo) * 35)));
-                const scaledWidth = `${(chance / 35) * 100}%`;
-                const barColor = row.rank === 1 ? "#d4af37" : row.rank <= 3 ? "#22c55e" : row.rank <= 6 ? "#3b82f6" : "rgba(255,255,255,0.25)";
-                const rankIcon = row.rank === 1 ? "🏆" : row.rank === 2 ? "🥈" : row.rank === 3 ? "🥉" : "";
-                return (
-                  <div key={row.country_uid} className={`stagger-item delay-${Math.min(index, 10)}`} style={{ display: "grid", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                        <span style={{ fontSize: 18 }}>{rankIcon}</span>
-                        <FlagImg code={teamFlagCode(row.country_name)} size={18} />
-                        <span style={{ fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.country_name}</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {index === 0 ? <span className="wc-badge wc-badge-gold">#1</span> : <span className="wc-pill">#{index + 1}</span>}
-                        <span className="wc-mono num-md">{percent(chance)}</span>
-                      </div>
-                    </div>
-                    <div className="wc-odds-bar">
-                      <div className="wc-odds-fill odds-bar-fill" style={{ width: scaledWidth, background: barColor }} />
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div style={{ color: "var(--color-text-muted)" }}>No live odds available yet.</div>
-            )}
-          </div>
-        </SpringCard>
-
-        <SpringCard className="wc-card" delay={200}>
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="wc-eyebrow">Tournament pulse</div>
-              <h2 className="wc-section-title">Live tension indicators</h2>
-            </div>
-            <div className="wc-badge wc-badge-gold">{simulationState}</div>
-          </div>
-
-          <div className="wc-stat-grid">
-            {[
-              { label: "Active simulations", value: activeSimulations },
-              { label: "Volatility index", value: volatilityIndex },
-              { label: "Qualification tension", value: qualificationTension },
-              { label: "Top mover", value: <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><FlagImg code={teamFlagCode(topMover)} size={18} /><span>{topMover}</span></span> },
-            ].map((item) => (
-              <div key={item.label} className="wc-stat-tile">
-                <div className="wc-stat-number">{item.value}</div>
-                <div className="wc-stat-label" style={{ marginTop: 6 }}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </SpringCard>
       </div>
 
-      <SpringCard delay={250} style={{ marginBottom: 22 }}>
-        <StandingsTable
-          rows={topStandings}
-          title="Current standings"
-          subtitle={rankingsNote || undefined}
-          onOpenRankings={() => navigate("/rankings")}
-        />
-      </SpringCard>
-
-      {healthError && (
-        <div className="wc-card" style={{ marginBottom: 16, borderLeft: "3px solid var(--wc-red)" }}>
-          <span style={{ color: "#ffb3ae", fontWeight: 600, fontSize: "0.875rem" }}>Backend unreachable: {healthError}</span>
+      {/* ══════════════════════════════════════════════ */}
+      {/* SECTION 2 — COUNTDOWN                         */}
+      {/* ══════════════════════════════════════════════ */}
+      <div style={{
+        background:     "rgba(10,18,34,0.72)",
+        backdropFilter: "blur(16px)",
+        border:         "1px solid rgba(212,175,55,0.2)",
+        borderRadius:   16,
+        padding:        "24px 32px",
+        marginBottom:   20,
+        display:        "flex",
+        alignItems:     "center",
+        justifyContent: "space-between",
+        flexWrap:       "wrap",
+        gap:            16,
+      }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+            KICKOFF · JUNE 11, 2026
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-ui)" }}>
+            Mexico City · Los Angeles · New York
+          </div>
         </div>
-      )}
-
-      {health?.data_available === false && !healthError && (
-        <div className="wc-card" style={{ marginBottom: 16, borderLeft: "3px solid var(--wc-gold)" }}>
-          <span style={{ color: "#f4e1a0", fontWeight: 600, fontSize: "0.875rem" }}>Backend is responding, but live data is not yet marked available.</span>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {[
+            { val: countdown.days,    label: "DAYS" },
+            { val: countdown.hours,   label: "HRS" },
+            { val: countdown.minutes, label: "MIN" },
+            { val: countdown.seconds, label: "SEC" },
+          ].map((u, i) => (
+            <React.Fragment key={u.label}>
+              {i > 0 && (
+                <span style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, color: "rgba(212,175,55,0.4)", marginBottom: 12 }}>:</span>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 52 }}>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, color: "#d4af37", lineHeight: 1 }}>
+                  {String(u.val).padStart(2, "0")}
+                </span>
+                <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-ui)", marginTop: 3 }}>
+                  {u.label}
+                </span>
+              </div>
+            </React.Fragment>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SECTIONS 3 + 4 — TOP TARGETS + MOST VALUABLE SQUADS ROW  */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <div className="dashboard-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+
+        {/* TOP AUCTION TARGETS */}
+        <div style={{
+          background:     "rgba(10,18,34,0.72)",
+          backdropFilter: "blur(16px)",
+          border:         "1px solid rgba(255,255,255,0.09)",
+          borderRadius:   16,
+          padding:        "20px 24px",
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+            TOP AUCTION TARGETS ⭐
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", fontFamily: "var(--font-ui)", marginBottom: 16 }}>
+            Elite players to watch
+          </div>
+          {topPlayers.slice(0, 6).map((p, i) => (
+            <div key={p.id ?? i} style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          12,
+              padding:      "10px 0",
+              borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.05)" : "none",
+            }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.25)", width: 20, textAlign: "right", flexShrink: 0 }}>
+                {i + 1}
+              </span>
+              {p.image_url ? (
+                <img src={p.image_url} alt={p.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.1)" }} />
+              ) : (
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.06)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>⚽</div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {p.flag_code && (
+                    <img src={`https://flagcdn.com/w40/${p.flag_code}.png`} style={{ width: 16, height: 11, objectFit: "cover", borderRadius: 2 }} alt="" />
+                  )}
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", fontFamily: "var(--font-ui)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {p.name}
+                  </span>
+                </div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-ui)" }}>
+                  {p.position} · {p.club}
+                </span>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "#d4af37" }}>
+                  {p.base_price?.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-ui)" }}>coins</div>
+              </div>
+            </div>
+          ))}
+          {topPlayers.length === 0 && (
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "var(--font-ui)", padding: "16px 0" }}>
+              Loading elite players…
+            </div>
+          )}
+          <a href="/auction/info" style={{ display: "block", marginTop: 12, fontSize: 12, color: "rgba(212,175,55,0.7)", textDecoration: "none", fontFamily: "var(--font-ui)", textAlign: "right" }}>
+            View all players →
+          </a>
+        </div>
+
+        {/* MOST VALUABLE SQUADS */}
+        <div style={{
+          background:     "rgba(10,18,34,0.72)",
+          backdropFilter: "blur(16px)",
+          border:         "1px solid rgba(255,255,255,0.09)",
+          borderRadius:   16,
+          padding:        "20px 24px",
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+            MOST VALUABLE SQUADS 💰
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", fontFamily: "var(--font-ui)", marginBottom: 16 }}>
+            By transfer market value
+          </div>
+          {squadsByElo.slice(0, 8).map((team, i) => {
+            const flagCode = teamFlagCode(team.country_uid);
+            const pct      = Math.round(((team.elo_rating ?? 0) / maxElo) * 100);
+            const barColor = i === 0 ? "#d4af37" : i < 3 ? "#22c55e" : "#3b82f6";
+            return (
+              <div key={team.country_uid} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.3)", width: 18, textAlign: "right", flexShrink: 0 }}>
+                    {i + 1}
+                  </span>
+                  {flagCode ? (
+                    <img src={`https://flagcdn.com/w40/${flagCode}.png`} style={{ width: 20, height: 14, objectFit: "cover", borderRadius: 2 }} alt="" />
+                  ) : (
+                    <div style={{ width: 20, height: 14, background: "rgba(255,255,255,0.1)", borderRadius: 2 }} />
+                  )}
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "#fff", fontFamily: "var(--font-ui)" }}>
+                    {team.country_name}
+                  </span>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "#fff" }}>
+                    {team.elo_rating ? Math.round(team.elo_rating).toLocaleString() : "—"}
+                  </span>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", marginLeft: 28 }}>
+                  <div style={{ height: 4, borderRadius: 2, width: `${pct}%`, background: barColor, transition: "width 0.6s ease" }} />
+                </div>
+              </div>
+            );
+          })}
+          {rankings.length === 0 && (
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "var(--font-ui)", padding: "16px 0" }}>
+              Loading rankings…
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════ */}
+      {/* SECTIONS 5 + 6 — SIMULATION INSIGHTS + FEATURED NATION   */}
+      {/* ══════════════════════════════════════════════════════════ */}
+      <div className="dashboard-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+        {/* SIMULATION INSIGHTS */}
+        <div style={{
+          background:     "rgba(10,18,34,0.72)",
+          backdropFilter: "blur(16px)",
+          border:         "1px solid rgba(255,255,255,0.09)",
+          borderRadius:   16,
+          padding:        "20px 24px",
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+            SIMULATION INSIGHTS
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", fontFamily: "var(--font-ui)", marginBottom: 16 }}>
+            Tournament intelligence
+          </div>
+          {[
+            {
+              icon:  "🏆",
+              label: "Tournament Favourite",
+              value: favourite?.country_name ?? "—",
+              flag:  favourite ? teamFlagCode(favourite.country_uid) : undefined,
+              sub:   favourite
+                ? `${Math.round(((favourite.elo_rating ?? 0) / ((favourite.elo_rating ?? 0) + 100)) * 35 + 15)}% win probability`
+                : "—",
+              color: "#d4af37",
+            },
+            {
+              icon:  "⚡",
+              label: "Dark Horse",
+              value: darkHorse?.country_name ?? "—",
+              flag:  darkHorse ? teamFlagCode(darkHorse.country_uid) : undefined,
+              sub:   "Strong attack, unpredictable",
+              color: "#f59e0b",
+            },
+            {
+              icon:  "🔥",
+              label: "Best Attack",
+              value: bestAttackAnalytics?.country_name ?? bestAttackRow?.country_name ?? "—",
+              flag:  bestAttackRow ? teamFlagCode(bestAttackRow.country_uid)
+                       : bestAttackAnalytics?.country_id ? teamFlagCode(bestAttackAnalytics.country_id) : undefined,
+              sub:   bestAttackAnalytics
+                ? `${Math.round(bestAttackAnalytics.attack ?? 0)}/100 rating`
+                : "—",
+              color: "#ef4444",
+            },
+            {
+              icon:  "🛡",
+              label: "Best Defence",
+              value: bestDefenseAnalytics?.country_name ?? bestDefenseRow?.country_name ?? "—",
+              flag:  bestDefenseRow ? teamFlagCode(bestDefenseRow.country_uid)
+                       : bestDefenseAnalytics?.country_id ? teamFlagCode(bestDefenseAnalytics.country_id) : undefined,
+              sub:   bestDefenseAnalytics
+                ? `${Math.round(bestDefenseAnalytics.defense ?? 0)}/100 rating`
+                : "—",
+              color: "#3b82f6",
+            },
+          ].map(item => (
+            <div key={item.label} style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          14,
+              padding:      "12px 14px",
+              borderRadius: 10,
+              background:   "rgba(255,255,255,0.03)",
+              border:       "1px solid rgba(255,255,255,0.06)",
+              marginBottom: 8,
+            }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-ui)", marginBottom: 3 }}>
+                  {item.label}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  {item.flag && (
+                    <img src={`https://flagcdn.com/w40/${item.flag}.png`} style={{ width: 18, height: 12, objectFit: "cover", borderRadius: 2 }} alt="" />
+                  )}
+                  <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", fontFamily: "var(--font-ui)" }}>{item.value}</span>
+                </div>
+              </div>
+              <span style={{ fontSize: 11, color: item.color, fontFamily: "var(--font-ui)", fontWeight: 500, textAlign: "right", maxWidth: 110 }}>
+                {item.sub}
+              </span>
+            </div>
+          ))}
+          <a href="/tournament" style={{ display: "block", marginTop: 8, fontSize: 12, color: "rgba(212,175,55,0.7)", textDecoration: "none", fontFamily: "var(--font-ui)", textAlign: "right" }}>
+            Run simulation →
+          </a>
+        </div>
+
+        {/* FEATURED NATION — rotating spotlight */}
+        <div style={{
+          background:     "rgba(10,18,34,0.72)",
+          backdropFilter: "blur(16px)",
+          border:         "1px solid rgba(255,255,255,0.09)",
+          borderRadius:   16,
+          padding:        "20px 24px",
+          display:        "flex",
+          flexDirection:  "column",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+                FEATURED NATION
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", fontFamily: "var(--font-ui)" }}>
+                Nation spotlight
+              </div>
+            </div>
+            {/* Dot indicators */}
+            <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 4 }}>
+              {Array.from({ length: Math.min(rankings.length, 8) }).map((_, i) => (
+                <div
+                  key={i}
+                  onClick={() => setFeaturedNationIdx(i)}
+                  style={{
+                    width:        i === featuredNationIdx ? 16 : 6,
+                    height:       6,
+                    borderRadius: 3,
+                    background:   i === featuredNationIdx ? "#d4af37" : "rgba(255,255,255,0.2)",
+                    cursor:       "pointer",
+                    transition:   "all 0.3s ease",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {featuredNation ? (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Nation hero */}
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                {(() => {
+                  const fc = teamFlagCode(featuredNation.country_uid);
+                  return fc ? (
+                    <img
+                      src={`https://flagcdn.com/w160/${fc}.png`}
+                      style={{ width: 72, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,0.15)", flexShrink: 0 }}
+                      alt={featuredNation.country_name}
+                    />
+                  ) : (
+                    <div style={{ width: 72, height: 48, borderRadius: 6, background: "rgba(255,255,255,0.06)", flexShrink: 0 }} />
+                  );
+                })()}
+                <div>
+                  <div style={{ fontFamily: "var(--font-ui)", fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+                    {featuredNation.country_name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "var(--font-ui)", marginTop: 2 }}>
+                    {featuredNation.confederation ?? "International"} · Rank #{featuredNationIdx + 1}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { label: "Smart Score", value: Math.round(featuredNation.elo_rating ?? 0).toLocaleString(), color: "#d4af37" },
+                  { label: "Attack",      value: Math.round(featuredNation.attack_rating ?? 0).toString(),    color: "#ef4444" },
+                  { label: "Defence",     value: Math.round(featuredNation.defense_rating ?? 0).toString(),   color: "#3b82f6" },
+                  { label: "Form",        value: `${Math.round((featuredNation.recent_form_score ?? 0) * 100)}%`, color: "#22c55e" },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    background:   "rgba(255,255,255,0.04)",
+                    border:       "1px solid rgba(255,255,255,0.07)",
+                    borderRadius: 10,
+                    padding:      "12px 14px",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
+                      {s.label}
+                    </div>
+                    <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: s.color }}>
+                      {s.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
+                <a
+                  href="/analytics"
+                  style={{
+                    flex: 1, padding: "9px 0", textAlign: "center",
+                    background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)",
+                    borderRadius: 8, color: "#d4af37", fontFamily: "var(--font-ui)",
+                    fontSize: 13, fontWeight: 600, textDecoration: "none",
+                  }}
+                >
+                  View Analytics
+                </a>
+                <a
+                  href="/predictions"
+                  style={{
+                    flex: 1, padding: "9px 0", textAlign: "center",
+                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8, color: "rgba(255,255,255,0.7)", fontFamily: "var(--font-ui)",
+                    fontSize: 13, fontWeight: 500, textDecoration: "none",
+                  }}
+                >
+                  Match Prediction
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, fontFamily: "var(--font-ui)", padding: "16px 0" }}>
+              Loading nation data…
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -101,6 +101,8 @@ COUNTRY_MAPPINGS = {
     "United States of America": "United States",
     "USA": "United States",
     "South Korea": "South Korea",
+    "Korea, South": "South Korea",
+    "Korea, North": "North Korea",
     "Korea": "South Korea",
     "Czech Republic": "Czechia",
     "Republic of Ireland": "Ireland",
@@ -117,6 +119,9 @@ COUNTRY_MAPPINGS = {
     "Trinidad & Tobago": "Trinidad and Tobago",
     "Trinidad and Tobago": "Trinidad and Tobago",
     "Sao Tome and Principe": "São Tomé and Príncipe",
+    "China PR": "China",
+    "Curaçao": "Curacao",
+    "Curacao": "Curacao",
 }
 
 # Feature engineering weights
@@ -142,6 +147,6 @@ LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 BATCH_SIZE = 1000
 RANDOM_SEED = 42
 
-print(f"✓ Constants loaded from {PROJECT_ROOT}")
+print(f"Constants loaded from {PROJECT_ROOT}")
 print(f"  Data directory: {DATA_DIR}")
 print(f"  Pipeline directory: {PIPELINE_DIR}")

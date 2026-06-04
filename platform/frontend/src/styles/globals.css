@@ -2233,3 +2233,9 @@ html, body, #root {
   color: #ef4444;
 }
 
+/* ── Dashboard Intelligence Center — responsive grid ── */
+@media (max-width: 900px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

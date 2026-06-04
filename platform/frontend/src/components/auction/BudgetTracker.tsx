@@ -47,10 +47,16 @@ export function BudgetTracker({ users, myUserId }: BudgetTrackerProps) {
                 <div style={{ color: "#fff", fontWeight: 700 }}>{user.username}{userId === myUserId ? " (you)" : ""}</div>
                 <div
                   className={userId === myUserId && outbid ? "outbid-flash" : ""}
-                  style={{ color: "var(--color-gold)", lineHeight: 1.1 }}
+                  style={{
+                    color: "#d4af37",
+                    lineHeight: 1.1,
+                    fontFamily: "var(--font-display)",
+                    fontSize: "clamp(16px,2vw,22px)",
+                    fontWeight: 700,
+                    letterSpacing: "0.01em"
+                  }}
                 >
-                  <AnimatedBudget value={user.budget_left} style={{ fontFamily: "var(--font-display)", fontSize: "clamp(16px,2vw,22px)", fontWeight: 700, letterSpacing: "0.01em", color: "#d4af37" }} />
-
+                  <AnimatedBudget value={user.budget_left} />
                 </div>
               </div>
               <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden", marginBottom: 8 }}>

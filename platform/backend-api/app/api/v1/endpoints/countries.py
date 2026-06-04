@@ -9,6 +9,8 @@ router = APIRouter()
 DATA_PATH = Path(__file__).parent.parent.parent.parent.parent / "data" / "processed"
 
 def load_rankings():
+    """Load rankings CSV. Ratings are used as-is (no scaling applied);
+    the data pipeline is the single source of truth for calibrated values."""
     try:
         p = Path(r"C:\FIFA WC\platform\data\processed\dynamic_world_rankings_active.csv")
         df = pd.read_csv(p)

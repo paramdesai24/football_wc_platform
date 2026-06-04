@@ -124,9 +124,22 @@ class CountryFeatureEngineering:
         master["recent_form_score"] = master["country"].map(lambda c: recent_form.get(c, (0.5, 0))[0]).fillna(0.5)
         master["recent_matches"] = master["country"].map(lambda c: recent_form.get(c, (0.5, 0))[1]).fillna(0)
         
-        # Calculate attack and defense ratings
-        master["attack_rating"] = (master["goals_per_match"] / max(master["goals_per_match"].max(), 1)) * 100
-        master["defense_rating"] = (1 - (master["conceded_per_match"] / max(master["conceded_per_match"].max(), 1))) * 100
+        # Calculate attack and defense ratings using percentile rank (not min-max).
+        # Min-max normalization is broken here because:
+        #   1. Teams with no historical data get conceded_per_match=0, scoring a perfect 100
+        #      (rewards missing data as if it were elite defending)
+        #   2. The denominator is the worst team in the *full* 130-nation dataset, which
+        #      includes very weak nations that concede 5+ per game — making everyone else
+        #      look unrealistically good.
+        # Percentile rank fixes both: scores reflect relative standing among actual peers,
+        # and zero-data teams still land wherever their rank falls.
+        n = max(len(master), 1)
+        master["attack_rating"] = (
+            master["goals_per_match"].rank(method="average", na_option="bottom") / n * 100
+        )
+        master["defense_rating"] = (
+            master["conceded_per_match"].rank(method="average", na_option="top", ascending=False) / n * 100
+        )
         
         # Calculate historical strength (wins + form)
         master["historical_strength"] = (
@@ -149,7 +162,8 @@ class CountryFeatureEngineering:
         """Calculate team/squad aggregates."""
         logger.info("Calculating squad aggregates...")
         
-        squad_agg = master_players.groupby("country").agg({
+        country_col = "country" if "country" in master_players.columns else "country_of_citizenship"
+        squad_agg = master_players.groupby(country_col).agg({
             "player_id": "count",
             "market_value": ["sum", "mean"],
             "goals_per_90": "mean",

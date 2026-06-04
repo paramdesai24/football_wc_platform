@@ -18,6 +18,13 @@ export interface PredictionResponse {
   away_team?: string;
   explanation?: string;
   error?: string;
+  advantage_breakdown?: {
+    attack_advantage: number;
+    defense_advantage: number;
+    elo_advantage: number;
+    form_advantage: number;
+    overall_advantage: number;
+  };
 }
 
 export interface PredictionHistoryRow {

@@ -10,4 +10,18 @@ export interface TeamAnalyticsResponse {
   momentum: number;
   consistency: number;
   rank: number;
+  power_index?: number;
+  power_rank?: number;
+  attack_breakdown?: {
+    recency_attack: number;
+    squad_attack: number;
+    elo_component: number;
+    form_component: number;
+  };
+  defense_breakdown?: {
+    defensive_record: number;
+    defender_quality: number;
+    goalkeeper_quality: number;
+    clean_sheet_component: number;
+  };
 }
