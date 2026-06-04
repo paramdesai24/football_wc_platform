@@ -59,7 +59,6 @@ export default function TeamAnalyticsPage() {
     apiGet<{ data?: { country_name: string; country_uid: string }[] }>("/api/v1/countries/?limit=200").then((res) => {
       const rows = Array.isArray(res.data) ? res.data : (res.data as any)?.data;
       if (rows && rows.length > 0) {
-        // Map to expected shape
         const teams = rows.map((r: any) => ({ country_name: r.country_name, country_uid: r.country_uid }));
         setAvailableTeams(teams);
         if (!selectedUid && teams.length > 0) setSelectedUid(teams[0].country_uid);
@@ -86,118 +85,220 @@ export default function TeamAnalyticsPage() {
 
   const metrics = data
     ? [
-        { label: "Power Index", value: Math.round(data.power_index ?? 50.0), tone: "var(--color-accent)", fill: data.power_index ?? 50.0 },
-        { label: "Smart Score (Elo)", value: Math.round(data.elo_rating), tone: "var(--color-accent)", fill: smartScoreBar(data.elo_rating) },
-        { label: "Attack Rating", value: Math.round(data.attack_rating), tone: "var(--color-green)", fill: ratingBar(data.attack_rating) },
-        { label: "Defense Rating", value: Math.round(data.defense_rating), tone: "var(--color-gold)", fill: ratingBar(data.defense_rating) },
+        { label: "Smart Score", value: data.overall_rank_score != null ? `${Math.round(data.overall_rank_score * 100)}%` : "—", tone: "#d4af37", fill: data.overall_rank_score != null ? data.overall_rank_score * 100 : 50, shadow: "rgba(212, 175, 55, 0.3)" },
+        { label: "Elo Rating", value: Math.round(data.elo_rating), tone: "#a78bfa", fill: smartScoreBar(data.elo_rating), shadow: "rgba(167, 139, 250, 0.3)" },
+        { label: "Power Index", value: Math.round(data.power_index ?? 50.0), tone: "#f43f5e", fill: data.power_index ?? 50.0, shadow: "rgba(244, 63, 94, 0.3)" },
+        { label: "Attack Rating", value: Math.round(data.attack_rating), tone: "#10b981", fill: ratingBar(data.attack_rating), shadow: "rgba(16, 185, 129, 0.3)" },
+        { label: "Defense Rating", value: Math.round(data.defense_rating), tone: "#3b82f6", fill: ratingBar(data.defense_rating), shadow: "rgba(59, 130, 246, 0.3)" },
       ]
     : [];
 
   return (
-    <div className="page-content">
-      <div className="wc-card section-card" style={{ marginBottom: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
-          <div style={{ display: "grid", gap: 8 }}>
-            <div className="eyebrow">Team analytics</div>
-            <h1 className="page-title" style={{ fontSize: "1.75rem", marginBottom: 0 }}>Team intelligence</h1>
-            <p className="page-sub" style={{ maxWidth: 760 }}>
-              Pick a qualified team, then review its rating profile, recent form, and momentum.
+    <div className="page-content page-fade">
+      {/* Upper header block */}
+      <div className="wc-card section-card" style={{ marginBottom: 18, background: "linear-gradient(135deg, rgba(10, 18, 34, 0.85) 0%, rgba(18, 28, 49, 0.6) 100%)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gap: 6 }}>
+            <div className="eyebrow" style={{ color: "var(--color-accent)", letterSpacing: "0.15em", fontWeight: 700 }}>Team analytics</div>
+            <h1 className="page-title" style={{ fontSize: "2rem", marginBottom: 2, fontWeight: 800, color: "#fff", fontFamily: "var(--font-ui)", letterSpacing: "-0.02em" }}>Team Intelligence</h1>
+            <p className="page-sub" style={{ maxWidth: 760, color: "var(--color-text-secondary)", fontSize: "0.9rem", lineHeight: 1.5 }}>
+              Analyze and compare qualified national squads, form metrics, Elo history, and defensive/offensive solidities.
             </p>
           </div>
 
-          <div className="wc-card" style={{ minWidth: 260, maxWidth: 340, width: "100%", background: "var(--color-bg-raised)", padding: 20, display: "grid", gap: 8 }}>
-            <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: 8 }}>Selected team</div>
-            <div style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: 8 }}>
+          <div className="wc-card" style={{ minWidth: 280, maxWidth: 360, width: "100%", background: "rgba(5, 10, 20, 0.45)", border: "1px solid rgba(255,255,255,0.06)", padding: "16px 20px", display: "grid", gap: 8, borderRadius: 12 }}>
+            <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.06em" }}>Selected team</div>
+            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: 10 }}>
               {selectedTeam ? (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <FlagImg code={teamFlagCode(selectedTeam.country_uid) || getTeamCode(selectedTeam.country_name, selectedTeam.country_uid)} size={20} />
+                  <FlagImg code={teamFlagCode(selectedTeam.country_uid) || getTeamCode(selectedTeam.country_name, selectedTeam.country_uid)} size={24} style={{ borderRadius: 3, border: "1px solid rgba(255,255,255,0.1)" }} />
                   <span>{cleanTeamName(selectedTeam.country_name)}</span>
                 </span>
               ) : (
                 "Choose a team"
               )}
             </div>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.6 }}>
-              {data ? `Elo Rank ${data.rank ?? "-"} · Power Rank ${data.power_rank ?? "-"} · ${data.confederation ?? "Unknown confederation"}` : "Load a team card to reveal the latest analytics bundle."}
+            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.8rem", lineHeight: 1.4, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 8, marginTop: 2 }}>
+              {data ? (
+                <span style={{ display: "flex", flexWrap: "wrap", gap: "4px 8px" }}>
+                  <span>Elo Rank <strong style={{ color: "#fff" }}>#{data.rank ?? "-"}</strong></span>
+                  <span style={{ color: "rgba(255,255,255,0.2)" }}>•</span>
+                  <span>Power Rank <strong style={{ color: "#fff" }}>#{data.power_rank ?? "-"}</strong></span>
+                  <span style={{ color: "rgba(255,255,255,0.2)" }}>•</span>
+                  <span style={{ color: "var(--color-accent)" }}>{data.confederation}</span>
+                </span>
+              ) : "Load a team card to reveal the latest analytics bundle."}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="layout-hero-compact analytics-controls">
-        <div className="wc-card" style={{ display: "grid", gap: 14, padding: "20px 24px" }}>
-          <div className="analytics-field">
-            <label className="field-label">Select team</label>
-            <div className="field-row">
-              <div className="ts-wrap">
-                <select className="select ts-trigger" value={selectedUid} onChange={(e) => setSelectedUid(e.target.value)} style={{ width: "100%" }}>
-                  {availableTeams.map((team) => {
-                    return (
-                      <option key={team.country_uid} value={team.country_uid}>
-                        {cleanTeamName(team.country_name)}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-
-              <button className="fetch-btn" disabled={loading || !selectedUid} onClick={handleFetch}>
-                {loading ? <><span className="spinner" /> Fetching...</> : "Fetch analytics"}
-              </button>
+      {/* Control bar + Sparkline */}
+      <div className="layout-hero-compact analytics-controls" style={{ marginBottom: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
+        {/* Dropdown Card */}
+        <div className="wc-card" style={{ display: "flex", flexDirection: "column", gap: 12, padding: "20px 24px", justifyContent: "center" }}>
+          <label className="field-label" style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 2 }}>Select national team</label>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ flex: 1, position: "relative" }}>
+              <select 
+                className="select" 
+                value={selectedUid} 
+                onChange={(e) => setSelectedUid(e.target.value)} 
+                style={{ 
+                  width: "100%",
+                  height: "44px",
+                  background: "rgba(255, 255, 255, 0.04)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "10px",
+                  color: "#fff",
+                  padding: "0 16px",
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  outline: "none",
+                  cursor: "pointer",
+                  transition: "border-color 0.2s, background-color 0.2s"
+                }}
+              >
+                {availableTeams.map((team) => (
+                  <option key={team.country_uid} value={team.country_uid}>
+                    {cleanTeamName(team.country_name)}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            <button 
+              className="fetch-btn" 
+              disabled={loading || !selectedUid} 
+              onClick={handleFetch}
+              style={{
+                height: "44px",
+                background: "linear-gradient(135deg, #d4af37 0%, #aa8410 100%)",
+                boxShadow: "0 4px 14px rgba(212, 175, 55, 0.25)",
+                color: "#050d1a",
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                borderRadius: "10px",
+                padding: "0 22px",
+                border: "none",
+                cursor: "pointer",
+                transition: "transform 0.2s, opacity 0.2s",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8
+              }}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" style={{ borderLeftColor: "#050d1a", width: 14, height: 14 }} />
+                  Loading
+                </>
+              ) : "Fetch metrics"}
+            </button>
           </div>
         </div>
 
-        <div className="wc-card section-card" style={{ display: "grid", gap: 10 }}>
-          <div className="eyebrow">Form pulse</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ width: 180 }}>
-              <Sparkline points={trendPoints.map((point) => point * 100)} width={180} height={48} stroke="var(--color-gold)" />
+        {/* Sparkline Card */}
+        <div className="wc-card" style={{ display: "flex", alignItems: "center", gap: 20, padding: "20px 24px" }}>
+          <div style={{ display: "grid", gap: 4 }}>
+            <div className="eyebrow" style={{ color: "var(--color-accent)", letterSpacing: "0.1em", fontWeight: 700, fontSize: "0.7rem" }}>Recent Form Trend</div>
+            <div style={{ color: "#fff", fontSize: "1.1rem", fontWeight: 800 }}>Form Pulse Index</div>
+            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.82rem", lineHeight: 1.4, maxWidth: 220 }}>
+              {data ? `Index: ${Math.round(data.recent_form * 100)}% · Momentum: ${Number(data.momentum).toFixed(2)}` : "Select a team to load the live form waveform index."}
             </div>
-            <div style={{ color: "var(--color-text-secondary)", fontSize: "0.85rem", lineHeight: 1.7, maxWidth: 360 }}>
-              {data ? `Recent form: ${Math.round(data.recent_form * 100)}% · Momentum: ${Number(data.momentum).toFixed(2)}` : "Recent form and momentum update after loading a team."}
-            </div>
+          </div>
+          <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", minWidth: 120 }}>
+            <Sparkline points={trendPoints.map((point) => point * 100)} width={180} height={52} stroke="var(--color-gold)" />
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="card-compact" style={{ borderColor: "rgba(248,81,73,0.2)", color: "var(--color-red)", marginBottom: 12 }}>
-          {error}
+        <div className="wc-card" style={{ borderColor: "rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.06)", color: "#ef4444", marginBottom: 18, borderRadius: 12, padding: "14px 18px", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: "1.2rem" }}>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
       {data && (
-        <div className="wc-card" style={{ padding: 18, display: "grid", gap: 16 }}>
-          <div className="team-header">
-            <div className="team-meta">
-              <div className="team-name">
-                <FlagImg code={getTeamCode(data.country_name, data.country_id)} size={20} />
-                <span>{cleanTeamName(data.country_name)}</span>
-              </div>
-              <div className="team-sub">
-                {data.confederation ?? "-"} · Elo Rank {data.rank ?? "-"} {data.power_rank ? `· Power Rank ${data.power_rank}` : ""}
+        <div className="wc-card card-enter" style={{ padding: 28, display: "grid", gap: 24, border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 15px 35px rgba(0,0,0,0.4)", borderRadius: 16 }}>
+          {/* Header Row of fetched details */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 20, flexWrap: "wrap", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <FlagImg code={teamFlagCode(data.country_id) || getTeamCode(data.country_name, data.country_id)} size={44} style={{ borderRadius: 6, border: "2px solid rgba(255,255,255,0.15)", boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }} />
+              <div>
+                <h2 style={{ fontSize: "2.1rem", fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.03em", fontFamily: "var(--font-ui)", lineHeight: 1.1 }}>
+                  {cleanTeamName(data.country_name)}
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", marginTop: 4, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <span className="wc-badge" style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: "var(--color-accent)", padding: "2px 8px", borderRadius: 4, fontSize: "0.72rem", fontWeight: 700 }}>
+                    {data.confederation}
+                  </span>
+                  <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+                  <span>Elo Rank <strong style={{ color: "#fff" }}>#{data.rank}</strong></span>
+                  {data.power_rank ? (
+                    <>
+                      <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+                      <span>Power Rank <strong style={{ color: "#fff" }}>#{data.power_rank}</strong></span>
+                    </>
+                  ) : null}
+                </div>
               </div>
             </div>
-            <div className="momentum-badge">
-              Momentum <span>{Number(data.momentum).toFixed(2)}</span>
+
+            {/* Momentum widget */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", textAlign: "right" }}>
+              <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 4 }}>
+                CURRENT MOMENTUM
+              </div>
+              <span style={{ 
+                background: data.momentum >= 0 ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", 
+                border: `1px solid ${data.momentum >= 0 ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`, 
+                color: data.momentum >= 0 ? "#10b981" : "#ef4444", 
+                fontWeight: 800, 
+                fontSize: "14px",
+                padding: "4px 10px",
+                borderRadius: "8px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6
+              }}>
+                {data.momentum >= 0 ? "▲" : "▼"} {Number(data.momentum).toFixed(2)}
+              </span>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+          {/* Primary stats row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16 }}>
             {metrics.map((item) => (
-              <div key={item.label} className="wc-card stat-card">
-                <div className="stat-card-top">
-                  <div className="stat-label">{item.label}</div>
-                  <div className="stat-value">{item.value}</div>
+              <div 
+                key={item.label} 
+                className="wc-card stat-card" 
+                style={{ 
+                  background: "rgba(255,255,255,0.015)", 
+                  border: "1px solid rgba(255,255,255,0.05)", 
+                  borderRadius: 12, 
+                  padding: "16px 18px",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
+                  transition: "border-color 0.2s"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{item.label}</div>
+                  <div style={{ fontSize: "1.65rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)" }}>{item.value}</div>
                 </div>
-                <div className="stat-bar-track">
+                <div className="stat-bar-track" style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden", position: "relative" }}>
                   <div
                     className="stat-bar-fill"
                     style={{
                       width: `${item.fill}%`,
+                      height: "100%",
                       backgroundColor: item.tone,
-                      boxShadow: `0 0 10px ${item.tone}`,
+                      boxShadow: `0 0 10px ${item.shadow}`,
+                      borderRadius: 3,
+                      transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                     }}
                   />
                 </div>
@@ -205,56 +306,63 @@ export default function TeamAnalyticsPage() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-            <div className="wc-card stat-card" style={{ flex: 1 }}>
-              <div className="stat-label">Form (recent)</div>
-              <div className="stat-value">{Math.round(data.recent_form * 100)}%</div>
-              <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${formBar(data.recent_form)}%`, backgroundColor: "var(--color-accent)", boxShadow: "0 0 10px var(--color-accent)" }} />
+          {/* Secondary Stats Row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+            {/* Form */}
+            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Form (recent)</div>
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round(data.recent_form * 100)}%</div>
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${formBar(data.recent_form)}%`, backgroundColor: "var(--color-accent)", boxShadow: "0 0 8px rgba(212,175,55,0.4)" }} />
               </div>
             </div>
-            <div className="wc-card stat-card" style={{ flex: 1 }}>
-              <div className="stat-label">Squad Strength</div>
-              <div className="stat-value">{Math.round((data.squad_strength ?? 0) * 100)}%</div>
-              <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${(data.squad_strength ?? 0) * 100}%`, backgroundColor: "var(--color-gold)", boxShadow: "0 0 10px var(--color-gold)" }} />
+
+            {/* Squad Strength */}
+            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Squad Strength</div>
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round((data.squad_strength ?? 0) * 100)}%</div>
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(data.squad_strength ?? 0) * 100}%`, backgroundColor: "#a78bfa", boxShadow: "0 0 8px rgba(167,139,250,0.4)" }} />
               </div>
             </div>
-            <div className="wc-card stat-card" style={{ flex: 1 }}>
-              <div className="stat-label">Momentum</div>
-              <div className="stat-value">{Number(data.momentum).toFixed(2)}</div>
-              <div className="stat-bar-track">
+
+            {/* Momentum */}
+            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Momentum</div>
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Number(data.momentum).toFixed(2)}</div>
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
                 <div
-                  className="stat-bar-fill"
                   style={{
+                    height: "100%",
                     width: `${momentumBar(data.momentum)}%`,
-                    backgroundColor: data.momentum >= 0 ? "var(--color-green)" : "var(--color-red)",
-                    boxShadow: `0 0 10px ${data.momentum >= 0 ? "var(--color-green)" : "var(--color-red)"}`,
+                    backgroundColor: data.momentum >= 0 ? "#10b981" : "#ef4444",
+                    boxShadow: `0 0 8px ${data.momentum >= 0 ? "rgba(16,185,129,0.4)" : "rgba(239,68,68,0.4)"}`,
                   }}
                 />
               </div>
             </div>
-            <div className="wc-card stat-card" style={{ flex: 1 }}>
-              <div className="stat-label">Consistency</div>
-              <div className="stat-value">{Math.round(data.consistency * 100)}%</div>
-              <div className="stat-bar-track">
-                <div className="stat-bar-fill" style={{ width: `${consistencyBar(data.consistency)}%`, backgroundColor: "var(--color-gold)", boxShadow: "0 0 10px var(--color-gold)" }} />
+
+            {/* Consistency */}
+            <div className="wc-card" style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Consistency</div>
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", fontFamily: "var(--font-display)", marginBottom: 6 }}>{Math.round(data.consistency * 100)}%</div>
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${consistencyBar(data.consistency)}%`, backgroundColor: "#f59e0b", boxShadow: "0 0 8px rgba(245,158,11,0.4)" }} />
               </div>
             </div>
           </div>
 
-          {/* Detailed Component Breakdowns */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, marginTop: 16 }}>
-            
+          {/* Component Breakdowns */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginTop: 10 }}>
             {/* Attack Profile */}
-            <div className="wc-card" style={{ padding: 22, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 16, backdropFilter: "blur(12px)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            <div className="wc-card" style={{ padding: 24, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 16, backdropFilter: "blur(12px)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#10b981" }} />
                 Attacking Profile
               </div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "8px 0 16px 0", letterSpacing: "-0.015em", color: "#fff" }}>Offensive Metrics</h3>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: 800, margin: "8px 0 18px 0", letterSpacing: "-0.015em", color: "#fff", fontFamily: "var(--font-ui)" }}>Offensive Metrics</h3>
               
-              <div style={{ display: "grid", gap: 16 }}>
+              <div style={{ display: "grid", gap: 18 }}>
                 {[
                   { label: "Scoring Frequency", val: data.attack_breakdown?.recency_attack ?? 0, desc: "Recent goalscoring rate adjusted for opponent quality" },
                   { label: "Squad Attacking Threat", val: data.attack_breakdown?.squad_attack ?? 0, desc: "Forward line market valuation & attacking depth" },
@@ -278,14 +386,14 @@ export default function TeamAnalyticsPage() {
             </div>
 
             {/* Defense Profile */}
-            <div className="wc-card" style={{ padding: 22, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 16, backdropFilter: "blur(12px)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#d4af37", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#d4af37" }} />
+            <div className="wc-card" style={{ padding: 24, background: "rgba(10, 18, 34, 0.45)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 16, backdropFilter: "blur(12px)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#3b82f6", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#3b82f6" }} />
                 Defensive Solidity Profile
               </div>
-              <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "8px 0 16px 0", letterSpacing: "-0.015em", color: "#fff" }}>Defensive Metrics</h3>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: 800, margin: "8px 0 18px 0", letterSpacing: "-0.015em", color: "#fff", fontFamily: "var(--font-ui)" }}>Defensive Metrics</h3>
               
-              <div style={{ display: "grid", gap: 16 }}>
+              <div style={{ display: "grid", gap: 18 }}>
                 {[
                   { label: "Goals Conceded Efficiency", val: data.defense_breakdown?.defensive_record ?? 0, desc: "Goals conceded record weighted against opponent quality" },
                   { label: "Backline Market Depth", val: data.defense_breakdown?.defender_quality ?? 0, desc: "Market value and elite league representations of defenders" },
@@ -295,28 +403,29 @@ export default function TeamAnalyticsPage() {
                   <div key={comp.label}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", marginBottom: 4 }}>
                       <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{comp.label}</span>
-                      <span style={{ background: "rgba(212,175,55,0.12)", color: "#f7d774", padding: "2px 8px", borderRadius: 6, fontSize: "0.75rem", fontWeight: 700 }}>
+                      <span style={{ background: "rgba(59,130,246,0.12)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontSize: "0.75rem", fontWeight: 700 }}>
                         {Math.round(comp.val)} pts
                       </span>
                     </div>
                     <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", marginBottom: 6, lineHeight: 1.3 }}>{comp.desc}</div>
                     <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                      <div style={{ width: `${comp.val}%`, height: "100%", background: "linear-gradient(90deg, #d4af37, #f7d774)", borderRadius: 3, boxShadow: "0 0 8px rgba(212,175,55,0.4)" }} />
+                      <div style={{ width: `${comp.val}%`, height: "100%", background: "linear-gradient(90deg, #3b82f6, #60a5fa)", borderRadius: 3, boxShadow: "0 0 8px rgba(59,130,246,0.4)" }} />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       )}
 
       {!data && !error && !loading && (
-        <div className="card-compact" style={{ color: "var(--color-accent)" }}>
-          ℹ Select a team and click Fetch Analytics to view data.
+        <div className="wc-card" style={{ color: "var(--color-accent)", background: "rgba(212,175,55,0.05)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: "1.2rem" }}>ℹ️</span>
+          <span>Select a national team from the selector above and click "Fetch metrics" to load the live analytics engine.</span>
         </div>
       )}
     </div>
   );
 }
+

@@ -12,6 +12,7 @@ export interface TeamAnalyticsResponse {
   rank: number;
   power_index?: number;
   power_rank?: number;
+  overall_rank_score?: number;
   attack_breakdown?: {
     recency_attack: number;
     squad_attack: number;

@@ -111,6 +111,7 @@ async def team_analytics(country_id: str):
         "rank": int(row["rank"]) if pd.notna(row["rank"]) else 0,
         "power_index": safe_float(row.get("power_index")),
         "power_rank": int(row.get("power_rank")) if pd.notna(row.get("power_rank")) else 0,
+        "overall_rank_score": safe_float(row.get("overall_rank_score")),
         "attack_breakdown": detailed_attack,
         "defense_breakdown": detailed_defense
     }
