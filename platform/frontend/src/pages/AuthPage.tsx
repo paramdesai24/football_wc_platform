@@ -68,7 +68,10 @@ export default function AuthPage() {
 
   function onGoogleSignIn() {
     localStorage.setItem('auth_redirect', location.state?.from || '/auction')
-    void signInWithGoogle(window.location.origin + '/auction')
+    // Use VITE_APP_URL (set to https://fc-analytics.vercel.app in Vercel env vars)
+    // so Supabase always redirects back to the correct domain, not localhost.
+    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin
+    void signInWithGoogle(appUrl + '/auction')
   }
 
   const inputBaseStyle = {
