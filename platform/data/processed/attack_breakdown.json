@@ -1,0 +1,1692 @@
+{
+  "Spain": {
+    "team": "Spain",
+    "country_uid": "C_ES",
+    "components": {
+      "recency_goals": 100.0,
+      "squad_quality": 90.99,
+      "elo": 100.0,
+      "recent_form": 84.35
+    },
+    "final_rating": 95.4,
+    "v1_rating": 95.4,
+    "delta": 0.0
+  },
+  "France": {
+    "team": "France",
+    "country_uid": "C_FR",
+    "components": {
+      "recency_goals": 90.02,
+      "squad_quality": 99.02,
+      "elo": 100.0,
+      "recent_form": 87.63
+    },
+    "final_rating": 93.91,
+    "v1_rating": 93.91,
+    "delta": 0.0
+  },
+  "Argentina": {
+    "team": "Argentina",
+    "country_uid": "C_AR",
+    "components": {
+      "recency_goals": 85.55,
+      "squad_quality": 90.47,
+      "elo": 96.32,
+      "recent_form": 84.62
+    },
+    "final_rating": 88.79,
+    "v1_rating": 88.79,
+    "delta": 0.0
+  },
+  "Germany": {
+    "team": "Germany",
+    "country_uid": "C_DE",
+    "components": {
+      "recency_goals": 94.9,
+      "squad_quality": 95.81,
+      "elo": 82.36,
+      "recent_form": 81.07
+    },
+    "final_rating": 90.55,
+    "v1_rating": 90.55,
+    "delta": 0.0
+  },
+  "Brazil": {
+    "team": "Brazil",
+    "country_uid": "C_BR",
+    "components": {
+      "recency_goals": 76.44,
+      "squad_quality": 100.0,
+      "elo": 87.41,
+      "recent_form": 61.38
+    },
+    "final_rating": 82.26,
+    "v1_rating": 82.26,
+    "delta": 0.0
+  },
+  "Portugal": {
+    "team": "Portugal",
+    "country_uid": "C_PT",
+    "components": {
+      "recency_goals": 99.26,
+      "squad_quality": 99.48,
+      "elo": 85.17,
+      "recent_form": 70.4
+    },
+    "final_rating": 92.17,
+    "v1_rating": 92.17,
+    "delta": 0.0
+  },
+  "England": {
+    "team": "England",
+    "country_uid": "C_GB-ENG",
+    "components": {
+      "recency_goals": 88.34,
+      "squad_quality": 100.0,
+      "elo": 87.45,
+      "recent_form": 77.79
+    },
+    "final_rating": 89.49,
+    "v1_rating": 89.49,
+    "delta": 0.0
+  },
+  "Netherlands": {
+    "team": "Netherlands",
+    "country_uid": "C_NL",
+    "components": {
+      "recency_goals": 100.0,
+      "squad_quality": 85.98,
+      "elo": 82.57,
+      "recent_form": 84.35
+    },
+    "final_rating": 90.66,
+    "v1_rating": 90.66,
+    "delta": 0.0
+  },
+  "Italy": {
+    "team": "Italy",
+    "country_uid": "C_IT",
+    "components": {
+      "recency_goals": 86.39,
+      "squad_quality": 77.18,
+      "elo": 78.43,
+      "recent_form": 89.6
+    },
+    "final_rating": 82.98,
+    "v1_rating": 82.98,
+    "delta": 0.0
+  },
+  "Japan": {
+    "team": "Japan",
+    "country_uid": "C_JP",
+    "components": {
+      "recency_goals": 94.63,
+      "squad_quality": 48.85,
+      "elo": 80.99,
+      "recent_form": 71.22
+    },
+    "final_rating": 76.95,
+    "v1_rating": 76.95,
+    "delta": 0.0
+  },
+  "Nigeria": {
+    "team": "Nigeria",
+    "country_uid": "C_NG",
+    "components": {
+      "recency_goals": 70.07,
+      "squad_quality": 67.36,
+      "elo": 69.68,
+      "recent_form": 91.74
+    },
+    "final_rating": 72.56,
+    "v1_rating": 72.56,
+    "delta": 0.0
+  },
+  "Belgium": {
+    "team": "Belgium",
+    "country_uid": "C_BE",
+    "components": {
+      "recency_goals": 92.07,
+      "squad_quality": 74.81,
+      "elo": 76.79,
+      "recent_form": 77.79
+    },
+    "final_rating": 82.56,
+    "v1_rating": 82.56,
+    "delta": 0.0
+  },
+  "Denmark": {
+    "team": "Denmark",
+    "country_uid": "C_DK",
+    "components": {
+      "recency_goals": 88.27,
+      "squad_quality": 68.05,
+      "elo": 75.85,
+      "recent_form": 85.34
+    },
+    "final_rating": 80.29,
+    "v1_rating": 80.29,
+    "delta": 0.0
+  },
+  "Ivory Coast": {
+    "team": "Ivory Coast",
+    "country_uid": "C_CI",
+    "components": {
+      "recency_goals": 67.64,
+      "squad_quality": 66.89,
+      "elo": 65.6,
+      "recent_form": 73.96
+    },
+    "final_rating": 67.99,
+    "v1_rating": 67.99,
+    "delta": 0.0
+  },
+  "Australia": {
+    "team": "Australia",
+    "country_uid": "C_AU",
+    "components": {
+      "recency_goals": 67.38,
+      "squad_quality": 11.68,
+      "elo": 74.73,
+      "recent_form": 74.5
+    },
+    "final_rating": 55.99,
+    "v1_rating": 55.99,
+    "delta": 0.0
+  },
+  "Sweden": {
+    "team": "Sweden",
+    "country_uid": "C_SE",
+    "components": {
+      "recency_goals": 73.82,
+      "squad_quality": 64.57,
+      "elo": 61.57,
+      "recent_form": 51.53
+    },
+    "final_rating": 65.71,
+    "v1_rating": 65.71,
+    "delta": 0.0
+  },
+  "Uruguay": {
+    "team": "Uruguay",
+    "country_uid": "C_UY",
+    "components": {
+      "recency_goals": 52.35,
+      "squad_quality": 37.65,
+      "elo": 76.73,
+      "recent_form": 58.09
+    },
+    "final_rating": 54.41,
+    "v1_rating": 54.41,
+    "delta": 0.0
+  },
+  "Poland": {
+    "team": "Poland",
+    "country_uid": "C_PL",
+    "components": {
+      "recency_goals": 74.67,
+      "squad_quality": 43.17,
+      "elo": 56.8,
+      "recent_form": 81.07
+    },
+    "final_rating": 64.18,
+    "v1_rating": 64.18,
+    "delta": 0.0
+  },
+  "Norway": {
+    "team": "Norway",
+    "country_uid": "C_NO",
+    "components": {
+      "recency_goals": 96.03,
+      "squad_quality": 67.16,
+      "elo": 75.16,
+      "recent_form": 81.07
+    },
+    "final_rating": 82.39,
+    "v1_rating": 82.39,
+    "delta": 0.0
+  },
+  "Ukraine": {
+    "team": "Ukraine",
+    "country_uid": "C_UA",
+    "components": {
+      "recency_goals": 67.21,
+      "squad_quality": 48.68,
+      "elo": 61.37,
+      "recent_form": 64.0
+    },
+    "final_rating": 60.93,
+    "v1_rating": 60.93,
+    "delta": 0.0
+  },
+  "Colombia": {
+    "team": "Colombia",
+    "country_uid": "C_CO",
+    "components": {
+      "recency_goals": 70.12,
+      "squad_quality": 50.55,
+      "elo": 82.75,
+      "recent_form": 64.66
+    },
+    "final_rating": 66.93,
+    "v1_rating": 66.93,
+    "delta": 0.0
+  },
+  "Cameroon": {
+    "team": "Cameroon",
+    "country_uid": "C_CM",
+    "components": {
+      "recency_goals": 54.6,
+      "squad_quality": 46.19,
+      "elo": 56.39,
+      "recent_form": 68.88
+    },
+    "final_rating": 55.0,
+    "v1_rating": 55.0,
+    "delta": 0.0
+  },
+  "Ecuador": {
+    "team": "Ecuador",
+    "country_uid": "C_EC",
+    "components": {
+      "recency_goals": 43.18,
+      "squad_quality": 32.01,
+      "elo": 77.9,
+      "recent_form": 51.53
+    },
+    "final_rating": 48.58,
+    "v1_rating": 48.58,
+    "delta": 0.0
+  },
+  "Czech Republic": {
+    "team": "Czech Republic",
+    "country_uid": "C_CZ",
+    "components": {
+      "recency_goals": 71.74,
+      "squad_quality": 20.33,
+      "elo": 58.47,
+      "recent_form": 58.09
+    },
+    "final_rating": 54.19,
+    "v1_rating": 54.19,
+    "delta": 0.0
+  },
+  "South Korea": {
+    "team": "South Korea",
+    "country_uid": "C_KR",
+    "components": {
+      "recency_goals": 68.93,
+      "squad_quality": 20.33,
+      "elo": 70.69,
+      "recent_form": 67.94
+    },
+    "final_rating": 56.98,
+    "v1_rating": 56.98,
+    "delta": 0.0
+  },
+  "Scotland": {
+    "team": "Scotland",
+    "country_uid": "C_GB-SCT",
+    "components": {
+      "recency_goals": 58.09,
+      "squad_quality": 39.86,
+      "elo": 59.31,
+      "recent_form": 58.09
+    },
+    "final_rating": 53.78,
+    "v1_rating": 53.78,
+    "delta": 0.0
+  },
+  "Canada": {
+    "team": "Canada",
+    "country_uid": "C_CA",
+    "components": {
+      "recency_goals": 63.63,
+      "squad_quality": 36.69,
+      "elo": 63.74,
+      "recent_form": 66.01
+    },
+    "final_rating": 57.27,
+    "v1_rating": 57.27,
+    "delta": 0.0
+  },
+  "Wales": {
+    "team": "Wales",
+    "country_uid": "C_GB-WLS",
+    "components": {
+      "recency_goals": 64.33,
+      "squad_quality": 32.2,
+      "elo": 54.08,
+      "recent_form": 55.47
+    },
+    "final_rating": 52.92,
+    "v1_rating": 52.92,
+    "delta": 0.0
+  },
+  "Mexico": {
+    "team": "Mexico",
+    "country_uid": "C_MX",
+    "components": {
+      "recency_goals": 59.83,
+      "squad_quality": 29.37,
+      "elo": 67.43,
+      "recent_form": 67.49
+    },
+    "final_rating": 54.89,
+    "v1_rating": 54.89,
+    "delta": 0.0
+  },
+  "Chile": {
+    "team": "Chile",
+    "country_uid": "C_CL",
+    "components": {
+      "recency_goals": 53.72,
+      "squad_quality": 16.22,
+      "elo": 58.24,
+      "recent_form": 57.36
+    },
+    "final_rating": 45.8,
+    "v1_rating": 45.8,
+    "delta": 0.0
+  },
+  "Iran": {
+    "team": "Iran",
+    "country_uid": "C_IR",
+    "components": {
+      "recency_goals": 75.72,
+      "squad_quality": 21.15,
+      "elo": 71.98,
+      "recent_form": 50.04
+    },
+    "final_rating": 57.48,
+    "v1_rating": 57.48,
+    "delta": 0.0
+  },
+  "Northern Ireland": {
+    "team": "Northern Ireland",
+    "country_uid": "C_GB-NIR",
+    "components": {
+      "recency_goals": 50.66,
+      "squad_quality": 8.91,
+      "elo": 50.34,
+      "recent_form": 51.2
+    },
+    "final_rating": 40.24,
+    "v1_rating": 40.24,
+    "delta": 0.0
+  },
+  "Paraguay": {
+    "team": "Paraguay",
+    "country_uid": "C_PY",
+    "components": {
+      "recency_goals": 37.38,
+      "squad_quality": 22.55,
+      "elo": 69.29,
+      "recent_form": 51.53
+    },
+    "final_rating": 42.17,
+    "v1_rating": 42.17,
+    "delta": 0.0
+  },
+  "United States": {
+    "team": "United States",
+    "country_uid": "C_US",
+    "components": {
+      "recency_goals": 69.33,
+      "squad_quality": 54.58,
+      "elo": 46.97,
+      "recent_form": 60.86
+    },
+    "final_rating": 59.9,
+    "v1_rating": 59.9,
+    "delta": 0.0
+  },
+  "Venezuela": {
+    "team": "Venezuela",
+    "country_uid": "C_VE",
+    "components": {
+      "recency_goals": 49.34,
+      "squad_quality": 25.39,
+      "elo": 56.56,
+      "recent_form": 43.14
+    },
+    "final_rating": 43.87,
+    "v1_rating": 43.87,
+    "delta": -0.0
+  },
+  "Egypt": {
+    "team": "Egypt",
+    "country_uid": "C_EG",
+    "components": {
+      "recency_goals": 56.96,
+      "squad_quality": 30.92,
+      "elo": 65.17,
+      "recent_form": 64.81
+    },
+    "final_rating": 53.27,
+    "v1_rating": 53.27,
+    "delta": 0.0
+  },
+  "South Africa": {
+    "team": "South Africa",
+    "country_uid": "C_ZA",
+    "components": {
+      "recency_goals": 55.29,
+      "squad_quality": 11.39,
+      "elo": 49.28,
+      "recent_form": 62.4
+    },
+    "final_rating": 44.18,
+    "v1_rating": 44.18,
+    "delta": -0.0
+  },
+  "Peru": {
+    "team": "Peru",
+    "country_uid": "C_PE",
+    "components": {
+      "recency_goals": 36.33,
+      "squad_quality": 12.7,
+      "elo": 52.93,
+      "recent_form": 14.7
+    },
+    "final_rating": 30.5,
+    "v1_rating": 30.5,
+    "delta": 0.0
+  },
+  "Saudi Arabia": {
+    "team": "Saudi Arabia",
+    "country_uid": "C_SA",
+    "components": {
+      "recency_goals": 45.35,
+      "squad_quality": 11.75,
+      "elo": 50.13,
+      "recent_form": 53.92
+    },
+    "final_rating": 39.19,
+    "v1_rating": 39.19,
+    "delta": 0.0
+  },
+  "Bolivia": {
+    "team": "Bolivia",
+    "country_uid": "C_BO",
+    "components": {
+      "recency_goals": 40.04,
+      "squad_quality": 6.69,
+      "elo": 47.67,
+      "recent_form": 48.25
+    },
+    "final_rating": 34.46,
+    "v1_rating": 34.46,
+    "delta": -0.0
+  },
+  "Qatar": {
+    "team": "Qatar",
+    "country_uid": "C_QA",
+    "components": {
+      "recency_goals": 56.76,
+      "squad_quality": 8.39,
+      "elo": 39.86,
+      "recent_form": 35.35
+    },
+    "final_rating": 38.08,
+    "v1_rating": 38.08,
+    "delta": 0.0
+  },
+  "China": {
+    "team": "China",
+    "country_uid": "C_CN",
+    "components": {
+      "recency_goals": 46.62,
+      "squad_quality": 18.3,
+      "elo": 33.58,
+      "recent_form": 55.47
+    },
+    "final_rating": 38.26,
+    "v1_rating": 38.26,
+    "delta": 0.0
+  },
+  "United Arab Emirates": {
+    "team": "United Arab Emirates",
+    "country_uid": "C_AE",
+    "components": {
+      "recency_goals": 59.92,
+      "squad_quality": 20.33,
+      "elo": 45.91,
+      "recent_form": 51.53
+    },
+    "final_rating": 45.96,
+    "v1_rating": 45.96,
+    "delta": 0.0
+  },
+  "India": {
+    "team": "India",
+    "country_uid": "C_IN",
+    "components": {
+      "recency_goals": 36.4,
+      "squad_quality": 20.33,
+      "elo": 0.0,
+      "recent_form": 6.4
+    },
+    "final_rating": 20.6,
+    "v1_rating": 20.6,
+    "delta": 0.0
+  },
+  "Zambia": {
+    "team": "Zambia",
+    "country_uid": "C_ZM",
+    "components": {
+      "recency_goals": 45.77,
+      "squad_quality": 18.92,
+      "elo": 65.17,
+      "recent_form": 19.44
+    },
+    "final_rating": 38.99,
+    "v1_rating": 38.99,
+    "delta": 0.0
+  },
+  "Guinea": {
+    "team": "Guinea",
+    "country_uid": "C_GN",
+    "components": {
+      "recency_goals": 51.91,
+      "squad_quality": 26.52,
+      "elo": 65.17,
+      "recent_form": 65.07
+    },
+    "final_rating": 50.19,
+    "v1_rating": 50.19,
+    "delta": 0.0
+  },
+  "New Caledonia": {
+    "team": "New Caledonia",
+    "country_uid": "C_NC",
+    "components": {
+      "recency_goals": 77.53,
+      "squad_quality": 12.57,
+      "elo": 27.98,
+      "recent_form": 59.73
+    },
+    "final_rating": 48.71,
+    "v1_rating": 48.71,
+    "delta": 0.0
+  },
+  "Ghana": {
+    "team": "Ghana",
+    "country_uid": "C_GH",
+    "components": {
+      "recency_goals": 50.05,
+      "squad_quality": 37.95,
+      "elo": 65.17,
+      "recent_form": 46.16
+    },
+    "final_rating": 49.47,
+    "v1_rating": 49.47,
+    "delta": 0.0
+  },
+  "Mali": {
+    "team": "Mali",
+    "country_uid": "C_ML",
+    "components": {
+      "recency_goals": 58.41,
+      "squad_quality": 30.07,
+      "elo": 65.17,
+      "recent_form": 56.18
+    },
+    "final_rating": 52.34,
+    "v1_rating": 52.34,
+    "delta": -0.0
+  },
+  "Burkina Faso": {
+    "team": "Burkina Faso",
+    "country_uid": "C_BF",
+    "components": {
+      "recency_goals": 63.41,
+      "squad_quality": 19.23,
+      "elo": 65.17,
+      "recent_form": 90.92
+    },
+    "final_rating": 56.84,
+    "v1_rating": 56.84,
+    "delta": 0.0
+  },
+  "DR Congo": {
+    "team": "DR Congo",
+    "country_uid": "C_CD",
+    "components": {
+      "recency_goals": 46.43,
+      "squad_quality": 20.33,
+      "elo": 65.17,
+      "recent_form": 72.54
+    },
+    "final_rating": 47.57,
+    "v1_rating": 47.57,
+    "delta": 0.0
+  },
+  "Cape Verde": {
+    "team": "Cape Verde",
+    "country_uid": "C_CV",
+    "components": {
+      "recency_goals": 46.96,
+      "squad_quality": 16.97,
+      "elo": 65.17,
+      "recent_form": 56.18
+    },
+    "final_rating": 44.49,
+    "v1_rating": 44.49,
+    "delta": 0.0
+  },
+  "Uganda": {
+    "team": "Uganda",
+    "country_uid": "C_UG",
+    "components": {
+      "recency_goals": 42.3,
+      "squad_quality": 9.81,
+      "elo": 65.17,
+      "recent_form": 50.04
+    },
+    "final_rating": 39.91,
+    "v1_rating": 39.91,
+    "delta": 0.0
+  },
+  "Benin": {
+    "team": "Benin",
+    "country_uid": "C_BJ",
+    "components": {
+      "recency_goals": 39.69,
+      "squad_quality": 14.23,
+      "elo": 65.17,
+      "recent_form": 59.73
+    },
+    "final_rating": 41.43,
+    "v1_rating": 41.43,
+    "delta": 0.0
+  },
+  "Mozambique": {
+    "team": "Mozambique",
+    "country_uid": "C_MZ",
+    "components": {
+      "recency_goals": 45.2,
+      "squad_quality": 20.33,
+      "elo": 65.17,
+      "recent_form": 34.52
+    },
+    "final_rating": 41.37,
+    "v1_rating": 41.37,
+    "delta": 0.0
+  },
+  "Equatorial Guinea": {
+    "team": "Equatorial Guinea",
+    "country_uid": "C_GQ",
+    "components": {
+      "recency_goals": 38.65,
+      "squad_quality": 6.26,
+      "elo": 65.17,
+      "recent_form": 27.73
+    },
+    "final_rating": 34.22,
+    "v1_rating": 34.22,
+    "delta": 0.0
+  },
+  "Angola": {
+    "team": "Angola",
+    "country_uid": "C_AO",
+    "components": {
+      "recency_goals": 43.89,
+      "squad_quality": 19.55,
+      "elo": 65.17,
+      "recent_form": 43.14
+    },
+    "final_rating": 41.95,
+    "v1_rating": 41.95,
+    "delta": 0.0
+  },
+  "Gabon": {
+    "team": "Gabon",
+    "country_uid": "C_GA",
+    "components": {
+      "recency_goals": 59.49,
+      "squad_quality": 17.49,
+      "elo": 65.17,
+      "recent_form": 45.51
+    },
+    "final_rating": 48.03,
+    "v1_rating": 48.03,
+    "delta": 0.0
+  },
+  "Fiji": {
+    "team": "Fiji",
+    "country_uid": "C_FJ",
+    "components": {
+      "recency_goals": 61.34,
+      "squad_quality": 20.33,
+      "elo": 27.98,
+      "recent_form": 59.73
+    },
+    "final_rating": 44.17,
+    "v1_rating": 44.17,
+    "delta": 0.0
+  },
+  "Tajikistan": {
+    "team": "Tajikistan",
+    "country_uid": "C_TJ",
+    "components": {
+      "recency_goals": 55.03,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 100.0
+    },
+    "final_rating": 52.12,
+    "v1_rating": 52.12,
+    "delta": 0.0
+  },
+  "New Zealand": {
+    "team": "New Zealand",
+    "country_uid": "C_NZ",
+    "components": {
+      "recency_goals": 66.07,
+      "squad_quality": 17.14,
+      "elo": 27.98,
+      "recent_form": 28.55
+    },
+    "final_rating": 40.59,
+    "v1_rating": 40.59,
+    "delta": -0.0
+  },
+  "Solomon Islands": {
+    "team": "Solomon Islands",
+    "country_uid": "C_SB",
+    "components": {
+      "recency_goals": 64.98,
+      "squad_quality": 20.33,
+      "elo": 27.98,
+      "recent_form": 59.73
+    },
+    "final_rating": 45.63,
+    "v1_rating": 45.63,
+    "delta": 0.0
+  },
+  "Syria": {
+    "team": "Syria",
+    "country_uid": "C_SY",
+    "components": {
+      "recency_goals": 54.03,
+      "squad_quality": 21.31,
+      "elo": 50.13,
+      "recent_form": 77.19
+    },
+    "final_rating": 48.54,
+    "v1_rating": 48.54,
+    "delta": 0.0
+  },
+  "Palestine": {
+    "team": "Palestine",
+    "country_uid": "C_PS",
+    "components": {
+      "recency_goals": 43.4,
+      "squad_quality": 20.11,
+      "elo": 50.13,
+      "recent_form": 49.07
+    },
+    "final_rating": 39.77,
+    "v1_rating": 39.77,
+    "delta": 0.0
+  },
+  "North Korea": {
+    "team": "North Korea",
+    "country_uid": "C_KP",
+    "components": {
+      "recency_goals": 47.74,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 17.07
+    },
+    "final_rating": 36.76,
+    "v1_rating": 36.76,
+    "delta": 0.0
+  },
+  "Kuwait": {
+    "team": "Kuwait",
+    "country_uid": "C_KW",
+    "components": {
+      "recency_goals": 47.6,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 34.13
+    },
+    "final_rating": 39.27,
+    "v1_rating": 39.27,
+    "delta": 0.0
+  },
+  "Lebanon": {
+    "team": "Lebanon",
+    "country_uid": "C_LB",
+    "components": {
+      "recency_goals": 47.12,
+      "squad_quality": 0.0,
+      "elo": 50.13,
+      "recent_form": 68.88
+    },
+    "final_rating": 39.2,
+    "v1_rating": 39.2,
+    "delta": 0.0
+  },
+  "Indonesia": {
+    "team": "Indonesia",
+    "country_uid": "C_ID",
+    "components": {
+      "recency_goals": 59.77,
+      "squad_quality": 6.97,
+      "elo": 50.13,
+      "recent_form": 49.07
+    },
+    "final_rating": 43.03,
+    "v1_rating": 43.03,
+    "delta": 0.0
+  },
+  "Thailand": {
+    "team": "Thailand",
+    "country_uid": "C_TH",
+    "components": {
+      "recency_goals": 75.37,
+      "squad_quality": 11.31,
+      "elo": 50.13,
+      "recent_form": 87.16
+    },
+    "final_rating": 56.07,
+    "v1_rating": 56.07,
+    "delta": 0.0
+  },
+  "Vietnam": {
+    "team": "Vietnam",
+    "country_uid": "C_VN",
+    "components": {
+      "recency_goals": 65.69,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 98.14
+    },
+    "final_rating": 56.11,
+    "v1_rating": 56.11,
+    "delta": -0.0
+  },
+  "Bahrain": {
+    "team": "Bahrain",
+    "country_uid": "C_BH",
+    "components": {
+      "recency_goals": 49.99,
+      "squad_quality": 12.64,
+      "elo": 50.13,
+      "recent_form": 25.6
+    },
+    "final_rating": 37.02,
+    "v1_rating": 37.02,
+    "delta": 0.0
+  },
+  "Kyrgyzstan": {
+    "team": "Kyrgyzstan",
+    "country_uid": "C_KG",
+    "components": {
+      "recency_goals": 52.15,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 17.07
+    },
+    "final_rating": 38.53,
+    "v1_rating": 38.53,
+    "delta": -0.0
+  },
+  "Oman": {
+    "team": "Oman",
+    "country_uid": "C_OM",
+    "components": {
+      "recency_goals": 44.29,
+      "squad_quality": 20.33,
+      "elo": 50.13,
+      "recent_form": 38.4
+    },
+    "final_rating": 38.59,
+    "v1_rating": 38.59,
+    "delta": 0.0
+  },
+  "Jordan": {
+    "team": "Jordan",
+    "country_uid": "C_JO",
+    "components": {
+      "recency_goals": 63.5,
+      "squad_quality": 20.27,
+      "elo": 50.13,
+      "recent_form": 56.37
+    },
+    "final_rating": 48.95,
+    "v1_rating": 48.95,
+    "delta": 0.0
+  },
+  "Uzbekistan": {
+    "team": "Uzbekistan",
+    "country_uid": "C_UZ",
+    "components": {
+      "recency_goals": 58.75,
+      "squad_quality": 9.21,
+      "elo": 50.13,
+      "recent_form": 63.29
+    },
+    "final_rating": 45.32,
+    "v1_rating": 45.32,
+    "delta": 0.0
+  },
+  "Iraq": {
+    "team": "Iraq",
+    "country_uid": "C_IQ",
+    "components": {
+      "recency_goals": 48.18,
+      "squad_quality": 15.97,
+      "elo": 50.13,
+      "recent_form": 73.07
+    },
+    "final_rating": 44.25,
+    "v1_rating": 44.25,
+    "delta": 0.0
+  },
+  "Libya": {
+    "team": "Libya",
+    "country_uid": "C_LY",
+    "components": {
+      "recency_goals": 44.94,
+      "squad_quality": 5.79,
+      "elo": 65.17,
+      "recent_form": 70.4
+    },
+    "final_rating": 43.02,
+    "v1_rating": 43.02,
+    "delta": 0.0
+  },
+  "Kenya": {
+    "team": "Kenya",
+    "country_uid": "C_KE",
+    "components": {
+      "recency_goals": 47.56,
+      "squad_quality": 10.07,
+      "elo": 65.17,
+      "recent_form": 62.11
+    },
+    "final_rating": 43.89,
+    "v1_rating": 43.89,
+    "delta": 0.0
+  },
+  "Namibia": {
+    "team": "Namibia",
+    "country_uid": "C_NA",
+    "components": {
+      "recency_goals": 30.42,
+      "squad_quality": 20.33,
+      "elo": 65.17,
+      "recent_form": 17.07
+    },
+    "final_rating": 32.85,
+    "v1_rating": 32.85,
+    "delta": 0.0
+  },
+  "Tanzania": {
+    "team": "Tanzania",
+    "country_uid": "C_TZ",
+    "components": {
+      "recency_goals": 34.16,
+      "squad_quality": 17.08,
+      "elo": 65.17,
+      "recent_form": 20.62
+    },
+    "final_rating": 34.06,
+    "v1_rating": 34.06,
+    "delta": 0.0
+  },
+  "Honduras": {
+    "team": "Honduras",
+    "country_uid": "C_HN",
+    "components": {
+      "recency_goals": 53.46,
+      "squad_quality": 13.69,
+      "elo": 63.74,
+      "recent_form": 65.83
+    },
+    "final_rating": 47.43,
+    "v1_rating": 47.43,
+    "delta": 0.0
+  },
+  "Tunisia": {
+    "team": "Tunisia",
+    "country_uid": "C_TN",
+    "components": {
+      "recency_goals": 56.78,
+      "squad_quality": 14.94,
+      "elo": 65.17,
+      "recent_form": 66.13
+    },
+    "final_rating": 49.4,
+    "v1_rating": 49.4,
+    "delta": 0.0
+  },
+  "Luxembourg": {
+    "team": "Luxembourg",
+    "country_uid": "C_LU",
+    "components": {
+      "recency_goals": 30.91,
+      "squad_quality": 17.56,
+      "elo": 75.85,
+      "recent_form": 1.07
+    },
+    "final_rating": 32.08,
+    "v1_rating": 32.08,
+    "delta": 0.0
+  },
+  "Bulgaria": {
+    "team": "Bulgaria",
+    "country_uid": "C_BG",
+    "components": {
+      "recency_goals": 48.25,
+      "squad_quality": 15.01,
+      "elo": 75.85,
+      "recent_form": 38.4
+    },
+    "final_rating": 43.98,
+    "v1_rating": 43.98,
+    "delta": 0.0
+  },
+  "Belarus": {
+    "team": "Belarus",
+    "country_uid": "C_BY",
+    "components": {
+      "recency_goals": 44.99,
+      "squad_quality": 7.64,
+      "elo": 75.85,
+      "recent_form": 42.67
+    },
+    "final_rating": 41.48,
+    "v1_rating": 41.48,
+    "delta": 0.0
+  },
+  "Armenia": {
+    "team": "Armenia",
+    "country_uid": "C_AM",
+    "components": {
+      "recency_goals": 47.0,
+      "squad_quality": 24.64,
+      "elo": 75.85,
+      "recent_form": 14.7
+    },
+    "final_rating": 42.33,
+    "v1_rating": 42.33,
+    "delta": 0.0
+  },
+  "Georgia": {
+    "team": "Georgia",
+    "country_uid": "C_GE",
+    "components": {
+      "recency_goals": 71.88,
+      "squad_quality": 32.64,
+      "elo": 75.85,
+      "recent_form": 42.67
+    },
+    "final_rating": 58.48,
+    "v1_rating": 58.48,
+    "delta": 0.0
+  },
+  "Albania": {
+    "team": "Albania",
+    "country_uid": "C_AL",
+    "components": {
+      "recency_goals": 47.44,
+      "squad_quality": 25.55,
+      "elo": 75.85,
+      "recent_form": 68.27
+    },
+    "final_rating": 50.78,
+    "v1_rating": 50.78,
+    "delta": 0.0
+  },
+  "North Macedonia": {
+    "team": "North Macedonia",
+    "country_uid": "C_MK",
+    "components": {
+      "recency_goals": 55.25,
+      "squad_quality": 17.52,
+      "elo": 75.85,
+      "recent_form": 42.67
+    },
+    "final_rating": 48.05,
+    "v1_rating": 48.05,
+    "delta": 0.0
+  },
+  "Montenegro": {
+    "team": "Montenegro",
+    "country_uid": "C_ME",
+    "components": {
+      "recency_goals": 50.57,
+      "squad_quality": 22.45,
+      "elo": 75.85,
+      "recent_form": 38.4
+    },
+    "final_rating": 46.77,
+    "v1_rating": 46.77,
+    "delta": -0.0
+  },
+  "Bosnia and Herzegovina": {
+    "team": "Bosnia and Herzegovina",
+    "country_uid": "C_BA",
+    "components": {
+      "recency_goals": 51.66,
+      "squad_quality": 30.39,
+      "elo": 75.85,
+      "recent_form": 58.09
+    },
+    "final_rating": 52.15,
+    "v1_rating": 52.15,
+    "delta": 0.0
+  },
+  "Iceland": {
+    "team": "Iceland",
+    "country_uid": "C_IS",
+    "components": {
+      "recency_goals": 62.57,
+      "squad_quality": 32.37,
+      "elo": 75.85,
+      "recent_form": 42.28
+    },
+    "final_rating": 54.63,
+    "v1_rating": 54.63,
+    "delta": 0.0
+  },
+  "Finland": {
+    "team": "Finland",
+    "country_uid": "C_FI",
+    "components": {
+      "recency_goals": 50.96,
+      "squad_quality": 18.34,
+      "elo": 75.85,
+      "recent_form": 51.2
+    },
+    "final_rating": 47.82,
+    "v1_rating": 47.82,
+    "delta": 0.0
+  },
+  "Greece": {
+    "team": "Greece",
+    "country_uid": "C_GR",
+    "components": {
+      "recency_goals": 69.43,
+      "squad_quality": 61.91,
+      "elo": 75.85,
+      "recent_form": 55.47
+    },
+    "final_rating": 66.74,
+    "v1_rating": 66.74,
+    "delta": 0.0
+  },
+  "Slovenia": {
+    "team": "Slovenia",
+    "country_uid": "C_SI",
+    "components": {
+      "recency_goals": 54.01,
+      "squad_quality": 23.37,
+      "elo": 75.85,
+      "recent_form": 51.2
+    },
+    "final_rating": 50.3,
+    "v1_rating": 50.3,
+    "delta": -0.0
+  },
+  "Slovakia": {
+    "team": "Slovakia",
+    "country_uid": "C_SK",
+    "components": {
+      "recency_goals": 61.03,
+      "squad_quality": 17.25,
+      "elo": 75.85,
+      "recent_form": 59.73
+    },
+    "final_rating": 52.86,
+    "v1_rating": 52.86,
+    "delta": 0.0
+  },
+  "Romania": {
+    "team": "Romania",
+    "country_uid": "C_RO",
+    "components": {
+      "recency_goals": 69.12,
+      "squad_quality": 25.01,
+      "elo": 75.85,
+      "recent_form": 51.2
+    },
+    "final_rating": 56.75,
+    "v1_rating": 56.75,
+    "delta": 0.0
+  },
+  "Republic of Ireland": {
+    "team": "Republic of Ireland",
+    "country_uid": "C_IE",
+    "components": {
+      "recency_goals": 50.05,
+      "squad_quality": 20.33,
+      "elo": 75.85,
+      "recent_form": 55.47
+    },
+    "final_rating": 48.59,
+    "v1_rating": 48.59,
+    "delta": 0.0
+  },
+  "Turkey": {
+    "team": "Turkey",
+    "country_uid": "C_TR",
+    "components": {
+      "recency_goals": 76.94,
+      "squad_quality": 4.49,
+      "elo": 75.85,
+      "recent_form": 77.79
+    },
+    "final_rating": 58.74,
+    "v1_rating": 58.74,
+    "delta": 0.0
+  },
+  "Hungary": {
+    "team": "Hungary",
+    "country_uid": "C_HU",
+    "components": {
+      "recency_goals": 59.12,
+      "squad_quality": 26.98,
+      "elo": 75.85,
+      "recent_form": 59.73
+    },
+    "final_rating": 54.52,
+    "v1_rating": 54.52,
+    "delta": 0.0
+  },
+  "Serbia": {
+    "team": "Serbia",
+    "country_uid": "C_RS",
+    "components": {
+      "recency_goals": 61.09,
+      "squad_quality": 54.06,
+      "elo": 75.85,
+      "recent_form": 64.0
+    },
+    "final_rating": 62.72,
+    "v1_rating": 62.72,
+    "delta": 0.0
+  },
+  "Austria": {
+    "team": "Austria",
+    "country_uid": "C_AT",
+    "components": {
+      "recency_goals": 81.98,
+      "squad_quality": 41.51,
+      "elo": 75.85,
+      "recent_form": 87.63
+    },
+    "final_rating": 71.49,
+    "v1_rating": 71.49,
+    "delta": 0.0
+  },
+  "Switzerland": {
+    "team": "Switzerland",
+    "country_uid": "C_CH",
+    "components": {
+      "recency_goals": 75.73,
+      "squad_quality": 45.0,
+      "elo": 75.85,
+      "recent_form": 74.5
+    },
+    "final_rating": 67.89,
+    "v1_rating": 67.89,
+    "delta": 0.0
+  },
+  "Croatia": {
+    "team": "Croatia",
+    "country_uid": "C_HR",
+    "components": {
+      "recency_goals": 76.71,
+      "squad_quality": 42.72,
+      "elo": 75.85,
+      "recent_form": 87.63
+    },
+    "final_rating": 69.68,
+    "v1_rating": 69.68,
+    "delta": 0.0
+  },
+  "Kosovo": {
+    "team": "Kosovo",
+    "country_uid": "C_XK",
+    "components": {
+      "recency_goals": 68.4,
+      "squad_quality": 23.63,
+      "elo": 75.85,
+      "recent_form": 81.07
+    },
+    "final_rating": 60.6,
+    "v1_rating": 60.6,
+    "delta": 0.0
+  },
+  "Estonia": {
+    "team": "Estonia",
+    "country_uid": "C_EE",
+    "components": {
+      "recency_goals": 40.43,
+      "squad_quality": 13.63,
+      "elo": 75.85,
+      "recent_form": 21.33
+    },
+    "final_rating": 37.95,
+    "v1_rating": 37.95,
+    "delta": -0.0
+  },
+  "Algeria": {
+    "team": "Algeria",
+    "country_uid": "C_DZ",
+    "components": {
+      "recency_goals": 83.97,
+      "squad_quality": 48.77,
+      "elo": 65.17,
+      "recent_form": 86.63
+    },
+    "final_rating": 71.81,
+    "v1_rating": 71.81,
+    "delta": 0.0
+  },
+  "Latvia": {
+    "team": "Latvia",
+    "country_uid": "C_LV",
+    "components": {
+      "recency_goals": 34.82,
+      "squad_quality": 12.34,
+      "elo": 75.85,
+      "recent_form": 17.07
+    },
+    "final_rating": 34.74,
+    "v1_rating": 34.74,
+    "delta": 0.0
+  },
+  "Senegal": {
+    "team": "Senegal",
+    "country_uid": "C_SN",
+    "components": {
+      "recency_goals": 74.28,
+      "squad_quality": 66.32,
+      "elo": 65.17,
+      "recent_form": 89.6
+    },
+    "final_rating": 72.77,
+    "v1_rating": 72.77,
+    "delta": 0.0
+  },
+  "Morocco": {
+    "team": "Morocco",
+    "country_uid": "C_MA",
+    "components": {
+      "recency_goals": 76.7,
+      "squad_quality": 67.81,
+      "elo": 65.17,
+      "recent_form": 100.0
+    },
+    "final_rating": 75.67,
+    "v1_rating": 75.67,
+    "delta": 0.0
+  },
+  "Suriname": {
+    "team": "Suriname",
+    "country_uid": "C_SR",
+    "components": {
+      "recency_goals": 59.75,
+      "squad_quality": 24.11,
+      "elo": 63.74,
+      "recent_form": 45.51
+    },
+    "final_rating": 49.5,
+    "v1_rating": 49.5,
+    "delta": 0.0
+  },
+  "Dominican Republic": {
+    "team": "Dominican Republic",
+    "country_uid": "C_DO",
+    "components": {
+      "recency_goals": 76.23,
+      "squad_quality": 21.44,
+      "elo": 63.74,
+      "recent_form": 34.52
+    },
+    "final_rating": 53.78,
+    "v1_rating": 53.78,
+    "delta": 0.0
+  },
+  "Cuba": {
+    "team": "Cuba",
+    "country_uid": "C_CU",
+    "components": {
+      "recency_goals": 45.64,
+      "squad_quality": 4.64,
+      "elo": 63.74,
+      "recent_form": 47.88
+    },
+    "final_rating": 39.34,
+    "v1_rating": 39.34,
+    "delta": 0.0
+  },
+  "Nicaragua": {
+    "team": "Nicaragua",
+    "country_uid": "C_NI",
+    "components": {
+      "recency_goals": 51.49,
+      "squad_quality": 5.07,
+      "elo": 63.74,
+      "recent_form": 28.92
+    },
+    "final_rating": 38.95,
+    "v1_rating": 38.95,
+    "delta": 0.0
+  },
+  "Curacao": {
+    "team": "Curacao",
+    "country_uid": "C_CW",
+    "components": {
+      "recency_goals": 0.0,
+      "squad_quality": 6.2,
+      "elo": 63.74,
+      "recent_form": 57.07
+    },
+    "final_rating": 22.86,
+    "v1_rating": 22.86,
+    "delta": 0.0
+  },
+  "Haiti": {
+    "team": "Haiti",
+    "country_uid": "C_HT",
+    "components": {
+      "recency_goals": 76.22,
+      "squad_quality": 24.09,
+      "elo": 63.74,
+      "recent_form": 46.4
+    },
+    "final_rating": 56.22,
+    "v1_rating": 56.22,
+    "delta": 0.0
+  },
+  "Trinidad and Tobago": {
+    "team": "Trinidad and Tobago",
+    "country_uid": "C_TT",
+    "components": {
+      "recency_goals": 59.9,
+      "squad_quality": 13.43,
+      "elo": 63.74,
+      "recent_form": 35.35
+    },
+    "final_rating": 45.37,
+    "v1_rating": 45.37,
+    "delta": 0.0
+  },
+  "Guatemala": {
+    "team": "Guatemala",
+    "country_uid": "C_GT",
+    "components": {
+      "recency_goals": 57.13,
+      "squad_quality": 10.94,
+      "elo": 63.74,
+      "recent_form": 50.59
+    },
+    "final_rating": 45.92,
+    "v1_rating": 45.92,
+    "delta": -0.0
+  },
+  "El Salvador": {
+    "team": "El Salvador",
+    "country_uid": "C_SV",
+    "components": {
+      "recency_goals": 38.36,
+      "squad_quality": 27.47,
+      "elo": 63.74,
+      "recent_form": 35.12
+    },
+    "final_rating": 40.23,
+    "v1_rating": 40.23,
+    "delta": 0.0
+  },
+  "Jamaica": {
+    "team": "Jamaica",
+    "country_uid": "C_JM",
+    "components": {
+      "recency_goals": 56.09,
+      "squad_quality": 19.9,
+      "elo": 63.74,
+      "recent_form": 74.97
+    },
+    "final_rating": 51.4,
+    "v1_rating": 51.4,
+    "delta": 0.0
+  },
+  "Panama": {
+    "team": "Panama",
+    "country_uid": "C_PA",
+    "components": {
+      "recency_goals": 59.48,
+      "squad_quality": 12.84,
+      "elo": 63.74,
+      "recent_form": 76.58
+    },
+    "final_rating": 51.24,
+    "v1_rating": 51.24,
+    "delta": 0.0
+  },
+  "Costa Rica": {
+    "team": "Costa Rica",
+    "country_uid": "C_CR",
+    "components": {
+      "recency_goals": 66.37,
+      "squad_quality": 14.63,
+      "elo": 63.74,
+      "recent_form": 62.78
+    },
+    "final_rating": 52.37,
+    "v1_rating": 52.37,
+    "delta": 0.0
+  },
+  "Kazakhstan": {
+    "team": "Kazakhstan",
+    "country_uid": "C_KZ",
+    "components": {
+      "recency_goals": 43.02,
+      "squad_quality": 10.57,
+      "elo": 75.85,
+      "recent_form": 42.67
+    },
+    "final_rating": 41.42,
+    "v1_rating": 41.42,
+    "delta": -0.0
+  },
+  "Azerbaijan": {
+    "team": "Azerbaijan",
+    "country_uid": "C_AZ",
+    "components": {
+      "recency_goals": 41.92,
+      "squad_quality": 7.55,
+      "elo": 75.85,
+      "recent_form": 21.33
+    },
+    "final_rating": 37.02,
+    "v1_rating": 37.02,
+    "delta": 0.0
+  },
+  "Faroe Islands": {
+    "team": "Faroe Islands",
+    "country_uid": "C_FO",
+    "components": {
+      "recency_goals": 40.71,
+      "squad_quality": 18.99,
+      "elo": 75.85,
+      "recent_form": 81.07
+    },
+    "final_rating": 48.36,
+    "v1_rating": 48.36,
+    "delta": 0.0
+  },
+  "Malta": {
+    "team": "Malta",
+    "country_uid": "C_MT",
+    "components": {
+      "recency_goals": 33.59,
+      "squad_quality": 15.3,
+      "elo": 75.85,
+      "recent_form": 38.4
+    },
+    "final_rating": 38.19,
+    "v1_rating": 38.19,
+    "delta": 0.0
+  },
+  "Cyprus": {
+    "team": "Cyprus",
+    "country_uid": "C_CY",
+    "components": {
+      "recency_goals": 46.4,
+      "squad_quality": 12.94,
+      "elo": 75.85,
+      "recent_form": 34.13
+    },
+    "final_rating": 42.08,
+    "v1_rating": 42.08,
+    "delta": 0.0
+  },
+  "Moldova": {
+    "team": "Moldova",
+    "country_uid": "C_MD",
+    "components": {
+      "recency_goals": 35.44,
+      "squad_quality": 5.4,
+      "elo": 75.85,
+      "recent_form": 0.0
+    },
+    "final_rating": 30.7,
+    "v1_rating": 30.7,
+    "delta": 0.0
+  },
+  "Lithuania": {
+    "team": "Lithuania",
+    "country_uid": "C_LT",
+    "components": {
+      "recency_goals": 32.17,
+      "squad_quality": 6.73,
+      "elo": 75.85,
+      "recent_form": 21.33
+    },
+    "final_rating": 32.92,
+    "v1_rating": 32.92,
+    "delta": 0.0
+  },
+  "Tahiti": {
+    "team": "Tahiti",
+    "country_uid": "C_PF",
+    "components": {
+      "recency_goals": 67.94,
+      "squad_quality": 10.65,
+      "elo": 27.98,
+      "recent_form": 59.73
+    },
+    "final_rating": 44.39,
+    "v1_rating": 44.39,
+    "delta": 0.0
+  }
+}
