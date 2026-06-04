@@ -1,39 +1,68 @@
-# Backend API — FastAPI
+# FastAPI Backend Service
 
-This folder contains the FastAPI backend server that exposes REST endpoints used by the frontend. The service hosts tournament simulation logic, match override endpoints, country/rankings data, and related services.
+This is the high-performance backend application powering the Football Intelligence Platform. It exposes the REST API layer and bid-direction WebSocket connections for the real-time draft system.
 
-Core technologies
+---
 
-- Python 3.10+
-- FastAPI
-- (SQLAlchemy is present in the codebase where needed)
+## 🛠️ Key Technologies
 
-Local setup
+* **FastAPI**: Asynchronous routing, middleware validation, and speed.
+* **SQLAlchemy & SQLite/Postgres**: Database engines, schema declaration, and migrations.
+* **Pydantic**: Request and response schema contracts.
+* **WebSockets**: Concurrency-safe, real-time draft state broadcasts.
 
-```powershell
-Set-Location "C:\FIFA WC\platform\backend-api"
-"C:\FIFA WC\platform\.venv\Scripts\activate"
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8000
+---
+
+## 📂 Directory Layout
+
+```markdown
+platform/backend-api/
+├── app/
+│   ├── api/v1/
+│   │   ├── endpoints/       # Route controllers (analytics, predictions, draft, etc.)
+│   │   └── router.py        # Central API router mapping
+│   ├── core/                # DB connection, configurations, and core setup
+│   ├── models/              # SQLAlchemy model definitions (Draft, Match, User)
+│   ├── schemas/             # Pydantic data validation schemas
+│   └── services/            # Simulation engines & draft business logic wrappers
+├── app.db                   # Main SQLite database location (local development)
+└── README.md                # Backend service overview
 ```
 
-API surface (high-level)
+---
 
-- `GET /api/v1/tournament_results` — return tournament state and simulations (supports `refresh` and `simulations` query params)
-- `POST /api/v1/override_match` — apply an override and resimulate
-- `POST /api/v1/resimulate_from_match` — resimulate from a specified match
-- `GET /api/v1/play_as_team` — play-as-team simulation endpoints
-- `GET /api/v1/countries` — country rankings and metadata
+## 📡 Essential REST API Endpoints
 
-Key code locations
+### 1. Analytics & Ratings V2.1
+* **`GET /api/v1/analytics/team/{country_id}`**: Returns comprehensive ratings, recent form, and detailed offensive/defensive component breakdowns.
+* **`GET /api/v1/countries/rankings`**: Serves the active power ranks, indexes, and Elo ratings for all qualified nations.
 
-- `app/services/tournament_service.py` — core tournament simulation engine and defaults (UI refresh simulation counts, quick overrides)
-- `app/api/v1/endpoints/tournament.py` — tournament endpoints and wrappers
-- `app/api/v1/endpoints/countries.py` — country/rankings endpoint
+### 2. Match Predictor & Explainability
+* **`POST /api/v1/predictions/predict`**: Predicts scorelines between any two nations. Includes `advantage_breakdown` (Attack, Defense, Elo, Form, and Overall margins).
+* **`GET /api/v1/predictions`**: Accesses prediction logs and historic simulator outputs.
 
-Notes for developers
+### 3. Tournament Simulations
+* **`GET /api/v1/tournament_results`**: Organizes knockout brackets and returns Monte Carlo outcomes.
+* **`POST /api/v1/override_match`**: Applies user scores to custom fixtures and dynamically triggers downstream calculations.
 
-- The backend often returns wrapped payloads (e.g. `{ data: ... }`). The frontend unwraps these responses; keep the contract stable.
-- There are quick/UI simulation constants in the service to limit work done for a live UI refresh. If you change simulation counts, coordinate with the frontend.
+### 4. Real-time Lobbies
+* **`GET /api/v1/leagues/{league_id}`**: Retrieves league rules, participant structures, and rosters.
+* **`WS /api/v1/ws/auction/{league_id}/{user_id}`**: Livelink socket for draft nominations and bid inputs.
 
-API docs are available when running locally at `http://127.0.0.1:8000/docs`.
+---
+
+## 🚀 Running the Server Locally
+
+1. Navigate to the backend directory:
+   ```powershell
+   cd platform/backend-api
+   ```
+2. Activate your Python virtual environment:
+   ```powershell
+   ..\.venv\Scripts\activate
+   ```
+3. Boot the development server:
+   ```powershell
+   python -m uvicorn app.main:app --reload --port 8000
+   ```
+   *The interactive API documentation is served at `http://localhost:8000/docs`.*
