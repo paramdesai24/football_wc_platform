@@ -886,9 +886,16 @@ nav.nav-links,
 }
 
 .wc-table-shell {
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  .wc-table-shell table {
+    min-width: 600px;
+  }
 }
 
 .wc-table thead th {
@@ -2284,6 +2291,18 @@ html, body, #root {
     align-self: flex-start;
   }
 }
+
+.info-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .info-tiers-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
 
 
 

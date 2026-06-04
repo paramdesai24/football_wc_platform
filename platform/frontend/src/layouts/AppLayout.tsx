@@ -46,10 +46,6 @@ export function AppLayout() {
               <span style={{ fontWeight: 600, color: '#fff' }}>
                 FC Analytics
               </span>
-              ·
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                live football intelligence · broadcast-ready runtime
-              </span>
             </div>
 
             {/* Right — built by */}

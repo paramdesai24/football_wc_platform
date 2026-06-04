@@ -105,7 +105,7 @@ export default function AuctionInfoPage() {
 
       {/* Header */}
       <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(212,175,55,0.75)', marginBottom: 6 }}>
               AUCTION GUIDE
@@ -136,7 +136,7 @@ export default function AuctionInfoPage() {
       {activeTab === 'pool' && (
         <>
           {/* Tier summary */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+          <div className="info-tiers-grid">
             {TIERS.map(tier => (
               <div
                 key={tier}
@@ -196,12 +196,13 @@ export default function AuctionInfoPage() {
           </div>
 
           {/* Player table */}
-          <div style={card}>
+          <div style={{ ...card, overflow: 'hidden' }}>
             {loading ? (
               <div style={{ textAlign: 'center', padding: 32, color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>Loading players...</div>
             ) : (
               <>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div className="wc-table-shell">
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                       {['Player', 'Position', 'Club', 'Nation', 'Market Value', 'Base Price', 'Tier'].map(h => (
@@ -252,6 +253,7 @@ export default function AuctionInfoPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
 
                 {/* Pagination */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
