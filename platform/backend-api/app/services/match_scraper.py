@@ -149,15 +149,28 @@ async def af_fetch_player_stats(fixture_id: int) -> list[dict]:
             if minutes == 0:
                 continue
 
+            rating_str = games.get("rating")
+            player_rating = None
+            if rating_str:
+                try:
+                    player_rating = float(rating_str)
+                except (ValueError, TypeError):
+                    pass
+
             players.append({
-                "name":         info.get("name", ""),
-                "team_code":    team_code,
-                "minutes":      minutes,
-                "goals":        goals.get("total") or 0,
-                "assists":      goals.get("assists") or 0,
-                "yellow_cards": cards.get("yellow") or 0,
-                "red_cards":    cards.get("red") or 0,
-                "saves":        stats.get("goalkeeper", {}).get("saves") or 0,
+                "name":             info.get("name", ""),
+                "team_code":        team_code,
+                "minutes":          minutes,
+                "goals":            goals.get("total") or 0,
+                "assists":          goals.get("assists") or 0,
+                "yellow_cards":     cards.get("yellow") or 0,
+                "red_cards":        cards.get("red") or 0,
+                "saves":            stats.get("goalkeeper", {}).get("saves") or 0,
+                "goals_conceded":   goals.get("conceded") or 0,
+                "penalties_scored": stats.get("penalty", {}).get("scored") or 0,
+                "penalties_missed": stats.get("penalty", {}).get("missed") or 0,
+                "penalties_saved":  stats.get("penalty", {}).get("saved") or 0,
+                "player_rating":    player_rating,
                 # clean_sheet is computed later from match score
             })
     print(f"[AF] Got stats for {len(players)} players")
@@ -181,6 +194,19 @@ def compute_clean_sheet(
 
 
 # ── Unified scraper ───────────────────────────────────────────
+
+# Global status tracking object for match scraper cron
+SCRAPER_STATUS = {
+    "last_successful_run": None,
+    "next_scheduled_run": None,
+    "fixtures_processed_in_last_run": 0,
+    "players_processed_in_last_run": 0,
+    "total_fixtures_processed": 0,
+    "total_players_processed": 0,
+    "status": "idle",
+    "error_message": None,
+}
+
 
 async def scrape_match_full(parsed: dict) -> list[dict]:
     """
@@ -231,32 +257,42 @@ async def scrape_match_full(parsed: dict) -> list[dict]:
             )
 
             performances.append({
-                "name":         p["name"],
-                "team_code":    p["team_code"],
-                "goals":        goals,
-                "assists":      assists,
-                "minutes":      p["minutes"],
-                "yellow_cards": p["yellow_cards"],
-                "red_cards":    p["red_cards"],
-                "saves":        p["saves"],
-                "clean_sheet":  clean_sheet,
-                "source":       "api_football",
+                "name":             p["name"],
+                "team_code":        p["team_code"],
+                "goals":            goals,
+                "assists":          assists,
+                "minutes":          p["minutes"],
+                "yellow_cards":     p["yellow_cards"],
+                "red_cards":        p["red_cards"],
+                "saves":            p["saves"],
+                "goals_conceded":   p["goals_conceded"],
+                "penalties_scored": p["penalties_scored"],
+                "penalties_missed": p["penalties_missed"],
+                "penalties_saved":  p["penalties_saved"],
+                "player_rating":    p["player_rating"],
+                "clean_sheet":      clean_sheet,
+                "source":           "api_football",
             })
     else:
         # FALLBACK PATH — football-data.org scorers only
         # minutes default to 90; no cards, no clean sheets
         for s in fd_scorers:
             performances.append({
-                "name":         s["name"],
-                "team_code":    s["team_code"],
-                "goals":        s["goals"],
-                "assists":      s["assists"],
-                "minutes":      90,
-                "yellow_cards": 0,
-                "red_cards":    0,
-                "saves":        0,
-                "clean_sheet":  False,
-                "source":       "football_data_fallback",
+                "name":             s["name"],
+                "team_code":        s["team_code"],
+                "goals":            s["goals"],
+                "assists":          s["assists"],
+                "minutes":          90,
+                "yellow_cards":     0,
+                "red_cards":        0,
+                "saves":            0,
+                "goals_conceded":   0,
+                "penalties_scored": 0,
+                "penalties_missed": 0,
+                "penalties_saved":  0,
+                "player_rating":    None,
+                "clean_sheet":      False,
+                "source":           "football_data_fallback",
             })
         print(f"[SCRAPER] Using fallback (FD only) for match {parsed['match_id']}")
 

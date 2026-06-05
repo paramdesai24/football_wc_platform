@@ -33,6 +33,11 @@ async def lifespan(app: FastAPI):
             async with postgres_engine.begin() as conn:
                 await conn.run_sync(AuctionBase.metadata.create_all)
                 await conn.execute(text("ALTER TABLE league_members ADD COLUMN IF NOT EXISTS is_disqualified BOOLEAN DEFAULT FALSE;"))
+                await conn.execute(text("ALTER TABLE player_performances ADD COLUMN IF NOT EXISTS goals_conceded INTEGER DEFAULT 0;"))
+                await conn.execute(text("ALTER TABLE player_performances ADD COLUMN IF NOT EXISTS penalties_scored INTEGER DEFAULT 0;"))
+                await conn.execute(text("ALTER TABLE player_performances ADD COLUMN IF NOT EXISTS penalties_missed INTEGER DEFAULT 0;"))
+                await conn.execute(text("ALTER TABLE player_performances ADD COLUMN IF NOT EXISTS penalties_saved INTEGER DEFAULT 0;"))
+                await conn.execute(text("ALTER TABLE player_performances ADD COLUMN IF NOT EXISTS player_rating FLOAT;"))
             logger.info("Postgres tables initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Postgres tables: {e}")

@@ -145,6 +145,11 @@ class PlayerPerformance(AuctionBase):
     red_cards = Column(Integer, default=0)
     clean_sheet = Column(Boolean, default=False)
     saves = Column(Integer, default=0)
+    goals_conceded = Column(Integer, default=0)
+    penalties_scored = Column(Integer, default=0)
+    penalties_missed = Column(Integer, default=0)
+    penalties_saved = Column(Integer, default=0)
+    player_rating = Column(Float, nullable=True)
     raw_points = Column(Integer, default=0)
 
 

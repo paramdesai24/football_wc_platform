@@ -16,22 +16,25 @@ from app.models.auction_models import (
 )
 
 DEFAULT_SCORING = {
+    "goal_scored_gk": 10,
+    "goal_scored_def": 7,
+    "goal_scored_mid": 6,
     "goal_scored_fwd": 5,
-    "goal_scored_mid": 5,
-    "goal_scored_def": 6,
-    "goal_scored_gk": 6,
     "assist": 3,
+    "clean_sheet_gk": 4,
     "clean_sheet_def": 4,
     "clean_sheet_mid": 1,
-    "clean_sheet_gk": 4,
     "yellow_card": -1,
     "red_card": -3,
     "minutes_60": 1,
     "minutes_90": 2,
     "save_3": 1,
     "penalty_saved": 5,
-    "motm": 3,
-    "tournament_winner": 10,
+    "penalty_missed": -2,
+    "conceded_2": -1,
+    "rating_8": 1,
+    "rating_9": 2,
+    "hat_trick": 3,
 }
 
 # Best-XI formation slots: how many players per position count toward team points
@@ -47,26 +50,56 @@ def compute_points(perf: PlayerPerformance, position: str, rules: dict) -> int:
     pts = 0
     pos = (position or "MID").upper()
 
+    # 1. Playing time points
     if perf.minutes_played >= 90:
         pts += rules.get("minutes_90", 2)
     elif perf.minutes_played >= 60:
         pts += rules.get("minutes_60", 1)
 
+    # 2. Goal points
     goal_pos = pos.lower() if pos in {"GK", "DEF", "MID", "FWD"} else "mid"
     goal_key = f"goal_scored_{goal_pos}"
     pts += perf.goals * rules.get(goal_key, 5)
 
+    # 3. Assist points
     pts += perf.assists * rules.get("assist", 3)
 
+    # 4. Clean sheet points (GK, DEF, MID only, requires playing >= 60 mins)
     if perf.clean_sheet and perf.minutes_played >= 60:
         cs_key = f"clean_sheet_{goal_pos}"
         pts += rules.get(cs_key, 0)
 
+    # 5. Cards points
     pts += perf.yellow_cards * rules.get("yellow_card", -1)
     pts += perf.red_cards * rules.get("red_card", -3)
 
+    # 6. Position specific additional stats
     if pos == "GK":
+        # Saves
         pts += (perf.saves // 3) * rules.get("save_3", 1)
+        # Penalties saved
+        pts += getattr(perf, "penalties_saved", 0) * rules.get("penalty_saved", 5)
+
+    if pos in {"GK", "DEF"}:
+        # Every 2 goals conceded
+        conceded = getattr(perf, "goals_conceded", 0)
+        pts += (conceded // 2) * rules.get("conceded_2", -1)
+
+    # 7. Rating bonuses (all positions)
+    rating = getattr(perf, "player_rating", None)
+    if rating is not None:
+        if rating >= 9.0:
+            pts += rules.get("rating_9", 2)
+        elif rating >= 8.0:
+            pts += rules.get("rating_8", 1)
+
+    # 8. Penalty missed (all positions)
+    missed = getattr(perf, "penalties_missed", 0)
+    pts += missed * rules.get("penalty_missed", -2)
+
+    # 9. Hat trick bonus (all positions)
+    if perf.goals >= 3:
+        pts += rules.get("hat_trick", 3)
 
     return pts
 

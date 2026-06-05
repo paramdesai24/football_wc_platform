@@ -115,8 +115,17 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
     )
     from app.models.auction_models import AuctionPlayer
 
-    completed = await fd_fetch_completed_matches()
-    results   = []
+    api_failures = 0
+    try:
+        completed = await fd_fetch_completed_matches()
+    except Exception as e:
+        logger.error(f"API Failure: Failed to fetch completed matches: {e}")
+        raise
+
+    results = []
+    fixtures_skipped = 0
+    fixtures_processed = 0
+    players_processed = 0
 
     for raw in completed:
         parsed   = fd_parse_match(raw)
@@ -125,11 +134,18 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
         # Skip already processed matches
         existing = await db.execute(select(WCMatch).where(WCMatch.id == match_id))
         if existing.scalar_one_or_none():
+            fixtures_skipped += 1
             results.append({"match_id": match_id, "status": "already_processed"})
             continue
 
         # Get full player stats (API-Football primary, FD fallback)
-        perf_data = await scrape_match_full(parsed)
+        try:
+            perf_data = await scrape_match_full(parsed)
+        except Exception as e:
+            logger.error(f"API Failure: Failed to scrape stats for match {match_id}: {e}")
+            api_failures += 1
+            results.append({"match_id": match_id, "status": "failed", "error": str(e)})
+            continue
 
         # Match players to auction_players by name + team ISO code
         performances = []
@@ -155,6 +171,11 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
                     red_cards=p["red_cards"],
                     clean_sheet=p["clean_sheet"],
                     saves=p["saves"],
+                    goals_conceded=p.get("goals_conceded", 0),
+                    penalties_scored=p.get("penalties_scored", 0),
+                    penalties_missed=p.get("penalties_missed", 0),
+                    penalties_saved=p.get("penalties_saved", 0),
+                    player_rating=p.get("player_rating"),
                 ))
             else:
                 unmatched.append(p["name"])
@@ -177,6 +198,9 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
         # Run FPL-style scoring for this match
         await process_match_scores(match_id, db)
 
+        fixtures_processed += 1
+        players_processed += len(performances)
+
         results.append({
             "match_id":          match_id,
             "status":            "processed",
@@ -186,7 +210,15 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
             "data_source":       perf_data[0]["source"] if perf_data else "none",
         })
 
-    return {"scraped": len(results), "results": results}
+    return {
+        "scraped": len(results),
+        "results": results,
+        "fixtures_found": len(completed),
+        "fixtures_skipped": fixtures_skipped,
+        "fixtures_processed": fixtures_processed,
+        "players_processed": players_processed,
+        "api_failures": api_failures,
+    }
 
 
 @router.post("/recalculate")
@@ -253,3 +285,26 @@ async def list_matches(db: AsyncSession = Depends(get_postgres_db)):
             for match in matches
         ]
     }
+
+
+@router.get("/admin/scraper-status")
+async def get_scraper_status(db: AsyncSession = Depends(get_postgres_db)):
+    from app.services.match_scraper import SCRAPER_STATUS
+    from sqlalchemy import func
+    from sqlalchemy.future import select
+    try:
+        # Count completed matches
+        matches_count = await db.scalar(
+            select(func.count()).select_from(WCMatch).where(WCMatch.status == "completed")
+        )
+        # Count player performances
+        perf_count = await db.scalar(
+            select(func.count()).select_from(PlayerPerformance)
+        )
+        SCRAPER_STATUS["total_fixtures_processed"] = matches_count or 0
+        SCRAPER_STATUS["total_players_processed"] = perf_count or 0
+    except Exception as e:
+        # Log error but return whatever status we have
+        import logging
+        logging.getLogger(__name__).error(f"Error updating lifetime counts for status: {e}")
+    return SCRAPER_STATUS
