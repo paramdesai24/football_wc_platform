@@ -74,7 +74,7 @@ export default function AboutPage() {
       </section>
 
       {/* Main Grid */}
-      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18 }}>
         
         {/* Tournament Simulator */}
         <section style={card}>
@@ -131,7 +131,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
               <MetricBar label="Emerging" value="1600" fill={smartScoreBar(1600)} tone="var(--color-red)" />
               <MetricBar label="Competitive" value="1900" fill={smartScoreBar(1900)} tone="var(--color-accent)" />
               <MetricBar label="Contender" value="2200" fill={smartScoreBar(2200)} tone="var(--color-green)" />
@@ -162,7 +162,7 @@ export default function AboutPage() {
             The auction system allows managers to draft their dream World Cup squads dynamically. Bidding, nominations, timer resets, and roster requirements are synchronized instantaneously across all active participants using high-speed network connections.
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
             <div style={itemCard}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 18 }}>⏱️</span>
@@ -197,7 +197,7 @@ export default function AboutPage() {
       </section>
 
       {/* Data Feeds & Randomness */}
-      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18 }}>
         <section style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
