@@ -226,7 +226,7 @@ export default function AboutPage() {
             <span className="wc-badge wc-badge-gold" style={{ fontSize: 11 }}>Probability</span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, justifyContent: "center", height: "100%" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, fontSize: 13.5, margin: 0 }}>
               Football simulations are intentionally not deterministic. While the underlying statistics form a baseline, the match engine introduces random sampling (variance) to reflect real-world upsets.
             </div>
