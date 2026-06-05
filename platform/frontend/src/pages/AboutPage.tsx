@@ -2,28 +2,28 @@ import { smartScoreBar } from "@/utils/statBar";
 
 const simulationSteps = [
   {
-    title: "Build the team state",
-    body: "The backend loads the processed rankings and team data, then builds a live team_state snapshot for every nation before the tournament starts.",
+    title: "Predictive Nation Modeling",
+    body: "The engine initializes a comprehensive performance profile for all 48 qualified countries, capturing Elo rating, attack/defense coefficients, and momentum trends before kickoff.",
   },
   {
-    title: "Simulate group matches",
-    body: "Each group match is predicted through the match engine, xG is converted into goals with Poisson sampling when stochastic mode is on, and the standings are updated immediately.",
+    title: "Stochastic Match Simulation",
+    body: "Each fixture resolves through a dynamic expected-goals (xG) matrix. For stochastic modes, Poisson distribution modeling translates these strengths into realistic scorelines.",
   },
   {
-    title: "Resolve knockout drama",
-    body: "Knockout matches move through regulation, extra time, and penalties so every bracket path ends with a winner.",
+    title: "Tournament Bracket Orchestration",
+    body: "From the group stage standings, the engine automatically paths qualified teams through regulation, extra time, and penalty shootouts to simulate the full tournament tree.",
   },
   {
-    title: "Repeat at scale",
-    body: "The tournament can run once for a saved state, 2 quick runs for refreshes, 3 for overrides, or 100 simulations for a fuller Monte Carlo pass.",
+    title: "Monte Carlo Probability Scaling",
+    body: "To model unpredictability, simulations can scale from single-run brackets up to 100-run Monte Carlo passes, yielding robust winning probabilities and dark horse insights.",
   },
 ];
 
 const smartScoreSignals = [
-  "Elo rating from the processed country rankings",
-  "Attack and defense ratings from the ranking dataset",
-  "Recent form, momentum, consistency, and squad strength in the backend data pipeline",
-  "The frontend does not recalculate the score; it displays the backend's elo_rating field and scales it for the bar",
+  "Historical Elo ratings derived from all international fixtures.",
+  "Calibrated attack and defense coefficients based on tournament data.",
+  "Recent form indexes, team momentum, and overall squad depth.",
+  "Confederation weighting to account for international competition strength.",
 ];
 
 function MetricBar({ label, value, fill, tone }: { label: string; value: string; fill: number; tone: string }) {
@@ -41,39 +41,72 @@ function MetricBar({ label, value, fill, tone }: { label: string; value: string;
 }
 
 export default function AboutPage() {
+  const card: React.CSSProperties = {
+    background: 'rgba(10,18,34,0.72)',
+    backdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.09)',
+    borderRadius: 16,
+    padding: '24px 28px',
+  };
+
+  const itemCard: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 12,
+    padding: '16px 20px',
+  };
+
   return (
-    <div className="page-container">
-      <section className="wc-card section-card" style={{ marginBottom: 18 }}>
-        <div className="wc-card-header" style={{ marginBottom: 0 }}>
-          <div className="wc-card-title-group">
-            <div className="eyebrow">System guide</div>
-            <h1 className="page-title" style={{ fontSize: "1.9rem", marginBottom: 0 }}>How FC Analytics works</h1>
+    <div className="page-container" style={{ display: "grid", gap: 18 }}>
+      
+      {/* Hero Header */}
+      <section className="wc-card section-card" style={{ padding: "32px 36px" }}>
+        <div className="wc-card-header" style={{ marginBottom: 0, display: "flex", justifyContent: "space-between", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div className="wc-card-title-group" style={{ display: "grid", gap: 8 }}>
+            <div className="eyebrow" style={{ color: "#d4af37" }}>Methodology & Engine Insights</div>
+            <h1 className="page-title" style={{ fontSize: "clamp(2rem, 4vw, 2.5rem)", marginBottom: 0 }}>How FC Analytics Works</h1>
             <p className="page-sub" style={{ maxWidth: 820, margin: 0 }}>
-              This page explains the backend simulation flow, where the Smart Score comes from, and how the website turns raw football data into the views you see in the app.
+              An overview of our tournament simulator, the mathematical models behind the Smart Score, and how we deliver real-time calculations.
             </p>
           </div>
-          <div className="wc-badge wc-badge-gold">LIVE BACKEND LOGIC</div>
+          <span className="wc-badge wc-badge-gold" style={{ padding: "6px 14px", fontSize: 11, fontWeight: 700 }}>PREMIUM SIMULATION ENGINE</span>
         </div>
       </section>
 
-      <div className="layout-2col" style={{ marginBottom: 18 }}>
-        <section className="wc-card">
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="eyebrow">Backend simulation logic</div>
-              <h2 className="wc-section-title">How tournaments are generated</h2>
+      {/* Main Grid */}
+      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        
+        {/* Tournament Simulator */}
+        <section style={card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div className="eyebrow">Simulation algorithm</div>
+              <h2 className="wc-section-title" style={{ margin: 0, fontSize: 20 }}>Tournament Forecasting</h2>
             </div>
-            <div className="wc-badge">Monte Carlo</div>
+            <span className="wc-badge" style={{ background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 11 }}>Monte Carlo Model</span>
           </div>
 
-          <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gap: 14 }}>
             {simulationSteps.map((step, index) => (
-              <div key={step.title} className="card-compact" style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <div className="wc-badge wc-badge-gold" style={{ minWidth: 32, justifyContent: "center" }}>{index + 1}</div>
+              <div key={step.title} style={itemCard}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "rgba(212,175,55,0.12)",
+                    border: "1px solid rgba(212,175,55,0.3)",
+                    color: "#d4af37",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 800,
+                    fontSize: 13,
+                    flexShrink: 0
+                  }}>{index + 1}</div>
                   <div style={{ display: "grid", gap: 4 }}>
-                    <div style={{ fontWeight: 800, fontSize: "0.98rem" }}>{step.title}</div>
-                    <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.65, fontSize: "0.9rem" }}>{step.body}</div>
+                    <div style={{ fontWeight: 800, fontSize: "1rem", color: "#fff" }}>{step.title}</div>
+                    <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.6, fontSize: 13 }}>{step.body}</div>
                   </div>
                 </div>
               </div>
@@ -81,142 +114,129 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="wc-card">
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="eyebrow">Smart Score</div>
-              <h2 className="wc-section-title">What the number actually means</h2>
+        {/* Smart Score */}
+        <section style={card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div className="eyebrow">Nation index</div>
+              <h2 className="wc-section-title" style={{ margin: 0, fontSize: 20 }}>Understanding Smart Score</h2>
             </div>
-            <div className="wc-badge wc-badge-gold">Elo-backed</div>
+            <span className="wc-badge wc-badge-gold" style={{ fontSize: 11 }}>Elo-Backed</span>
           </div>
 
-          <div style={{ display: "grid", gap: 14 }}>
-            <div className="card-compact" style={{ borderColor: "rgba(212,175,55,0.16)", background: "rgba(212,175,55,0.06)" }}>
-              <div style={{ fontSize: "0.9rem", lineHeight: 1.7, color: "var(--color-text-secondary)" }}>
-                In the current UI, Smart Score is the backend <strong>elo_rating</strong> value returned by the country rankings endpoint. The frontend only formats it and converts it into a progress bar.
+          <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ ...itemCard, background: "rgba(212,175,55,0.04)", borderColor: "rgba(212,175,55,0.15)" }}>
+              <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.8)" }}>
+                The <strong>Smart Score</strong> is our composite rating metric. It evaluates team strength on a scaled index derived directly from the nation rankings, providing a standardized gauge of competitiveness.
               </div>
             </div>
 
-            <div className="layout-3col">
-              <MetricBar label="Low" value="1600" fill={smartScoreBar(1600)} tone="var(--color-red)" />
-              <MetricBar label="Mid" value="1900" fill={smartScoreBar(1900)} tone="var(--color-accent)" />
-              <MetricBar label="High" value="2200" fill={smartScoreBar(2200)} tone="var(--color-green)" />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              <MetricBar label="Emerging" value="1600" fill={smartScoreBar(1600)} tone="var(--color-red)" />
+              <MetricBar label="Competitive" value="1900" fill={smartScoreBar(1900)} tone="var(--color-accent)" />
+              <MetricBar label="Contender" value="2200" fill={smartScoreBar(2200)} tone="var(--color-green)" />
             </div>
 
-            <div className="card-compact" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>The scaling logic</div>
-              <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, fontSize: "0.9rem" }}>
-                The bar uses a fixed range from 1600 to 2200. Anything below 1600 clamps to 0%, anything above 2200 clamps to 100%. That keeps the visual consistent even when the underlying rating changes.
+            <div style={itemCard}>
+              <div style={{ fontWeight: 800, marginBottom: 6, color: "#fff", fontSize: 14 }}>Scaling & Normalization</div>
+              <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.6, fontSize: 13 }}>
+                To maintain a clean visual comparison, raw ratings are mapped into a standardized range. This scale accommodates team performance fluctuations while ensuring data visualizations remain consistent and intuitive.
               </div>
             </div>
           </div>
         </section>
       </div>
 
-      <section className="wc-card" style={{ marginBottom: 18 }}>
-        <div className="wc-card-header">
-          <div className="wc-card-title-group">
-            <div className="eyebrow">Auction system</div>
-            <h2 className="wc-section-title">How the auction works (overview)</h2>
+      {/* Realtime Draft & Auction */}
+      <section style={card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div>
+            <div className="eyebrow">Realtime gameplay</div>
+            <h2 className="wc-section-title" style={{ margin: 0, fontSize: 20 }}>Realtime Auction Engine</h2>
           </div>
-          <div className="wc-badge">Realtime · Server-authoritative</div>
+          <span className="wc-badge" style={{ background: "rgba(34,197,94,0.12)", color: "#22c55e", fontSize: 11 }}>Synchronized Room</span>
         </div>
 
-        <div style={{ display: 'grid', gap: 12 }}>
-          <div className="card-compact" style={{ color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-            The auction system lets managers create private leagues, nominate players, and bid in real time. It is
-            implemented as a server-authoritative flow where the backend maintains the single source of truth for rooms,
-            nomination queues, timers, and squad state. The frontend listens to WebSocket events and renders the live
-            bidding board and squad composition.
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.65, fontSize: 14 }}>
+            The auction system allows managers to draft their dream World Cup squads dynamically. Bidding, nominations, timer resets, and roster requirements are synchronized instantaneously across all active participants using high-speed network connections.
           </div>
 
-          <div style={{ display: 'grid', gap: 8 }}>
-            <div className="card-compact">
-              <strong>Key endpoints</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
-                - Player catalog: <code>/api/v1/auction/players</code>
-                <br />- League management: <code>/api/v1/leagues</code>
-                <br />- WebSocket room: <code>/ws/auction/{'{league_id}'}</code>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+            <div style={itemCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>⏱️</span>
+                <strong style={{ color: "#fff", fontSize: 14 }}>Active Bidding</strong>
+              </div>
+              <div style={{ color: "var(--color-text-secondary)", fontSize: 12.5, lineHeight: 1.55 }}>
+                Nominations run through a 60-second window. Once the first bid is accepted, the timer is shortened to a 30-second window, which resets on every subsequent bid.
               </div>
             </div>
 
-            <div className="card-compact">
-              <strong>Realtime events</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
-                <ul style={{ margin: 0, paddingLeft: 16 }}>
-                  <li><code>player_nominated</code> — server nominates a player and starts a timer</li>
-                  <li><code>bid_placed</code> — accepted bid resets the shorter timer</li>
-                  <li><code>bid_rejected</code> — rejected with reason (budget, squad limits, etc.)</li>
-                  <li><code>player_sold</code> — player assigned to the winner and persisted</li>
-                  <li><code>room_state</code> — periodic snapshot of users, budgets and squads</li>
-                </ul>
+            <div style={itemCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>📋</span>
+                <strong style={{ color: "#fff", fontSize: 14 }}>Roster Constraints</strong>
+              </div>
+              <div style={{ color: "var(--color-text-secondary)", fontSize: 12.5, lineHeight: 1.55 }}>
+                Position minimums (3 GK, 5 DEF, 5 MID, 5 FWD) and squad limits (max 20) are automatically verified during live bidding to prevent invalid squad compositions.
               </div>
             </div>
 
-            <div className="card-compact">
-              <strong>Business rules</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: 6 }}>
-                - Only the league host can start an auction.
-                <br />- Squad composition and position caps are enforced server-side at bid time.
-                <br />- Timers: initial nomination 60s; after first bid 30s; new bids reset to 30s.
-                <br />- All transactions (bids, sales) are recorded to the backend DB so state survives restarts.
+            <div style={itemCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>🏆</span>
+                <strong style={{ color: "#fff", fontSize: 14 }}>Best XI Points</strong>
+              </div>
+              <div style={{ color: "var(--color-text-secondary)", fontSize: 12.5, lineHeight: 1.55 }}>
+                Individual player scores compile automatically. Your total league score is derived strictly from the top 11 players in your squad matching a 1-4-3-3 formation.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="layout-2col" style={{ marginBottom: 18 }}>
-        <section className="wc-card">
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="eyebrow">What feeds it</div>
-              <h2 className="wc-section-title">The data the website uses</h2>
+      {/* Data Feeds & Randomness */}
+      <div className="layout-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        <section style={card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div className="eyebrow">Input parameters</div>
+              <h2 className="wc-section-title" style={{ margin: 0, fontSize: 20 }}>Underlying Analytics Feed</h2>
             </div>
-            <div className="wc-badge">Rankings feed</div>
+            <span className="wc-badge" style={{ background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 11 }}>Data Pipeline</span>
           </div>
 
-          <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "grid", gap: 12 }}>
             {smartScoreSignals.map((signal) => (
-              <div key={signal} className="card-compact" style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{ color: "var(--color-accent)", fontWeight: 800 }}>•</span>
-                <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.65, fontSize: "0.9rem" }}>{signal}</div>
+              <div key={signal} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <span style={{ color: "#d4af37", fontWeight: 800 }}>•</span>
+                <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.6, fontSize: 13.5 }}>{signal}</div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="wc-card">
-          <div className="wc-card-header">
-            <div className="wc-card-title-group">
-              <div className="eyebrow">How the site works</div>
-              <h2 className="wc-section-title">Where each page gets its data</h2>
+        <section style={card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div>
+              <div className="eyebrow">Stochastic modeling</div>
+              <h2 className="wc-section-title" style={{ margin: 0, fontSize: 20 }}>Match Variance & Randomness</h2>
             </div>
-            <div className="wc-badge wc-badge-gold">API-driven</div>
+            <span className="wc-badge wc-badge-gold" style={{ fontSize: 11 }}>Probability</span>
           </div>
 
-          <div style={{ display: "grid", gap: 10 }}>
-            <div className="card-compact">Dashboard, Rankings, Analytics, and Predictions read live backend endpoints.</div>
-            <div className="card-compact">Tournament Simulation calls the tournament orchestrator, which runs the whole bracket.</div>
-            <div className="card-compact">Play As A Team runs the simulation multiple times and extracts one team’s journey from each run.</div>
-            <div className="card-compact">The navbar and route structure are shared across the entire app, so the theme and navigation stay consistent.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, justifyContent: "center", height: "100%" }}>
+            <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, fontSize: 13.5, margin: 0 }}>
+              Football simulations are intentionally not deterministic. While the underlying statistics form a baseline, the match engine introduces random sampling (variance) to reflect real-world upsets.
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+              A heavy favorite may lose a single simulation due to bad variance, but running multiple iterations will showcase their statistical likelihood of victory.
+            </div>
           </div>
         </section>
       </div>
 
-      <section className="wc-card" style={{ marginBottom: 18 }}>
-        <div className="wc-card-header">
-          <div className="wc-card-title-group">
-            <div className="eyebrow">In plain language</div>
-            <h2 className="wc-section-title">Why results can change between runs</h2>
-          </div>
-          <div className="wc-badge">Seeded randomness</div>
-        </div>
-
-        <div style={{ color: "var(--color-text-secondary)", lineHeight: 1.75, fontSize: "0.95rem", maxWidth: 980 }}>
-          The simulation is intentionally not deterministic. The backend uses the same underlying football intelligence every time, but it samples outcomes to reflect match variance. That is why a strong team can still lose a single run, while its longer-term probability remains high across repeated simulations.
-        </div>
-      </section>
     </div>
   );
 }

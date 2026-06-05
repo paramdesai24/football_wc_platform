@@ -319,13 +319,27 @@ export default function AuctionInfoPage() {
             {
               step: '6',
               title: 'Squad & Positional Rules',
-              body: `You must build a squad of 15 players matching both minimum and maximum limits:\n• Goalkeepers (GK): Min 2 · Max 3\n• Defenders (DEF): Min 5 · Max 6\n• Midfielders (MID): Min 5 · Max 6\n• Forwards (FWD): Min 3 · Max 5\n\nYou cannot place a bid that would violate these position constraints or exceed the 15-player squad limit.`,
+              body: `You must build a squad of up to 20 players (or the customized squad size limit) that satisfies the position minimums:
+• Goalkeepers (GK): Min 3
+• Defenders (DEF): Min 5
+• Midfielders (MID): Min 5
+• Forwards (FWD): Min 5
+• Minimum Squad Size: 18 players total.
+
+💡 Dynamic Scaling: For every 1 increase in the league's squad strength limit above 20, the minimum defender requirement automatically increases by 1. Bids that violate these rules are not allowed.`,
               icon: '📋',
             },
             {
               step: '7',
-              title: 'Scoring During the World Cup',
-              body: `Points are awarded after each real WC match:\n• Goal (FWD/MID): +5 pts · Goal (DEF): +6 pts · Goal (GK): +6 pts\n• Assist: +3 pts\n• Clean sheet (DEF/GK, 60+ mins): +4 pts\n• Clean sheet (MID, 60+ mins): +1 pt\n• 90 mins played: +2 pts · 60+ mins played: +1 pt\n• Yellow card: −1 pt · Red card: −3 pts\n• GK: +1 pt per 3 saves`,
+              title: 'Best XI Scoring & World Cup Points',
+              body: `Real-time points are awarded to players based on World Cup performance:
+• Goal (FWD/MID): +5 pts · Goal (DEF): +6 pts · Goal (GK): +6 pts
+• Assist: +3 pts
+• Clean sheet (DEF/GK, 60+ mins): +4 pts · Clean sheet (MID): +1 pt
+• 90 mins played: +2 pts · 60+ mins played: +1 pt
+• Yellow card: −1 pt · Red card: −3 pts · GK: +1 pt per 3 saves
+
+⚖️ Best XI Selection: Your team total only counts your top 11 players in a 1-4-3-3 formation (best 1 GK, 4 DEFs, 3 MIDs, 3 FWDs). If a player on your bench performs better after a match update, they automatically replace the lower-scoring player in your XI!`,
               icon: '⚽',
             },
             {
