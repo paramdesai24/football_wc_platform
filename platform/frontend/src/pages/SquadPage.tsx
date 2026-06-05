@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 type SquadRow = {
   player?: {
+    id?: string;
     position?: string;
     name?: string;
     club?: string;
@@ -16,6 +17,8 @@ type SquadRow = {
     form_score?: number;
   };
   purchase_price?: number;
+  player_total_points?: number;
+  in_best_xi?: boolean;
 };
 
 type LeagueMember = {
@@ -99,6 +102,28 @@ export default function SquadPage() {
         </div>
       </section>
 
+      {/* Best XI explanation note */}
+      <section style={{
+        background: "rgba(167,139,250,0.06)",
+        border: "1px solid rgba(167,139,250,0.25)",
+        borderRadius: 14,
+        padding: "14px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        fontSize: 13,
+        color: "rgba(255,255,255,0.8)",
+        fontFamily: "var(--font-ui)",
+      }}>
+        <span style={{ fontSize: 18 }}>⚽</span>
+        <span>
+          <strong style={{ color: "#a78bfa" }}>Best XI scoring:</strong>{" "}
+          Only your top <strong>1 GK · 4 DEF · 3 MID · 3 FWD</strong> contribute to your team points each match cycle.
+          Individual player points always accumulate — the best 11 are automatically selected.
+          Players currently in your Best XI are marked with <strong style={{ color: "#22c55e" }}>✦ XI</strong>.
+        </span>
+      </section>
+
       {error && <div style={{ color: "#f87171", fontSize: 13 }}>{error}</div>}
       {loading ? (
         <section className="wc-card" style={{ padding: 24 }}>Loading squad...</section>
@@ -120,17 +145,66 @@ export default function SquadPage() {
                   {players.map((entry, index) => {
                     const player = entry.player ?? {};
                     const formScore = Number(player.form_score ?? 0);
+                    const tournamentPts = entry.player_total_points ?? 0;
+                    const inXI = entry.in_best_xi ?? false;
                     return (
-                      <article key={`${player.name ?? position}-${index}`} className="wc-card" style={{ padding: 16, display: "grid", gap: 12 }}>
+                      <article key={`${player.name ?? position}-${index}`} className="wc-card" style={{
+                        padding: 16,
+                        display: "grid",
+                        gap: 12,
+                        borderTop: inXI ? "2px solid rgba(34,197,94,0.5)" : undefined,
+                        background: inXI ? "rgba(34,197,94,0.03)" : undefined,
+                      }}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
                           <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
                             <FlagImg code={player.flag_code || "us"} size={22} />
                             <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
-                              <div style={{ fontFamily: "var(--font-ui)", fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{player.name || "Unknown Player"}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                                <div style={{ fontFamily: "var(--font-ui)", fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>{player.name || "Unknown Player"}</div>
+                                {inXI && (
+                                  <span style={{
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    letterSpacing: "0.07em",
+                                    color: "#22c55e",
+                                    background: "rgba(34,197,94,0.12)",
+                                    border: "1px solid rgba(34,197,94,0.3)",
+                                    borderRadius: 6,
+                                    padding: "2px 7px",
+                                    fontFamily: "var(--font-ui)",
+                                    whiteSpace: "nowrap",
+                                  }}>✦ XI</span>
+                                )}
+                              </div>
                               <div style={{ color: "var(--color-text-secondary)", fontSize: 12 }}>{player.club || "Unknown club"}</div>
                             </div>
                           </div>
-                          <div style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 700, color: "#e3c15c" }}>{entry.purchase_price ?? 0}</div>
+                          <div style={{ textAlign: "right", display: "grid", gap: 2 }}>
+                            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, color: "#e3c15c" }}>{entry.purchase_price ?? 0}</div>
+                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "var(--font-ui)" }}>paid</div>
+                          </div>
+                        </div>
+
+                        {/* Tournament points */}
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          background: "rgba(255,255,255,0.04)",
+                          borderRadius: 10,
+                          padding: "8px 12px",
+                        }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-ui)" }}>
+                            Tournament pts
+                          </span>
+                          <span style={{
+                            fontFamily: "var(--font-display)",
+                            fontSize: 20,
+                            fontWeight: 800,
+                            color: tournamentPts > 0 ? "#a78bfa" : tournamentPts < 0 ? "#f87171" : "rgba(255,255,255,0.3)",
+                          }}>
+                            {tournamentPts > 0 ? `+${tournamentPts}` : tournamentPts}
+                          </span>
                         </div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>

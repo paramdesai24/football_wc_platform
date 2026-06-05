@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Dict, List
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +34,14 @@ DEFAULT_SCORING = {
     "tournament_winner": 10,
 }
 
+# Best-XI formation slots: how many players per position count toward team points
+BEST_XI_SLOTS: Dict[str, int] = {
+    "GK":  1,
+    "DEF": 4,
+    "MID": 3,
+    "FWD": 3,
+}
+
 
 def compute_points(perf: PlayerPerformance, position: str, rules: dict) -> int:
     pts = 0
@@ -62,6 +71,21 @@ def compute_points(perf: PlayerPerformance, position: str, rules: dict) -> int:
     return pts
 
 
+def select_best_xi(user_player_points: Dict[str, List[int]]) -> int:
+    """
+    Given a dict of { position -> [list of points for each player at that position] },
+    return the total points from the best-XI selection:
+      top 1 GK + top 4 DEF + top 3 MID + top 3 FWD (by points).
+
+    Individual player points can still be any value (including negative).
+    """
+    total = 0
+    for pos, slots in BEST_XI_SLOTS.items():
+        pts_list = sorted(user_player_points.get(pos, []), reverse=True)
+        total += sum(pts_list[:slots])
+    return total
+
+
 async def process_match_scores(match_id: str, db: AsyncSession):
     result = await db.execute(
         select(PlayerPerformance, AuctionPlayer)
@@ -85,20 +109,40 @@ async def process_match_scores(match_id: str, db: AsyncSession):
 
     for league in leagues:
         rules = {**DEFAULT_SCORING, **(league.scoring_rules or {})}
-        league_points: dict[str, int] = defaultdict(int)
+
+        # Step 1: Compute raw points for every player in this match
+        player_pts: Dict[str, int] = {}     # player_id -> raw_points this match
+        player_pos: Dict[str, str] = {}     # player_id -> position
 
         for perf, player in rows:
             pts = compute_points(perf, player.position, rules)
             perf.raw_points = pts
+            player_pts[str(player.id)] = pts
+            player_pos[str(player.id)] = (player.position or "MID").upper()
 
+        # Step 2: Group players by user_id and their position -> list of points
+        #         user_id -> { position -> [pts, pts, ...] }
+        user_pos_points: Dict[str, Dict[str, List[int]]] = defaultdict(lambda: defaultdict(list))
+
+        player_ids_with_points = set(player_pts.keys())
+        if player_ids_with_points:
             squad_result = await db.execute(
                 select(Squad)
                 .where(Squad.league_id == league.id)
-                .where(Squad.player_id == player.id)
+                .where(Squad.player_id.in_(player_ids_with_points))
             )
-            squad_entry = squad_result.scalar_one_or_none()
-            if squad_entry:
-                league_points[squad_entry.user_id] += pts
+            squad_entries = squad_result.scalars().all()
+
+            for entry in squad_entries:
+                pid = str(entry.player_id)
+                pos = player_pos.get(pid, "MID")
+                pts = player_pts.get(pid, 0)
+                user_pos_points[entry.user_id][pos].append(pts)
+
+        # Step 3: For each user, calculate team points using best-XI selection
+        league_points: Dict[str, int] = {}
+        for user_id, pos_map in user_pos_points.items():
+            league_points[user_id] = select_best_xi(pos_map)
 
         affected_users = set(league_points)
         for (league_id, user_id), _points in prior_points.items():
@@ -137,4 +181,4 @@ async def process_match_scores(match_id: str, db: AsyncSession):
                 )
             )
 
-    await db.commit()
+    await db.commit()

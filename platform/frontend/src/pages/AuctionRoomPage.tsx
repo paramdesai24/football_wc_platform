@@ -84,6 +84,8 @@ export default function AuctionRoomPage() {
   const storeMessages = useAuctionStore((s) => s.messages);
   const storeSetLeague = useAuctionStore((s) => s.setLeague);
   const storeReset = useAuctionStore((s) => s.reset);
+  const isDisqualified = useAuctionStore((s) => s.isDisqualified);
+  const disqualificationMessage = useAuctionStore((s) => s.disqualificationMessage);
   const previousLeagueIdRef = useRef<string | null>(null);
   const [localUserId, setLocalUserId] = useState(paramUserId || storedUserId || "");
   const [localUsername, setLocalUsername] = useState(paramUsername || storedUsername || "");
@@ -216,6 +218,69 @@ export default function AuctionRoomPage() {
     }
   }, [storeMessages]);
 
+
+  if (isDisqualified) {
+    const minTotalPlayers = Number(leagueRules?.min_gk ?? 3) + Number(leagueRules?.min_def ?? 5) + Number(leagueRules?.min_mid ?? 5) + Number(leagueRules?.min_fwd ?? 5);
+
+    return (
+      <div style={disqualifiedContainerStyle}>
+        <div style={disqualifiedCardStyle}>
+          <div style={warningIconContainerStyle}>
+            <span style={{ fontSize: 48, filter: 'drop-shadow(0 0 10px rgba(239,68,68,0.5))' }}>⚠️</span>
+          </div>
+          <h1 style={disqualifiedTitleStyle}>DISQUALIFIED</h1>
+          <p style={disqualifiedMessageStyle}>
+            {disqualificationMessage || "Your roster did not meet the minimum positions or total size requirements."}
+          </p>
+
+          <div style={squadStatusContainerStyle}>
+            <div style={squadStatusHeaderStyle}>Your Roster Summary</div>
+            <div style={squadStatusGridStyle}>
+              <div style={squadStatusItemStyle}>
+                <span style={squadStatusLabelStyle}>Total Squad Size</span>
+                <span style={mySquadPlayers.length >= minTotalPlayers ? squadStatusValueOkStyle : squadStatusValueBadStyle}>
+                  {mySquadPlayers.length} / {minTotalPlayers}
+                </span>
+              </div>
+              {POSITION_ORDER.map((pos) => {
+                const count = mySquadPlayers.filter(p => p.position === pos).length;
+                const min = leagueRules ? (leagueRules[`min_${pos.toLowerCase()}` as keyof LeagueRules] ?? 0) : 0;
+                const ok = count >= Number(min);
+                return (
+                  <div key={pos} style={squadStatusItemStyle}>
+                    <span style={squadStatusLabelStyle}>{pos} Position</span>
+                    <span style={ok ? squadStatusValueOkStyle : squadStatusValueBadStyle}>
+                      {count} / {Number(min)} (min)
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              storeReset();
+              navigate("/auction");
+            }}
+            style={disqualifiedButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(239, 68, 68, 0.4)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, #f87171, #ef4444)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            }}
+          >
+            Return to Auctions
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -734,3 +799,111 @@ function primaryButtonStyle(enabled: boolean): React.CSSProperties {
     cursor: enabled ? "pointer" : "not-allowed",
   };
 }
+
+const disqualifiedContainerStyle: React.CSSProperties = {
+  minHeight: "80vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "20px",
+  fontFamily: "var(--font-ui)",
+};
+
+const disqualifiedCardStyle: React.CSSProperties = {
+  background: "rgba(239, 68, 68, 0.05)",
+  backdropFilter: "blur(16px)",
+  border: "1px solid rgba(239, 68, 68, 0.35)",
+  borderRadius: 24,
+  padding: "40px 30px",
+  width: "min(520px, 100%)",
+  textAlign: "center",
+  boxShadow: "0 20px 50px rgba(0,0,0,0.3), inset 0 0 20px rgba(239, 68, 68, 0.05)",
+  display: "grid",
+  gap: 24,
+};
+
+const warningIconContainerStyle: React.CSSProperties = {
+  background: "rgba(239, 68, 68, 0.15)",
+  border: "1px solid rgba(239, 68, 68, 0.4)",
+  width: 90,
+  height: 90,
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  margin: "0 auto",
+};
+
+const disqualifiedTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: 32,
+  fontWeight: 900,
+  letterSpacing: "0.05em",
+  color: "#f87171",
+  fontFamily: "var(--font-display)",
+};
+
+const disqualifiedMessageStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: 15,
+  lineHeight: 1.6,
+  color: "rgba(255,255,255,0.7)",
+};
+
+const squadStatusContainerStyle: React.CSSProperties = {
+  background: "rgba(0, 0, 0, 0.25)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  borderRadius: 16,
+  padding: 16,
+  textAlign: "left",
+};
+
+const squadStatusHeaderStyle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "rgba(255,255,255,0.4)",
+  marginBottom: 12,
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  paddingBottom: 6,
+};
+
+const squadStatusGridStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 8,
+};
+
+const squadStatusItemStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: 13,
+};
+
+const squadStatusLabelStyle: React.CSSProperties = {
+  color: "rgba(255,255,255,0.6)",
+};
+
+const squadStatusValueOkStyle: React.CSSProperties = {
+  color: "#4ade80",
+  fontWeight: 700,
+};
+
+const squadStatusValueBadStyle: React.CSSProperties = {
+  color: "#f87171",
+  fontWeight: 700,
+};
+
+const disqualifiedButtonStyle: React.CSSProperties = {
+  padding: "12px 24px",
+  borderRadius: 12,
+  border: "none",
+  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+  color: "#fff",
+  fontWeight: 700,
+  fontSize: 15,
+  cursor: "pointer",
+  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.2)",
+  transition: "all 0.2s ease",
+};

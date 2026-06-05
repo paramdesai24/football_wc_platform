@@ -152,6 +152,12 @@ export function useAuctionSocket(leagueId: string, userId: string, username: str
       addMessage(`❌ ${payload.message}`);
       toast.error(payload.message);
     }
+
+    if (type === "disqualified") {
+      useAuctionStore.getState().setIsDisqualified(true, payload.message);
+      addMessage(`❌ Disqualified: ${payload.message}`);
+      toast.error(payload.message);
+    }
   }, [addMessage, applyServerState, setCurrentPlayer, setHighBid, setMaxTimer, setStatus, setTimer, setUpcoming]);
 
   const { sendJsonMessage, readyState } = resolvedUseWebSocket(wsUrl, {

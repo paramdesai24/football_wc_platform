@@ -221,6 +221,13 @@ export function TopNavBar() {
 
                 {/* Menu items */}
                 <button
+                  id="btn-my-auctions"
+                  onClick={() => { setDropdownOpen(false); navigate('/my-auctions') }}
+                  style={dropdownItemStyle}
+                >
+                  🏆 My Auctions
+                </button>
+                <button
                   onClick={() => { setDropdownOpen(false); navigate('/auction') }}
                   style={dropdownItemStyle}
                 >

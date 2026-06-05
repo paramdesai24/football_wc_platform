@@ -35,8 +35,21 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"Failed to initialize Postgres tables: {e}")
             
+    # Start the background scraper task (executes every 3 days)
+    import asyncio
+    from app.jobs.match_scraper_job import start_match_scraper_cron
+    scraper_task = asyncio.create_task(start_match_scraper_cron())
+
     yield
+
     logger.info("Shutting down")
+    # Cancel the background scraper task on shutdown
+    scraper_task.cancel()
+    try:
+        await scraper_task
+    except asyncio.CancelledError:
+        logger.info("Background scraper task cancelled successfully during shutdown.")
+
 
 
 def create_app() -> FastAPI:

@@ -163,6 +163,92 @@ async def all_squads_complete(room: AuctionRoom, db: AsyncSession) -> bool:
     return True
 
 
+async def check_and_disqualify(room: AuctionRoom, db: AsyncSession) -> tuple[list[str], list[str]]:
+    """
+    Called when the host force-ends the auction.
+    Checks every league member against min position + squad size requirements.
+    Members that don't qualify are removed from league_members and squads.
+    Returns (qualified_user_ids, disqualified_user_ids).
+    """
+    from sqlalchemy import delete as sql_delete
+
+    league_result = await db.execute(
+        select(League).where(League.id == uuid.UUID(room.league_id))
+    )
+    league = league_result.scalar_one_or_none()
+    if not league:
+        return list(room.users.keys()), []
+
+    squad_size   = int(league.squad_size or 0)
+    min_req = {
+        "GK":  int(league.min_gk  or 0),
+        "DEF": int(league.min_def or 0),
+        "MID": int(league.min_mid or 0),
+        "FWD": int(league.min_fwd or 0),
+    }
+
+    # Build position map for all players in any squad in this room
+    squad_ids = {
+        _squad_player_id(entry)
+        for user in room.users.values()
+        for entry in user.squad
+        if _squad_player_id(entry)
+    }
+    position_map: dict[str, str] = {}
+    if squad_ids:
+        pos_result = await db.execute(
+            select(AuctionPlayer.id, AuctionPlayer.position).where(AuctionPlayer.id.in_(squad_ids))
+        )
+        position_map = {pid: pos for pid, pos in pos_result.all()}
+
+    qualified: list[str] = []
+    disqualified: list[str] = []
+
+    min_squad_size = sum(min_req.values())
+
+    for user_id, user in room.users.items():
+        counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        for entry in user.squad:
+            pid = _squad_player_id(entry)
+            pos = position_map.get(pid, "MID")
+            if pos in counts:
+                counts[pos] += 1
+
+        meets_requirements = (
+            len(user.squad) >= min_squad_size and
+            all(counts[pos] >= min_req[pos] for pos in min_req)
+        )
+
+        if meets_requirements:
+            qualified.append(user_id)
+        else:
+            disqualified.append(user_id)
+            # Remove from DB
+            try:
+                await db.execute(
+                    sql_delete(Squad).where(
+                        Squad.league_id == uuid.UUID(room.league_id),
+                        Squad.user_id == user_id,
+                    )
+                )
+                await db.execute(
+                    sql_delete(LeagueMember).where(
+                        LeagueMember.league_id == uuid.UUID(room.league_id),
+                        LeagueMember.user_id == user_id,
+                    )
+                )
+            except Exception as e:
+                print(f"[ERROR] Failed to remove disqualified user {user_id}: {e}")
+
+    try:
+        await db.commit()
+    except Exception as e:
+        print(f"[ERROR] Failed to commit disqualifications: {e}")
+
+    return qualified, disqualified
+
+
+
 def cancel_timer(room: AuctionRoom, current_task: asyncio.Task | None = None) -> None:
     if room.timer_task and room.timer_task is not current_task and not room.timer_task.done():
         room.timer_task.cancel()
@@ -785,20 +871,50 @@ async def handle_connection(
                 room.current_bidder_id = None
                 room.has_received_bid = False
 
-                # Persist league status
+                # Disqualify members whose rosters don't meet requirements
+                qualified, disqualified = await check_and_disqualify(room, db)
+
+                # Notify disqualified users individually
+                for dq_user_id in disqualified:
+                    dq_ws = room.connections.get(dq_user_id)
+                    if dq_ws:
+                        try:
+                            await dq_ws.send_json({
+                                "type": "disqualified",
+                                "payload": {
+                                    "message": "You have been disqualified — your roster did not meet the minimum requirements."
+                                }
+                            })
+                        except Exception:
+                            pass
+
+                # Determine league outcome
+                if not qualified:
+                    # No eligible members — forfeit the league
+                    new_status = "forfeited"
+                    print(f"[WARN] League {room.league_id} forfeited — no qualifying members")
+                else:
+                    new_status = "active"
+                    print(f"[OK] League {room.league_id} -> active ({len(qualified)} qualified, {len(disqualified)} disqualified)")
+
                 try:
                     await db.execute(
                         sql_update(League)
                         .where(League.id == uuid.UUID(room.league_id))
-                        .values(status="active")
+                        .values(status=new_status)
                     )
                     await db.commit()
                 except Exception as e:
-                    print(f"[ERROR] Failed to set league active on stop: {e}")
+                    print(f"[ERROR] Failed to set league {new_status} on stop: {e}")
 
                 await broadcast(room, {
                     "type": "auction_complete",
-                    "payload": await _serialize_room_state(room, db),
+                    "payload": {
+                        **await _serialize_room_state(room, db),
+                        "league_status": new_status,
+                        "disqualified": disqualified,
+                        "qualified": qualified,
+                    },
                 })
                 print(f"[OK] Auction stopped by host {user_id}")
 

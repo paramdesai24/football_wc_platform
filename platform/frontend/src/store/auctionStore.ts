@@ -59,6 +59,8 @@ interface AuctionState {
   maxTimerSeconds: number;
   bidPending: boolean;
   messages: string[];
+  isDisqualified: boolean;
+  disqualificationMessage: string | null;
 
   setLeague: (id: string, userId: string, username: string) => void;
   applyServerState: (payload: any) => void;
@@ -71,6 +73,7 @@ interface AuctionState {
   setConnectionStatus: (status: 'connected' | 'disconnected' | 'reconnecting') => void;
   setBidPending: (pending: boolean) => void;
   addMessage: (msg: string) => void;
+  setIsDisqualified: (isDisqualified: boolean, message: string | null) => void;
   reset: () => void;
 }
 
@@ -92,6 +95,8 @@ const initialState: Pick<
   | "maxTimerSeconds"
   | "bidPending"
   | "messages"
+  | "isDisqualified"
+  | "disqualificationMessage"
 > = {
   leagueId: null,
   userId: null,
@@ -109,6 +114,8 @@ const initialState: Pick<
   maxTimerSeconds: 60,
   bidPending: false,
   messages: [],
+  isDisqualified: false,
+  disqualificationMessage: null,
 };
 
 export const useAuctionStore = create<AuctionState>((set, get) => ({
@@ -150,5 +157,6 @@ export const useAuctionStore = create<AuctionState>((set, get) => ({
   setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
   setBidPending: (bidPending) => set({ bidPending }),
   addMessage: (msg) => set((state) => ({ messages: [msg, ...state.messages].slice(0, 50) })),
+  setIsDisqualified: (isDisqualified, disqualificationMessage) => set({ isDisqualified, disqualificationMessage }),
   reset: () => set(initialState),
 }));

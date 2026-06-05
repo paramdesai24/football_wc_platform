@@ -18,6 +18,7 @@ import AdminMatchPage from "@/pages/AdminMatchPage";
 import AuctionInfoPage from "@/pages/AuctionInfoPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import AuthGuard from '@/components/layout/AuthGuard'
+import MyAuctionsPage from '@/pages/MyAuctionsPage'
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: "/league/:id", element: <LeaguePage /> },
       { path: "/league/:id/squad/:uid", element: <AuthGuard><SquadPage /></AuthGuard> },
       { path: "/league/:id/leaderboard", element: <AuthGuard><LeaderboardPage /></AuthGuard> },
+      { path: "/my-auctions", element: <AuthGuard><MyAuctionsPage /></AuthGuard> },
       { path: ROUTES.PREDICTIONS, element: <PredictionsPage /> },
       { path: ROUTES.RANKINGS, element: <RankingsPage /> },
       { path: ROUTES.TEAM_ANALYTICS, element: <TeamAnalyticsPage /> },

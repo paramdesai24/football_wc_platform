@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE } from "@/services/api";
 import { toast } from "@/store/toastStore";
 import { useIdentityStore } from "@/store/identityStore";
+import useAuthStore from "@/store/authStore";
 
 function fieldLabel(_labelText?: string): React.CSSProperties {
   return {
@@ -51,10 +52,14 @@ export default function AuctionLobbyPage() {
   const setIdentityUserId = useIdentityStore((s) => s.setUserId);
   const setIdentityUsername = useIdentityStore((s) => s.setUsername);
   const setIdentityTeamName = useIdentityStore((s) => s.setTeamName);
+  const { user } = useAuthStore();
 
-  const [createForm, setCreateForm] = useState({ name: "", host_id: "", budget: 50000, squad_size: 20 });
-  const [joinForm, setJoinForm] = useState({ invite_code: "", user_id: "", team_name: "" });
-  const [rejoinForm, setRejoinForm] = useState({ invite_code: "", user_id: "" });
+  const userEmail    = user?.email ?? '';
+  const displayName  = user?.username ?? userEmail.split('@')[0] ?? '';
+
+  const [createForm, setCreateForm] = useState({ name: '', host_id: userEmail, display_name: displayName, budget: 50000, squad_size: 20 });
+  const [joinForm, setJoinForm] = useState({ invite_code: '', user_id: userEmail, username: displayName, team_name: '' });
+  const [rejoinForm, setRejoinForm] = useState({ invite_code: '', user_id: userEmail });
   const [createLoading, setCreateLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [rejoinLoading, setRejoinLoading] = useState(false);
@@ -81,7 +86,7 @@ export default function AuctionLobbyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: createForm.name,
-          host_id: createForm.host_id,
+          host_id: userEmail,
           budget: createForm.budget,
           squad_size: createForm.squad_size,
         }),
@@ -94,18 +99,23 @@ export default function AuctionLobbyPage() {
       // Auto-join the host so they immediately enter the auction room with host controls
       try {
         const invite = String(data.invite_code ?? "").trim().toUpperCase();
+        const teamLabel = createForm.display_name ? `${createForm.display_name}'s XI` : `${displayName}'s XI`;
         const joinRes = await fetch(`${API_BASE}/api/v1/leagues/${invite}/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: createForm.host_id,
-            team_name: `${createForm.host_id}'s XI`,
+            user_id: userEmail,
+            team_name: teamLabel,
           }),
         });
         const joinData = await joinRes.json();
         if (!joinRes.ok) throw new Error(joinData.detail ?? 'Failed to join newly created league');
-        // navigate into the auction room as the host
-        navigate(`/auction/room/${joinData.league_id}?userId=${createForm.host_id}&username=${encodeURIComponent(createForm.host_id)}`);
+        // navigate into the auction room as the host (email as userId)
+        navigate(
+          `/auction/room/${joinData.league_id}` +
+          `?userId=${encodeURIComponent(userEmail)}` +
+          `&username=${encodeURIComponent(createForm.display_name || displayName)}`
+        );
         return;
       } catch (err) {
         // If auto-join fails, surface the error but keep the invite code visible
@@ -128,11 +138,16 @@ export default function AuctionLobbyPage() {
       const res = await fetch(`${API_BASE}/api/v1/leagues/${invite}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: joinForm.user_id, team_name: joinForm.team_name }),
+        body: JSON.stringify({ user_id: userEmail, team_name: joinForm.team_name }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Failed to join league");
-      navigate(`/auction/room/${data.league_id}?userId=${joinForm.user_id}&username=${encodeURIComponent(joinForm.user_id)}&teamName=${encodeURIComponent(joinForm.team_name)}`);
+      navigate(
+        `/auction/room/${data.league_id}` +
+        `?userId=${encodeURIComponent(userEmail)}` +
+        `&username=${encodeURIComponent(joinForm.username || displayName)}` +
+        `&teamName=${encodeURIComponent(joinForm.team_name)}`
+      );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast.error(message);
@@ -150,20 +165,25 @@ export default function AuctionLobbyPage() {
       const res = await fetch(`${API_BASE}/api/v1/leagues/${invite}/rejoin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: rejoinForm.user_id }),
+        body: JSON.stringify({ user_id: userEmail }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? "Failed to rejoin league");
 
       // Set global client identity
-      setIdentityUserId(rejoinForm.user_id);
-      setIdentityUsername(rejoinForm.user_id);
+      setIdentityUserId(userEmail);
+      setIdentityUsername(displayName);
       if (data.team_name) {
         setIdentityTeamName(data.team_name);
       }
 
       toast.success("Welcome back! Redirecting to auction room...");
-      navigate(`/auction/room/${data.league_id}?userId=${rejoinForm.user_id}&username=${encodeURIComponent(rejoinForm.user_id)}&teamName=${encodeURIComponent(data.team_name || "")}`);
+      navigate(
+        `/auction/room/${data.league_id}` +
+        `?userId=${encodeURIComponent(userEmail)}` +
+        `&username=${encodeURIComponent(displayName)}` +
+        `&teamName=${encodeURIComponent(data.team_name || '')}`
+      );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast.error(message);
@@ -237,19 +257,22 @@ export default function AuctionLobbyPage() {
           </div>
 
           <div>
-            <label style={fieldLabel()}>Your username</label>
-                <input
-                  className="input-field"
-                  style={inputStyle()}
-                  value={createForm.host_id}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setCreateForm((current) => ({ ...current, host_id: value }));
-                    setIdentityUserId(value);
-                  }}
-                  placeholder="username"
-                  autoComplete="off"
-                />
+            <label style={fieldLabel()}>Your identity (email)</label>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10 }}>
+              {userEmail || 'Not signed in'}
+            </div>
+          </div>
+
+          <div>
+            <label style={fieldLabel()}>Display name</label>
+            <input
+              className="input-field"
+              style={inputStyle()}
+              value={createForm.display_name}
+              onChange={(event) => setCreateForm((current) => ({ ...current, display_name: event.target.value }))}
+              placeholder={displayName || 'Your name'}
+              autoComplete="off"
+            />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -316,12 +339,16 @@ export default function AuctionLobbyPage() {
               <div style={{ display: 'grid', gap: 8 }}>
                 <button
                   style={actionButton(true)}
-                  onClick={() => navigate(`/auction/room/${createdLeagueId}?userId=${createForm.host_id}&username=${encodeURIComponent(createForm.host_id)}`)}
+                  onClick={() => navigate(
+                    `/auction/room/${createdLeagueId}` +
+                    `?userId=${encodeURIComponent(userEmail)}` +
+                    `&username=${encodeURIComponent(createForm.display_name || displayName)}`
+                  )}
                 >
                   Enter Auction Room →
                 </button>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
-                  Your team: <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{createForm.host_id ? `${createForm.host_id}'s XI` : '—'}</strong>
+                  Your team: <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{createForm.display_name ? `${createForm.display_name}'s XI` : `${displayName}'s XI`}</strong>
                 </div>
               </div>
             </div>
@@ -343,17 +370,20 @@ export default function AuctionLobbyPage() {
           </div>
 
           <div>
-            <label style={fieldLabel("Your username")}>Your username</label>
+            <label style={fieldLabel('Your identity (email)')}>Your identity (email)</label>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10 }}>
+              {userEmail || 'Not signed in'}
+            </div>
+          </div>
+
+          <div>
+            <label style={fieldLabel("Display name")}>Display name</label>
             <input
               className="input-field"
               style={inputStyle()}
-              value={joinForm.user_id}
-              onChange={(event) => {
-                const value = event.target.value;
-                setJoinForm((current) => ({ ...current, user_id: value }));
-                setIdentityUserId(value);
-              }}
-              placeholder="username"
+              value={joinForm.username}
+              onChange={(event) => setJoinForm((current) => ({ ...current, username: event.target.value }))}
+              placeholder={displayName || 'Your name'}
               autoComplete="off"
             />
           </div>
@@ -398,22 +428,17 @@ export default function AuctionLobbyPage() {
               style={inputStyle()}
               value={rejoinForm.invite_code}
               onChange={(event) => setRejoinForm((current) => ({ ...current, invite_code: event.target.value.toUpperCase() }))}
+              onKeyDown={onEnter(handleRejoin)}
               placeholder="WOLF-7742"
               autoComplete="off"
             />
           </div>
 
           <div>
-            <label style={fieldLabel("Your username")}>Your username</label>
-            <input
-              className="input-field"
-              style={inputStyle()}
-              value={rejoinForm.user_id}
-              onChange={(event) => setRejoinForm((current) => ({ ...current, user_id: event.target.value }))}
-              onKeyDown={onEnter(handleRejoin)}
-              placeholder="username"
-              autoComplete="off"
-            />
+            <label style={fieldLabel('Your identity (email)')}>Your identity (email)</label>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10 }}>
+              {userEmail || 'Not signed in'}
+            </div>
           </div>
 
           {rejoinError && <div style={{ color: "#f87171", fontSize: 13 }}>{rejoinError}</div>}
