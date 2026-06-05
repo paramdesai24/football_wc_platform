@@ -223,22 +223,16 @@ async def check_and_disqualify(room: AuctionRoom, db: AsyncSession) -> tuple[lis
             qualified.append(user_id)
         else:
             disqualified.append(user_id)
-            # Remove from DB
+            # Mark as disqualified instead of removing from DB
             try:
                 await db.execute(
-                    sql_delete(Squad).where(
-                        Squad.league_id == uuid.UUID(room.league_id),
-                        Squad.user_id == user_id,
-                    )
-                )
-                await db.execute(
-                    sql_delete(LeagueMember).where(
-                        LeagueMember.league_id == uuid.UUID(room.league_id),
-                        LeagueMember.user_id == user_id,
-                    )
+                    sql_update(LeagueMember)
+                    .where(LeagueMember.league_id == uuid.UUID(room.league_id))
+                    .where(LeagueMember.user_id == user_id)
+                    .values(is_disqualified=True)
                 )
             except Exception as e:
-                print(f"[ERROR] Failed to remove disqualified user {user_id}: {e}")
+                print(f"[ERROR] Failed to mark user {user_id} as disqualified: {e}")
 
     try:
         await db.commit()

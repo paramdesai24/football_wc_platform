@@ -76,6 +76,7 @@ class LeagueMember(AuctionBase):
     budget_spent = Column(Integer, default=0)
     budget_left = Column(Integer)
     total_points = Column(Integer, default=0)
+    is_disqualified = Column(Boolean, default=False)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -29,8 +29,10 @@ async def lifespan(app: FastAPI):
     from app.models.auction_models import AuctionBase
     if postgres_engine is not None:
         try:
+            from sqlalchemy import text
             async with postgres_engine.begin() as conn:
                 await conn.run_sync(AuctionBase.metadata.create_all)
+                await conn.execute(text("ALTER TABLE league_members ADD COLUMN IF NOT EXISTS is_disqualified BOOLEAN DEFAULT FALSE;"))
             logger.info("Postgres tables initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Postgres tables: {e}")

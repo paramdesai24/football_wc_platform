@@ -201,6 +201,7 @@ async def my_leagues(user_id: str = Query(...), db: AsyncSession = Depends(get_p
                 "my_budget_spent":  member.budget_spent,
                 "my_total_points":  member.total_points,
                 "my_team_name":     member.team_name,
+                "my_is_disqualified": getattr(member, "is_disqualified", False),
                 "created_at":       str(league.created_at),
             }
             for league, member in rows

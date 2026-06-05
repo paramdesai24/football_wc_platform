@@ -63,6 +63,20 @@ export default function MyAuctionsPage() {
     boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
   }
 
+  const disqualifiedBannerStyle: React.CSSProperties = {
+    background: 'rgba(239, 68, 68, 0.08)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(239, 68, 68, 0.45)',
+    borderRadius: 14,
+    padding: '16px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    color: '#f87171',
+    fontFamily: 'var(--font-ui)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  }
+
   // ── Group squad by position ────────────────────────────────────────────────
   const byPos: Record<string, any[]> = { GK: [], DEF: [], MID: [], FWD: [] }
   squad.forEach(s => {
@@ -135,8 +149,8 @@ export default function MyAuctionsPage() {
               <div style={{ flex: '1 1 180px', minWidth: 180 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', fontFamily: 'var(--font-ui)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                   {league.name}
-                  {league.status === 'forfeited' && (
-                    <span title="League Forfeited" style={{ fontSize: 13 }}>⚠️</span>
+                  {(league.status === 'forfeited' || league.my_is_disqualified) && (
+                    <span title={league.my_is_disqualified ? "You are disqualified" : "League Forfeited"} style={{ fontSize: 13 }}>⚠️</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -145,11 +159,11 @@ export default function MyAuctionsPage() {
                   </span>
                   <span style={{
                     fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                    background: league.status === 'forfeited' ? 'rgba(239,68,68,0.15)' : league.status === 'active' ? 'rgba(34,197,94,0.15)' : 'rgba(212,175,55,0.12)',
-                    color:      league.status === 'forfeited' ? '#f87171' : league.status === 'active' ? '#22c55e' : '#d4af37',
+                    background: league.my_is_disqualified ? 'rgba(239,68,68,0.2)' : league.status === 'forfeited' ? 'rgba(239,68,68,0.15)' : league.status === 'active' ? 'rgba(34,197,94,0.15)' : 'rgba(212,175,55,0.12)',
+                    color:      league.my_is_disqualified ? '#ef4444' : league.status === 'forfeited' ? '#f87171' : league.status === 'active' ? '#22c55e' : '#d4af37',
                     fontFamily: 'var(--font-ui)',
                   }}>
-                    {league.status?.toUpperCase()}
+                    {league.my_is_disqualified ? 'DISQUALIFIED' : league.status?.toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -168,6 +182,18 @@ export default function MyAuctionsPage() {
       ) : (
         // ── SQUAD DETAIL VIEW ────────────────────────────────────────────────
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {selectedLeague.my_is_disqualified && (
+            <div style={disqualifiedBannerStyle}>
+              <span style={{ fontSize: 22, filter: 'drop-shadow(0 0 4px rgba(239,68,68,0.3))' }}>❌</span>
+              <div>
+                <h3 style={{ margin: "0 0 4px 0", fontSize: 14, fontWeight: 700, color: "#f87171", fontFamily: "var(--font-display)" }}>You Are Disqualified</h3>
+                <p style={{ margin: 0, fontSize: 13, opacity: 0.8, lineHeight: 1.5 }}>
+                  You have been disqualified from this league because your roster did not satisfy the squad size or position balance requirements when the auction ended.
+                </p>
+              </div>
+            </div>
+          )}
 
           {selectedLeague.status === 'forfeited' && (
             <div style={forfeitedBannerStyle}>
