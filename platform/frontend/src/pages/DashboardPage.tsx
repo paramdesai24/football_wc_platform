@@ -20,8 +20,22 @@ export default function DashboardPage() {
   // Analytics compare — real attack/defence from the analytics endpoint
   const [analyticsTeams, setAnalyticsTeams] = useState<any[]>([]);
 
+  const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
   // Existing data fetches
   useEffect(() => {
+    // 1. Check cache first
+    try {
+      const cached = localStorage.getItem("dashboard_rankings_cache");
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL_MS) {
+          setRankings(data);
+          return;
+        }
+      }
+    } catch {}
+
     apiGet<{ data?: CountryRankingRow[] }>("/api/v1/countries/rankings?limit=16").then((res) => {
       if (res.error || !res.data) {
         if (USE_MOCKS) {
@@ -34,6 +48,9 @@ export default function DashboardPage() {
       const rows = Array.isArray(res.data) ? res.data : (res.data as { data?: CountryRankingRow[] }).data;
       if (rows && rows.length > 0) {
         setRankings(rows);
+        try {
+          localStorage.setItem("dashboard_rankings_cache", JSON.stringify({ data: rows, timestamp: Date.now() }));
+        } catch {}
       } else if (USE_MOCKS) {
         setRankings(getMockCountryRankings());
       } else {
@@ -62,9 +79,27 @@ export default function DashboardPage() {
 
   // Fetch top Elite players
   useEffect(() => {
+    // Check cache first
+    try {
+      const cached = localStorage.getItem("dashboard_top_players_cache");
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL_MS) {
+          setTopPlayers(data);
+          return;
+        }
+      }
+    } catch {}
+
     fetch(`${API_BASE}/api/v1/auction/players?tier=Elite&limit=10`)
       .then(r => r.json())
-      .then(d => setTopPlayers(d.players ?? []))
+      .then(d => {
+        const players = d.players ?? [];
+        setTopPlayers(players);
+        try {
+          localStorage.setItem("dashboard_top_players_cache", JSON.stringify({ data: players, timestamp: Date.now() }));
+        } catch {}
+      })
       .catch(() => {});
   }, []);
 
@@ -76,10 +111,29 @@ export default function DashboardPage() {
       .sort((a, b) => (b.elo_rating ?? 0) - (a.elo_rating ?? 0))
       .slice(0, 8);
     const uids = top8ByElo.map(r => r.country_uid).join(',');
+
+    // Check cache first
+    const cacheKey = `dashboard_compare_cache_${uids}`;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL_MS) {
+          setAnalyticsTeams(data);
+          return;
+        }
+      }
+    } catch {}
+
     fetch(`${API_BASE}/api/v1/analytics/compare?team_ids=${encodeURIComponent(uids)}`)
       .then(r => r.json())
       .then(d => {
-        if (Array.isArray(d.data) && d.data.length > 0) setAnalyticsTeams(d.data);
+        if (Array.isArray(d.data) && d.data.length > 0) {
+          setAnalyticsTeams(d.data);
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({ data: d.data, timestamp: Date.now() }));
+          } catch {}
+        }
       })
       .catch(() => {});
   }, [rankings]);
