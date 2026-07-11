@@ -5,9 +5,7 @@ import { USE_MOCKS } from "@/dev/devFlags";
 import { getMockCountryRankings } from "@/dev/mockResponses";
 import { teamFlagCode } from "@/lib/flags";
 
-const MESSI_URL =
-  "https://media.cnn.com/api/v1/images/stellar/prod/221219105607-messi-crowd-world-cup-121822.jpg?q=w_3000,c_fill";
-const MESSI_FALLBACK = "/messi-hero-section.jpg";
+const HERO_IMAGE_URL = "/worldcup_hero_section.jpg";
 
 export default function DashboardPage() {
   const [rankings, setRankings] = useState<CountryRankingRow[]>([]);
@@ -15,7 +13,6 @@ export default function DashboardPage() {
   // New state
   const [topPlayers, setTopPlayers] = useState<any[]>([]);
   const [featuredNationIdx, setFeaturedNationIdx] = useState(0);
-  const [messiImgSrc, setMessiImgSrc] = useState(MESSI_URL);
   // Analytics compare — real attack/defence from the analytics endpoint
   const [analyticsTeams, setAnalyticsTeams] = useState<any[]>([]);
 
@@ -186,9 +183,8 @@ export default function DashboardPage() {
         }}>
           {/* Image underneath everything */}
           <img
-            src={messiImgSrc}
-            alt="Messi lifting the World Cup trophy"
-            onError={() => setMessiImgSrc(MESSI_FALLBACK)}
+            src={HERO_IMAGE_URL}
+            alt="FIFA World Cup"
             style={{
               width:          "100%",
               height:         "100%",
