@@ -294,11 +294,11 @@ export default function MyAuctionsPage() {
                         </span>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: '#d4af37' }}>
-                          {s.purchase_price?.toLocaleString()} coins
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: '#a78bfa' }}>
+                          {s.player_total_points ?? 0} pts
                         </div>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-ui)' }}>
-                          paid
+                          points
                         </div>
                       </div>
                     </div>
