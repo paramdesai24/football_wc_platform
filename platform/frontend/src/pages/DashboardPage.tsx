@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CountryRankingRow } from "@/contracts";
 import { apiGet, API_BASE } from "@/services/api";
 import { USE_MOCKS } from "@/dev/devFlags";
@@ -13,7 +13,6 @@ export default function DashboardPage() {
   const [rankings, setRankings] = useState<CountryRankingRow[]>([]);
 
   // New state
-  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [topPlayers, setTopPlayers] = useState<any[]>([]);
   const [featuredNationIdx, setFeaturedNationIdx] = useState(0);
   const [messiImgSrc, setMessiImgSrc] = useState(MESSI_URL);
@@ -59,23 +58,6 @@ export default function DashboardPage() {
     });
   }, []);
 
-  // Countdown timer
-  useEffect(() => {
-    const kickoff = new Date("2026-06-11T00:00:00Z");
-    const tick = () => {
-      const diff = kickoff.getTime() - Date.now();
-      if (diff <= 0) { setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 }); return; }
-      setCountdown({
-        days:    Math.floor(diff / 86400000),
-        hours:   Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-        seconds: Math.floor((diff % 60000) / 1000),
-      });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
 
   // Fetch top Elite players
   useEffect(() => {
@@ -304,53 +286,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════ */}
-      {/* SECTION 2 — COUNTDOWN                         */}
-      {/* ══════════════════════════════════════════════ */}
-      <div style={{
-        background:     "rgba(10,18,34,0.72)",
-        backdropFilter: "blur(16px)",
-        border:         "1px solid rgba(212,175,55,0.2)",
-        borderRadius:   16,
-        padding:        "24px 32px",
-        marginBottom:   20,
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "space-between",
-        flexWrap:       "wrap",
-        gap:            16,
-      }}>
-        <div>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.75)", marginBottom: 4, fontFamily: "var(--font-ui)" }}>
-            KICKOFF · JUNE 11, 2026
-          </div>
-          <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-ui)" }}>
-            Mexico City · Los Angeles · New York
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {[
-            { val: countdown.days,    label: "DAYS" },
-            { val: countdown.hours,   label: "HRS" },
-            { val: countdown.minutes, label: "MIN" },
-            { val: countdown.seconds, label: "SEC" },
-          ].map((u, i) => (
-            <React.Fragment key={u.label}>
-              {i > 0 && (
-                <span style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, color: "rgba(212,175,55,0.4)", marginBottom: 12 }}>:</span>
-              )}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 52 }}>
-                <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, color: "#d4af37", lineHeight: 1 }}>
-                  {String(u.val).padStart(2, "0")}
-                </span>
-                <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-ui)", marginTop: 3 }}>
-                  {u.label}
-                </span>
-              </div>
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
 
       {/* ══════════════════════════════════════════════════════════ */}
       {/* SECTIONS 3 + 4 — TOP TARGETS + MOST VALUABLE SQUADS ROW  */}

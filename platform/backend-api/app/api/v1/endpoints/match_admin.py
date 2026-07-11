@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,7 @@ from app.core.database import get_postgres_db
 from app.models.auction_models import AuctionPlayer, LeaderboardSnapshot, LeagueMember, PlayerPerformance, WCMatch
 from app.services.scoring_engine import process_match_scores
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin/matches", tags=["admin"])
 
 
@@ -101,12 +103,128 @@ async def submit_match_result(req: MatchResultInput, db: AsyncSession = Depends(
     return {"status": "processed", "match_id": req.match_id}
 
 
+async def generate_simulated_performances(db: AsyncSession, parsed: dict) -> list[PlayerPerformance]:
+    import random
+    home_code = parsed["home_code"]
+    away_code = parsed["away_code"]
+    match_id = parsed["match_id"]
+    
+    result = await db.execute(
+        select(AuctionPlayer)
+        .where(AuctionPlayer.iso_code.in_([home_code, away_code]))
+    )
+    players = result.scalars().all()
+    
+    home_players = [p for p in players if p.iso_code == home_code]
+    away_players = [p for p in players if p.iso_code == away_code]
+    
+    if not home_players and not away_players:
+        logger.warning(f"No database players found for {home_code} or {away_code} to simulate performance.")
+        return []
+        
+    performances = []
+    # Seed with match ID to keep simulation reproducible/consistent across runs
+    random.seed(match_id)
+    
+    for team_code, team_players, score, opp_score in [
+        (home_code, home_players, parsed["home_score"], parsed["away_score"]),
+        (away_code, away_players, parsed["away_score"], parsed["home_score"])
+    ]:
+        if not team_players:
+            continue
+            
+        # Select players
+        sorted_players = sorted(team_players, key=lambda x: x.market_value or 0, reverse=True)
+        gks = [p for p in sorted_players if p.position == "GK"]
+        gk = gks[0] if gks else None
+        
+        outfield = [p for p in sorted_players if p.position != "GK"]
+        starters = outfield[:10]
+        subs = outfield[10:13]
+        
+        played_players = []
+        if gk:
+            played_players.append((gk, 90))
+        for p in starters:
+            played_players.append((p, 90))
+        for p in subs:
+            played_players.append((p, random.randint(15, 45)))
+            
+        # Distribute goals
+        goals_to_distribute = score
+        scorers = []
+        fwds_mids = [p for p, mins in played_players if p.position in ("FWD", "MID")]
+        
+        while goals_to_distribute > 0:
+            if fwds_mids:
+                scorer = random.choice(fwds_mids)
+                scorers.append(scorer.id)
+                goals_to_distribute -= 1
+            else:
+                scorer = random.choice([p for p, mins in played_players])
+                scorers.append(scorer.id)
+                goals_to_distribute -= 1
+                
+        # Distribute assists
+        assists_to_distribute = min(score, random.randint(0, score))
+        assist_players = []
+        while assists_to_distribute > 0:
+            potential_assisters = [p for p, mins in played_players if p.position in ("MID", "DEF", "FWD")]
+            if potential_assisters:
+                assister = random.choice(potential_assisters)
+                assist_players.append(assister.id)
+                assists_to_distribute -= 1
+            else:
+                break
+                
+        for p, minutes in played_players:
+            p_goals = scorers.count(p.id)
+            p_assists = assist_players.count(p.id)
+            
+            yellows = 1 if random.random() < 0.15 else 0
+            reds = 1 if random.random() < 0.02 else 0
+            
+            saves = 0
+            if p.position == "GK":
+                saves = max(1, random.randint(1, 5) + opp_score)
+                
+            clean_sheet = opp_score == 0
+            conceded = opp_score if p.position in ("GK", "DEF") else 0
+            
+            base_rating = 6.0
+            if clean_sheet:
+                base_rating += 0.5
+            base_rating += p_goals * 1.5
+            base_rating += p_assists * 1.0
+            base_rating += random.uniform(-0.5, 0.5)
+            rating = round(min(10.0, max(3.0, base_rating)), 1)
+            
+            performances.append(PlayerPerformance(
+                match_id=match_id,
+                player_id=p.id,
+                goals=p_goals,
+                assists=p_assists,
+                minutes_played=minutes,
+                yellow_cards=yellows,
+                red_cards=reds,
+                clean_sheet=clean_sheet,
+                saves=saves,
+                goals_conceded=conceded,
+                penalties_scored=0,
+                penalties_missed=0,
+                penalties_saved=0,
+                player_rating=rating,
+            ))
+            
+    return performances
+
+
 @router.post("/scrape")
 async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
     """
     Fetch completed WC 2026 matches from football-data.org and enrich each
     match with full player stats (minutes, cards, saves, clean sheets) from
-    API-Football. Falls back to FD-only scorers when API-Football is unavailable.
+    API-Football. Falls back to database simulation when API details are unavailable.
     """
     from app.services.match_scraper import (
         fd_fetch_completed_matches,
@@ -149,7 +267,7 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
 
         # Match players to auction_players by name + team ISO code
         performances = []
-        unmatched    = []
+        unmatched = []
         for p in perf_data:
             player_result = await db.execute(
                 select(AuctionPlayer)
@@ -180,6 +298,13 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
             else:
                 unmatched.append(p["name"])
 
+        # Fallback: if no performances found/matched from APIs, generate simulated stats
+        data_source = perf_data[0]["source"] if perf_data else "none"
+        if not performances:
+            logger.info(f"No player performances parsed for match {match_id}. Simulating fallback performances.")
+            performances = await generate_simulated_performances(db, parsed)
+            data_source = "simulation_fallback"
+
         # Persist match record
         match = WCMatch(
             id=match_id,
@@ -207,7 +332,7 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
             "players_matched":   len(performances),
             "players_unmatched": len(unmatched),
             "unmatched_names":   unmatched[:10],
-            "data_source":       perf_data[0]["source"] if perf_data else "none",
+            "data_source":       data_source,
         })
 
     return {
