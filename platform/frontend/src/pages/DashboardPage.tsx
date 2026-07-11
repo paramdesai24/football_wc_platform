@@ -5,7 +5,7 @@ import { USE_MOCKS } from "@/dev/devFlags";
 import { getMockCountryRankings } from "@/dev/mockResponses";
 import { teamFlagCode } from "@/lib/flags";
 
-const HERO_IMAGE_URL = "/worldcup_hero_section.jpg";
+const HERO_IMAGE_URL = "/worldcup_herosection.jpg";
 
 export default function DashboardPage() {
   const [rankings, setRankings] = useState<CountryRankingRow[]>([]);
