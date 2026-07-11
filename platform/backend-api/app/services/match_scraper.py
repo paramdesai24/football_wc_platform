@@ -23,7 +23,105 @@ AF_WC_ID   = 1
 AF_HEADERS = {"x-apisports-key": AF_TOKEN}
 
 
-# ── football-data.org helpers ─────────────────────────────────
+import re
+
+TEAM_NAME_TO_ISO = {
+    "Algeria": "ALG",
+    "Argentina": "ARG",
+    "Australia": "AUS",
+    "Austria": "AUT",
+    "Belgium": "BEL",
+    "Bosnia and Herzegovina": "BIH",
+    "Bosnia & Herzegovina": "BIH",
+    "Brazil": "BRA",
+    "Canada": "CAN",
+    "Cape Verde": "CPV",
+    "Colombia": "COL",
+    "Cote d'Ivoire": "CIV",
+    "Ivory Coast": "CIV",
+    "Croatia": "CRO",
+    "Curaçao": "CUW",
+    "Curacao": "CUW",
+    "Czech Republic": "CZE",
+    "DR Congo": "COD",
+    "Democratic Republic of the Congo": "COD",
+    "Ecuador": "ECU",
+    "Egypt": "EGY",
+    "England": "ENG",
+    "France": "FRA",
+    "Germany": "GER",
+    "Ghana": "GHA",
+    "Haiti": "HAI",
+    "Iran": "IRN",
+    "Iraq": "IRQ",
+    "Italy": "ITA",
+    "Japan": "JPN",
+    "Jordan": "JOR",
+    "Korea, South": "KOR",
+    "South Korea": "KOR",
+    "Mexico": "MEX",
+    "Montenegro": "MNE",
+    "Morocco": "MAR",
+    "Netherlands": "NED",
+    "New Zealand": "NZL",
+    "Nigeria": "NGA",
+    "Norway": "NOR",
+    "Panama": "PAN",
+    "Paraguay": "PAR",
+    "Portugal": "POR",
+    "Qatar": "QAT",
+    "Saudi Arabia": "KSA",
+    "Scotland": "SCO",
+    "Senegal": "SEN",
+    "South Africa": "RSA",
+    "Spain": "ESP",
+    "Sweden": "SWE",
+    "Switzerland": "SUI",
+    "Tunisia": "TUN",
+    "Türkiye": "TUR",
+    "Turkey": "TUR",
+    "United States": "USA",
+    "Uruguay": "URU",
+    "Uzbekistan": "UZB",
+}
+
+_ALL_GAMES_CACHE = {}
+
+def parse_api_scorers(scorers_str: str, team_code: str) -> list[dict]:
+    if not scorers_str or scorers_str.lower() == "null":
+        return []
+    cleaned = scorers_str.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+    names_raw = re.findall(r'"([^"]+)"', cleaned)
+    if not names_raw:
+        names_raw = re.findall(r"'([^']+)'", cleaned)
+    if not names_raw:
+        names_raw = cleaned.strip("{}").split(",")
+        
+    scorers = []
+    for raw_name in names_raw:
+        raw_name = raw_name.strip('"\' ')
+        if not raw_name:
+            continue
+        if "(og)" in raw_name.lower() or "(o.g.)" in raw_name.lower():
+            continue
+        
+        match = re.match(r"^([^\d\(\'\"]+)", raw_name)
+        if match:
+            name = match.group(1).strip()
+            name = name.rstrip(" .")
+            if name:
+                scorers.append({
+                    "name": name,
+                    "team_code": team_code,
+                })
+                
+    merged = {}
+    for s in scorers:
+        n = s["name"]
+        if n not in merged:
+            merged[n] = {"name": n, "team_code": team_code, "goals": 0, "assists": 0}
+        merged[n]["goals"] += 1
+    return list(merged.values())
 
 def get_mock_completed_matches() -> list[dict]:
     return [
@@ -34,170 +132,85 @@ def get_mock_completed_matches() -> list[dict]:
             "awayTeam": {"tla": "GER", "name": "Germany"},
             "score": {"fullTime": {"home": 2, "away": 1}},
             "utcDate": "2026-06-12T18:00:00Z"
-        },
-        {
-            "id": 1002,
-            "stage": "GROUP_STAGE",
-            "homeTeam": {"tla": "BRA", "name": "Brazil"},
-            "awayTeam": {"tla": "ARG", "name": "Argentina"},
-            "score": {"fullTime": {"home": 1, "away": 1}},
-            "utcDate": "2026-06-13T20:00:00Z"
-        },
-        {
-            "id": 1003,
-            "stage": "GROUP_STAGE",
-            "homeTeam": {"tla": "FRA", "name": "France"},
-            "awayTeam": {"tla": "NED", "name": "Netherlands"},
-            "score": {"fullTime": {"home": 3, "away": 2}},
-            "utcDate": "2026-06-14T15:00:00Z"
-        },
-        {
-            "id": 1004,
-            "stage": "GROUP_STAGE",
-            "homeTeam": {"tla": "USA", "name": "United States"},
-            "awayTeam": {"tla": "CAN", "name": "Canada"},
-            "score": {"fullTime": {"home": 2, "away": 0}},
-            "utcDate": "2026-06-15T21:00:00Z"
-        },
-        {
-            "id": 1005,
-            "stage": "GROUP_STAGE",
-            "homeTeam": {"tla": "MEX", "name": "Mexico"},
-            "awayTeam": {"tla": "RSA", "name": "South Africa"},
-            "score": {"fullTime": {"home": 1, "away": 0}},
-            "utcDate": "2026-06-16T18:00:00Z"
-        },
-        {
-            "id": 1006,
-            "stage": "GROUP_STAGE",
-            "homeTeam": {"tla": "KOR", "name": "Korea, South"},
-            "awayTeam": {"tla": "SUI", "name": "Switzerland"},
-            "score": {"fullTime": {"home": 1, "away": 2}},
-            "utcDate": "2026-06-17T14:00:00Z"
-        },
-        {
-            "id": 2001,
-            "stage": "ROUND_OF_16",
-            "homeTeam": {"tla": "ESP", "name": "Spain"},
-            "awayTeam": {"tla": "SUI", "name": "Switzerland"},
-            "score": {"fullTime": {"home": 3, "away": 1}},
-            "utcDate": "2026-06-30T18:00:00Z"
-        },
-        {
-            "id": 2002,
-            "stage": "ROUND_OF_16",
-            "homeTeam": {"tla": "BRA", "name": "Brazil"},
-            "awayTeam": {"tla": "CAN", "name": "Canada"},
-            "score": {"fullTime": {"home": 2, "away": 0}},
-            "utcDate": "2026-07-01T20:00:00Z"
-        },
-        {
-            "id": 2003,
-            "stage": "ROUND_OF_16",
-            "homeTeam": {"tla": "FRA", "name": "France"},
-            "awayTeam": {"tla": "USA", "name": "United States"},
-            "score": {"fullTime": {"home": 2, "away": 1}},
-            "utcDate": "2026-07-02T18:00:00Z"
-        },
-        {
-            "id": 2004,
-            "stage": "ROUND_OF_16",
-            "homeTeam": {"tla": "ARG", "name": "Argentina"},
-            "awayTeam": {"tla": "MEX", "name": "Mexico"},
-            "score": {"fullTime": {"home": 1, "away": 0}},
-            "utcDate": "2026-07-03T20:00:00Z"
-        },
-        {
-            "id": 3001,
-            "stage": "QUARTER_FINALS",
-            "homeTeam": {"tla": "ESP", "name": "Spain"},
-            "awayTeam": {"tla": "FRA", "name": "France"},
-            "score": {"fullTime": {"home": 1, "away": 2}},
-            "utcDate": "2026-07-07T18:00:00Z"
-        },
-        {
-            "id": 3002,
-            "stage": "QUARTER_FINALS",
-            "homeTeam": {"tla": "BRA", "name": "Brazil"},
-            "awayTeam": {"tla": "ARG", "name": "Argentina"},
-            "score": {"fullTime": {"home": 2, "away": 1}},
-            "utcDate": "2026-07-08T20:00:00Z"
         }
     ]
 
 async def fd_fetch_completed_matches() -> list[dict]:
-    if not FD_TOKEN:
-        print("[FD] Token not set — using mock matches fallback")
-        return get_mock_completed_matches()
-    url = f"{FD_BASE}/competitions/{FD_WC_ID}/matches?status=FINISHED"
-    print(f"[FD] Fetching completed matches: {url}")
+    url = "https://worldcup26.ir/get/games"
+    print(f"[WC26.IR] Fetching games: {url}")
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            res = await client.get(url, headers=FD_HEADERS)
-            print(f"[FD] Status: {res.status_code}")
-            if res.status_code != 200:
-                print(f"[FD] Error: {res.text[:300]}")
-                return get_mock_completed_matches()
+            res = await client.get(url)
             res.raise_for_status()
-            return res.json().get("matches", [])
+            games = res.json().get("games", [])
+            finished_games = []
+            for g in games:
+                if g.get("finished") == "TRUE":
+                    finished_games.append(g)
+                    try:
+                        _ALL_GAMES_CACHE[int(g["id"])] = g
+                    except Exception:
+                        pass
+            print(f"[WC26.IR] Found {len(finished_games)} finished matches.")
+            return finished_games
     except Exception as e:
-        print(f"[FD] Fetch exception: {e} — using mock matches fallback")
+        print(f"[WC26.IR] Failed to fetch from API: {e}. Falling back to mock matches.")
         return get_mock_completed_matches()
 
 
 def fd_parse_match(raw: dict) -> dict:
-    home  = raw.get("homeTeam", {})
-    away  = raw.get("awayTeam", {})
-    score = raw.get("score", {}).get("fullTime", {})
+    home_name = raw.get("home_team_name_en", "")
+    away_name = raw.get("away_team_name_en", "")
+    home_code = TEAM_NAME_TO_ISO.get(home_name, "UNK")
+    away_code = TEAM_NAME_TO_ISO.get(away_name, "UNK")
+    
+    from datetime import datetime
+    local_date = raw.get("local_date", "")
+    try:
+        dt = datetime.strptime(local_date, "%m/%d/%Y %H:%M")
+        played_at = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        played_at = local_date
+        
+    STAGE_MAPPING = {
+        "group": "Group Stage",
+        "r32": "Round Of 32",
+        "r16": "Round Of 16",
+        "qf": "Quarter-finals",
+        "sf": "Semi-finals",
+        "final": "Final"
+    }
+    stage = STAGE_MAPPING.get(raw.get("type", "").lower(), "Group Stage")
+    
     return {
         "match_id":       f"WC2026_{raw['id']}",
-        "fd_match_id":    raw["id"],
-        "stage":          raw.get("stage", "GROUP_STAGE").replace("_", " ").title(),
-        "home_code":      home.get("tla", "").upper(),
-        "away_code":      away.get("tla", "").upper(),
-        "home_score":     score.get("home", 0) or 0,
-        "away_score":     score.get("away", 0) or 0,
-        "played_at":      raw.get("utcDate"),
-        "home_team_name": home.get("name", ""),
-        "away_team_name": away.get("name", ""),
+        "fd_match_id":    int(raw["id"]),
+        "stage":          stage,
+        "home_code":      home_code,
+        "away_code":      away_code,
+        "home_score":     int(raw.get("home_score") or 0),
+        "away_score":     int(raw.get("away_score") or 0),
+        "played_at":      played_at,
+        "home_team_name": home_name,
+        "away_team_name": away_name,
+        "raw_game":       raw
     }
 
 
 def fd_parse_scorers(match_detail: dict) -> list[dict]:
-    """Extract goal/assist events from a football-data.org match detail response."""
-    goals  = match_detail.get("goals", [])
-    events: dict[str, dict] = {}
-    for g in goals:
-        scorer = g.get("scorer", {})
-        assist = g.get("assist")
-        team   = g.get("team", {})
-        tla    = team.get("tla", "").upper()
-        if scorer and scorer.get("name"):
-            n = scorer["name"]
-            if n not in events:
-                events[n] = {"name": n, "team_code": tla, "goals": 0, "assists": 0}
-            events[n]["goals"] += 1
-        if assist and assist.get("name"):
-            n = assist["name"]
-            if n not in events:
-                events[n] = {"name": n, "team_code": tla, "goals": 0, "assists": 0}
-            events[n]["assists"] += 1
-    return list(events.values())
+    home_name = match_detail.get("home_team_name_en", "")
+    away_name = match_detail.get("away_team_name_en", "")
+    home_code = TEAM_NAME_TO_ISO.get(home_name, "UNK")
+    away_code = TEAM_NAME_TO_ISO.get(away_name, "UNK")
+    
+    home_list = parse_api_scorers(match_detail.get("home_scorers", ""), home_code)
+    away_list = parse_api_scorers(match_detail.get("away_scorers", ""), away_code)
+    
+    return home_list + away_list
 
 
 async def fd_fetch_match_detail(fd_match_id: int) -> dict:
-    if fd_match_id >= 1000:
-        return {"goals": []}
-    url = f"{FD_BASE}/matches/{fd_match_id}"
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            res = await client.get(url, headers=FD_HEADERS)
-            if res.status_code != 200:
-                return {"goals": []}
-            res.raise_for_status()
-            return res.json()
-    except Exception:
-        return {"goals": []}
+    return _ALL_GAMES_CACHE.get(fd_match_id, {})
 
 
 # ── API-Football helpers ──────────────────────────────────────

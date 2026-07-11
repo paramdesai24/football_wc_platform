@@ -268,41 +268,79 @@ async def scrape_and_process(db: AsyncSession = Depends(get_postgres_db)):
         # Match players to auction_players by name + team ISO code
         performances = []
         unmatched = []
+
+        # 1. Always generate base simulated performances to ensure goalkeepers/defenders get minutes/saves/clean sheets
+        sim_perfs = await generate_simulated_performances(db, parsed)
+        sim_perf_map = {p.player_id: p for p in sim_perfs}
+
+        # 2. Match real goal/assist scorers and overlay them on simulated stats
+        data_source = perf_data[0]["source"] if perf_data else "none"
         for p in perf_data:
+            player = None
+            # Try exact/substring match first
             player_result = await db.execute(
                 select(AuctionPlayer)
+                .where(AuctionPlayer.iso_code == p["team_code"])
                 .where(AuctionPlayer.name.ilike(f"%{p['name']}%"))
-                .where(AuctionPlayer.iso_code.in_([
-                    parsed["home_code"], parsed["away_code"]
-                ]))
                 .limit(1)
             )
             player = player_result.scalar_one_or_none()
+
+            # Try initials matching (e.g. J. Quiñones -> Julián Quiñones)
+            if not player:
+                parts = [part.strip(".") for part in p["name"].split() if part.strip(".")]
+                if len(parts) >= 2:
+                    last_name = parts[-1]
+                    first_char = parts[0][0]
+                    res = await db.execute(
+                        select(AuctionPlayer)
+                        .where(AuctionPlayer.iso_code == p["team_code"])
+                    )
+                    team_players = res.scalars().all()
+                    for tp in team_players:
+                        tp_name = tp.name.lower()
+                        tp_parts = tp_name.split()
+                        if tp_parts and last_name.lower() in tp_name:
+                            if tp_parts[0].startswith(first_char.lower()):
+                                player = tp
+                                break
+
             if player:
-                performances.append(PlayerPerformance(
-                    match_id=match_id,
-                    player_id=player.id,
-                    goals=p["goals"],
-                    assists=p["assists"],
-                    minutes_played=p["minutes"],
-                    yellow_cards=p["yellow_cards"],
-                    red_cards=p["red_cards"],
-                    clean_sheet=p["clean_sheet"],
-                    saves=p["saves"],
-                    goals_conceded=p.get("goals_conceded", 0),
-                    penalties_scored=p.get("penalties_scored", 0),
-                    penalties_missed=p.get("penalties_missed", 0),
-                    penalties_saved=p.get("penalties_saved", 0),
-                    player_rating=p.get("player_rating"),
-                ))
+                if player.id in sim_perf_map:
+                    sim_p = sim_perf_map[player.id]
+                    sim_p.goals = p["goals"]
+                    sim_p.assists = p["assists"]
+                    # Recalculate rating
+                    base_rating = 6.0
+                    if sim_p.clean_sheet:
+                        base_rating += 0.5
+                    base_rating += sim_p.goals * 1.5
+                    base_rating += sim_p.assists * 1.0
+                    sim_p.player_rating = round(min(10.0, max(3.0, base_rating)), 1)
+                else:
+                    # Create new performance for sub/outfielder not in starter simulation
+                    clean_sheet = parsed["away_score"] == 0 if p["team_code"] == parsed["home_code"] else parsed["home_score"] == 0
+                    base_rating = 6.0 + p["goals"] * 1.5 + p["assists"] * 1.0
+                    sim_perf_map[player.id] = PlayerPerformance(
+                        match_id=match_id,
+                        player_id=player.id,
+                        goals=p["goals"],
+                        assists=p["assists"],
+                        minutes_played=45,
+                        yellow_cards=0,
+                        red_cards=0,
+                        clean_sheet=clean_sheet,
+                        saves=0,
+                        goals_conceded=0,
+                        player_rating=round(min(10.0, max(3.0, base_rating)), 1)
+                    )
             else:
                 unmatched.append(p["name"])
 
-        # Fallback: if no performances found/matched from APIs, generate simulated stats
-        data_source = perf_data[0]["source"] if perf_data else "none"
-        if not performances:
-            logger.info(f"No player performances parsed for match {match_id}. Simulating fallback performances.")
-            performances = await generate_simulated_performances(db, parsed)
+        performances = list(sim_perf_map.values())
+        if perf_data and data_source != "simulation_fallback":
+            data_source = f"{data_source}_integrated"
+        else:
             data_source = "simulation_fallback"
 
         # Persist match record
